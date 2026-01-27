@@ -17,10 +17,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Player Registration
 
-- [ ] **REG-01**: Player can register for tournament with open status
-- [ ] **REG-02**: Player can withdraw from tournament with proper forfeit handling
-- [ ] **REG-03**: Users can view list of tournament participants
-- [ ] **REG-04**: System enforces maximum participant limits during registration
+- [x] **REG-01**: Player can register for tournament with open status
+- [x] **REG-02**: Player can withdraw from tournament with proper forfeit handling
+- [x] **REG-03**: Users can view list of tournament participants
+- [x] **REG-04**: System enforces maximum participant limits during registration
 
 ### Match Management
 

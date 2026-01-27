@@ -264,6 +264,55 @@ service TournamentService {
       }
     };
   }
+
+  rpc RegisterForTournament (RegisterForTournamentRequest) returns (RegisterForTournamentResponse) {
+    option (google.api.http) = {
+      post: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/register"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Register for Tournament"
+      description: "Register user for tournament with capacity enforcement"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc GetTournamentParticipants (GetTournamentParticipantsRequest) returns (GetTournamentParticipantsResponse) {
+    option (google.api.http) = {
+      get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/participants"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get Tournament Participants"
+      description: "List all participants for a tournament with pagination"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc RemoveParticipant (RemoveParticipantRequest) returns (RemoveParticipantResponse) {
+    option (google.api.http) = {
+      delete: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Remove Tournament Participant"
+      description: "Admin-only: Remove participant from tournament"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
 }
 
 // OpenAPI options for the entire API.

@@ -194,6 +194,9 @@ func main() {
 	// Initialize Tournament storage with MongoDB
 	tournamentStorage := storage.NewMongoTournamentStorage(mongoClient, mongoDatabase, logger)
 
+	// Initialize Participant storage with MongoDB
+	participantStorage := storage.NewParticipantStorage(mongoClient, mongoDatabase, logger)
+
 	// Initialize Tournament authentication interceptor
 	tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
 
@@ -206,7 +209,7 @@ func main() {
 	pb.RegisterServiceServer(s, myServiceServer)
 
 	// Register Tournament Service
-	tournamentServer := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, tournamentAuthInterceptor, logger)
+	tournamentServer := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
 	serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
 
 	// Enable gRPC Reflection

@@ -826,31 +826,43 @@ const file_tournament_proto_rawDesc = "" +
 	"\x18TOURNAMENT_STATUS_ACTIVE\x10\x02\x12\x1d\n" +
 	"\x19TOURNAMENT_STATUS_STARTED\x10\x03\x12\x1f\n" +
 	"\x1bTOURNAMENT_STATUS_COMPLETED\x10\x04\x12\x1f\n" +
-	"\x1bTOURNAMENT_STATUS_CANCELLED\x10\x052\xdb\v\n" +
-	"\x11TournamentService\x12\x9e\x02\n" +
-	"\x10CreateTournament\x12#.tournament.CreateTournamentRequest\x1a$.tournament.CreateTournamentResponse\"\xbe\x01\x92AW\x12\x11Create Tournament\x1a4Create a new tournament with specified configurationb\f\n" +
+	"\x1bTOURNAMENT_STATUS_CANCELLED\x10\x052\xb5\f\n" +
+	"\x11TournamentService\x12\xb0\x02\n" +
+	"\x10CreateTournament\x12#.tournament.CreateTournamentRequest\x1a$.tournament.CreateTournamentResponse\"\xd0\x01\x92Ai\x12\x11Create Tournament\x1a4Create a new tournament with specified configurationb\x1e\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x01\x82\xd3\xe4\x93\x020:\x01*\"+/v1/admin/namespace/{namespace}/tournaments\x12\x9f\x02\n" +
-	"\x0fListTournaments\x12\".tournament.ListTournamentsRequest\x1a#.tournament.ListTournamentsResponse\"\xc2\x01\x92Ac\x12\x10List Tournaments\x1aAList tournaments with optional filtering by status and date rangeb\f\n" +
+	"\x06Bearer\x12\x00\n" +
+	"\x10\n" +
+	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x01\x82\xd3\xe4\x93\x020:\x01*\"+/v1/admin/namespace/{namespace}/tournaments\x12\xb1\x02\n" +
+	"\x0fListTournaments\x12\".tournament.ListTournamentsRequest\x1a#.tournament.ListTournamentsResponse\"\xd4\x01\x92Au\x12\x10List Tournaments\x1aAList tournaments with optional filtering by status and date rangeb\x1e\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02.\x12,/v1/public/namespace/{namespace}/tournaments\x12\x8d\x02\n" +
-	"\rGetTournament\x12 .tournament.GetTournamentRequest\x1a!.tournament.GetTournamentResponse\"\xb6\x01\x92AG\x12\x0eGet Tournament\x1a'Get tournament details by tournament IDb\f\n" +
+	"\x06Bearer\x12\x00\n" +
+	"\x10\n" +
+	"\fServiceToken\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02.\x12,/v1/public/namespace/{namespace}/tournaments\x12\x9f\x02\n" +
+	"\rGetTournament\x12 .tournament.GetTournamentRequest\x1a!.tournament.GetTournamentResponse\"\xc8\x01\x92AY\x12\x0eGet Tournament\x1a'Get tournament details by tournament IDb\x1e\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02>\x12</v1/public/namespace/{namespace}/tournaments/{tournament_id}\x12\xb9\x02\n" +
-	"\x0fStartTournament\x12\".tournament.StartTournamentRequest\x1a#.tournament.StartTournamentResponse\"\xdc\x01\x92A_\x12\x10Start Tournament\x1a=Start a tournament to generate brackets and begin competitionb\f\n" +
+	"\x06Bearer\x12\x00\n" +
+	"\x10\n" +
+	"\fServiceToken\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02>\x12</v1/public/namespace/{namespace}/tournaments/{tournament_id}\x12\xcb\x02\n" +
+	"\x0fStartTournament\x12\".tournament.StartTournamentRequest\x1a#.tournament.StartTournamentResponse\"\xee\x01\x92Aq\x12\x10Start Tournament\x1a=Start a tournament to generate brackets and begin competitionb\x1e\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start\x12\xb6\x02\n" +
-	"\x10CancelTournament\x12#.tournament.CancelTournamentRequest\x1a$.tournament.CancelTournamentResponse\"\xd6\x01\x92AX\x12\x11Cancel Tournament\x1a5Cancel a tournament and prevent further participationb\f\n" +
+	"\x06Bearer\x12\x00\n" +
+	"\x10\n" +
+	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start\x12\xc8\x02\n" +
+	"\x10CancelTournament\x12#.tournament.CancelTournamentRequest\x1a$.tournament.CancelTournamentResponse\"\xe8\x01\x92Aj\x12\x11Cancel Tournament\x1a5Cancel a tournament and prevent further participationb\x1e\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02G:\x01*\"B/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancelB\xbc\x01\x92AE\x12\x15\n" +
-	"\x0eTournament API2\x031.0\"\v/tournamentZ\x1f\n" +
-	"\x1d\n" +
-	"\x06Bearer\x12\x13\b\x02\x1a\rAuthorization \x02\n" +
+	"\x06Bearer\x12\x00\n" +
+	"\x10\n" +
+	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02G:\x01*\"B/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancelB\xce\x02\x92A\xd6\x01\x12\x15\n" +
+	"\x0eTournament API2\x031.0\"\v/tournamentZ\xaf\x01\n" +
+	"X\n" +
+	"\x06Bearer\x12N\b\x02\x129User Bearer token for authentication (from AccelByte IAM)\x1a\rAuthorization \x02\n" +
+	"S\n" +
+	"\fServiceToken\x12C\b\x02\x12,Service token for game server authentication\x1a\x0fX-Service-Token \x02\n" +
 	"%net.accelbyte.extend.serviceextensionP\x01Z%accelbyte.net/extend/serviceextension\xaa\x02!AccelByte.Extend.ServiceExtensionb\x06proto3"
 
 var (

@@ -110,6 +110,10 @@ service TournamentService {
           key: "Bearer"
           value: {}
         }
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
       }
     };
   }
@@ -129,6 +133,10 @@ service TournamentService {
           key: "Bearer"
           value: {}
         }
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
       }
     };
   }
@@ -146,6 +154,10 @@ service TournamentService {
       security: {
         security_requirement: {
           key: "Bearer"
+          value: {}
+        }
+        security_requirement: {
+          key: "ServiceToken"
           value: {}
         }
       }
@@ -168,6 +180,10 @@ service TournamentService {
           key: "Bearer"
           value: {}
         }
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
       }
     };
   }
@@ -186,6 +202,10 @@ service TournamentService {
       security: {
         security_requirement: {
           key: "Bearer"
+          value: {}
+        }
+        security_requirement: {
+          key: "ServiceToken"
           value: {}
         }
       }
@@ -208,6 +228,16 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
         type: TYPE_API_KEY;
         in: IN_HEADER;
         name: "Authorization";
+        description: "User Bearer token for authentication (from AccelByte IAM)";
+      }
+    }
+    security: {
+      key: "ServiceToken";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "X-Service-Token";
+        description: "Service token for game server authentication";
       }
     }
   };

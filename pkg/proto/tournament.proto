@@ -95,6 +95,7 @@ message CancelTournamentResponse {
 service TournamentService {
 
   rpc CreateTournament (CreateTournamentRequest) returns (CreateTournamentResponse) {
+    // Admin permission required: CREATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
     option (permission.action) = CREATE;
     option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {
@@ -114,6 +115,7 @@ service TournamentService {
   }
 
   rpc ListTournaments (ListTournamentsRequest) returns (ListTournamentsResponse) {
+    // Public read permission: READ on NAMESPACE:{namespace}:TOURNAMENT
     option (permission.action) = READ;
     option (permission.resource) = "NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {
@@ -132,6 +134,7 @@ service TournamentService {
   }
 
   rpc GetTournament (GetTournamentRequest) returns (GetTournamentResponse) {
+    // Public read permission: READ on NAMESPACE:{namespace}:TOURNAMENT
     option (permission.action) = READ;
     option (permission.resource) = "NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {
@@ -150,6 +153,7 @@ service TournamentService {
   }
 
   rpc StartTournament (StartTournamentRequest) returns (StartTournamentResponse) {
+    // Admin permission required: UPDATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
     option (permission.action) = UPDATE;
     option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {
@@ -169,6 +173,7 @@ service TournamentService {
   }
 
   rpc CancelTournament (CancelTournamentRequest) returns (CancelTournamentResponse) {
+    // Admin permission required: UPDATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
     option (permission.action) = UPDATE;
     option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {

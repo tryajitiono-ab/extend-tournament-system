@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"extend-custom-guild-service/pkg/server"
 	"extend-custom-guild-service/pkg/service"
 	"extend-custom-guild-service/pkg/storage"
 	"fmt"
@@ -197,6 +198,13 @@ func main() {
 	// Initialize Participant storage with MongoDB
 	participantStorage := storage.NewParticipantStorage(mongoClient, mongoDatabase, logger)
 
+	// Initialize Participant service
+	participantService := service.NewParticipantService(
+		participantStorage,
+		tournamentStorage,
+		logger,
+	)
+
 	// Initialize Tournament authentication interceptor
 	tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
 
@@ -208,8 +216,14 @@ func main() {
 	myServiceServer := service.NewMyServiceServer(tokenRepo, configRepo, refreshRepo, cloudSaveStorage)
 	pb.RegisterServiceServer(s, myServiceServer)
 
-	// Register Tournament Service
-	tournamentServer := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
+	// Initialize Tournament service
+	tournamentService := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
+
+	// Register Tournament Service with participant integration
+	tournamentServer := server.NewTournamentServer(
+		tournamentService,
+		participantService,
+	)
 	serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
 
 	// Enable gRPC Reflection

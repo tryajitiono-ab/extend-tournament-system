@@ -17,14 +17,14 @@ import (
 // ParticipantService handles participant registration operations
 type ParticipantService struct {
 	participantStorage *storage.ParticipantStorage
-	tournamentStorage  *storage.TournamentStorage
+	tournamentStorage  storage.TournamentStorage
 	logger             *slog.Logger
 }
 
 // NewParticipantService creates a new participant service instance
 func NewParticipantService(
 	participantStorage *storage.ParticipantStorage,
-	tournamentStorage *storage.TournamentStorage,
+	tournamentStorage storage.TournamentStorage,
 	logger *slog.Logger,
 ) *ParticipantService {
 	return &ParticipantService{

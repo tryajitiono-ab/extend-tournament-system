@@ -115,6 +115,55 @@
         ]
       }
     },
+    "/v1/admin/namespace/{namespace}/tournaments/{tournamentId}/participants/{userId}": {
+      "delete": {
+        "summary": "Remove Tournament Participant",
+        "description": "Admin-only: Remove participant from tournament",
+        "operationId": "TournamentService_RemoveParticipant",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tournamentRemoveParticipantResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TournamentService"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
     "/v1/admin/namespace/{namespace}/tournaments/{tournamentId}/start": {
       "post": {
         "summary": "Start Tournament",
@@ -291,6 +340,113 @@
           }
         ]
       }
+    },
+    "/v1/public/namespace/{namespace}/tournaments/{tournamentId}/participants": {
+      "get": {
+        "summary": "Get Tournament Participants",
+        "description": "List all participants for a tournament with pagination",
+        "operationId": "TournamentService_GetTournamentParticipants",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tournamentGetTournamentParticipantsResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "pageSize",
+            "in": "query",
+            "required": false,
+            "type": "integer",
+            "format": "int32"
+          },
+          {
+            "name": "pageToken",
+            "in": "query",
+            "required": false,
+            "type": "string"
+          }
+        ],
+        "tags": [
+          "TournamentService"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
+    },
+    "/v1/public/namespace/{namespace}/tournaments/{tournamentId}/register": {
+      "post": {
+        "summary": "Register for Tournament",
+        "description": "Register user for tournament with capacity enforcement",
+        "operationId": "TournamentService_RegisterForTournament",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tournamentRegisterForTournamentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TournamentServiceRegisterForTournamentBody"
+            }
+          }
+        ],
+        "tags": [
+          "TournamentService"
+        ],
+        "security": [
+          {
+            "Bearer": []
+          }
+        ]
+      }
     }
   },
   "definitions": {
@@ -319,6 +475,9 @@
           "format": "date-time"
         }
       }
+    },
+    "TournamentServiceRegisterForTournamentBody": {
+      "type": "object"
     },
     "TournamentServiceStartTournamentBody": {
       "type": "object"
@@ -367,6 +526,25 @@
         }
       }
     },
+    "tournamentGetTournamentParticipantsResponse": {
+      "type": "object",
+      "properties": {
+        "participants": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "$ref": "#/definitions/tournamentParticipant"
+          }
+        },
+        "totalParticipants": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "nextPageToken": {
+          "type": "string"
+        }
+      }
+    },
     "tournamentGetTournamentResponse": {
       "type": "object",
       "properties": {
@@ -388,6 +566,66 @@
         "totalCount": {
           "type": "integer",
           "format": "int32"
+        }
+      }
+    },
+    "tournamentParticipant": {
+      "type": "object",
+      "properties": {
+        "participantId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "tournamentId": {
+          "type": "string"
+        },
+        "registeredAt": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "tournamentRegisterForTournamentResponse": {
+      "type": "object",
+      "properties": {
+        "participantId": {
+          "type": "string"
+        },
+        "tournamentId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "registeredAt": {
+          "type": "string",
+          "format": "date-time"
+        }
+      }
+    },
+    "tournamentRemoveParticipantResponse": {
+      "type": "object",
+      "properties": {
+        "tournamentId": {
+          "type": "string"
+        },
+        "userId": {
+          "type": "string"
+        },
+        "removed": {
+          "type": "boolean"
         }
       }
     },

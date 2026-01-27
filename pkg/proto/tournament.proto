@@ -32,13 +32,13 @@ message TournamentParticipant {
 }
 
 message Participant {
-  string participant_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string user_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string username = 3 [(google.api.field_behavior) = OPTIONAL];
-  string display_name = 4 [(google.api.field_behavior) = OPTIONAL];
-  string tournament_id = 5 [(google.api.field_behavior) = REQUIRED];
-  google.protobuf.Timestamp registered_at = 6 [(google.api.field_behavior) = REQUIRED];
-  google.protobuf.Timestamp updated_at = 7 [(google.api.field_behavior) = OPTIONAL];
+  string participant_id = 1;
+  string user_id = 2;
+  string username = 3;
+  string display_name = 4;
+  string tournament_id = 5;
+  google.protobuf.Timestamp registered_at = 6;
+  google.protobuf.Timestamp updated_at = 7;
 }
 
 message Tournament {
@@ -109,40 +109,40 @@ message CancelTournamentResponse {
 }
 
 message RegisterForTournamentRequest {
-  string namespace = 1 [(google.api.field_behavior) = REQUIRED];
-  string tournament_id = 2 [(google.api.field_behavior) = REQUIRED];
+  string namespace = 1;
+  string tournament_id = 2;
 }
 
 message RegisterForTournamentResponse {
-  string participant_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string tournament_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string user_id = 3 [(google.api.field_behavior) = REQUIRED];
-  google.protobuf.Timestamp registered_at = 4 [(google.api.field_behavior) = REQUIRED];
+  string participant_id = 1;
+  string tournament_id = 2;
+  string user_id = 3;
+  google.protobuf.Timestamp registered_at = 4;
 }
 
 message GetTournamentParticipantsRequest {
-  string namespace = 1 [(google.api.field_behavior) = REQUIRED];
-  string tournament_id = 2 [(google.api.field_behavior) = REQUIRED];
-  int32 page_size = 3 [(google.api.field_behavior) = OPTIONAL];
-  string page_token = 4 [(google.api.field_behavior) = OPTIONAL];
+  string namespace = 1;
+  string tournament_id = 2;
+  int32 page_size = 3;
+  string page_token = 4;
 }
 
 message GetTournamentParticipantsResponse {
-  repeated Participant participants = 1 [(google.api.field_behavior) = REQUIRED];
-  int32 total_participants = 2 [(google.api.field_behavior) = REQUIRED];
-  string next_page_token = 3 [(google.api.field_behavior) = OPTIONAL];
+  repeated Participant participants = 1;
+  int32 total_participants = 2;
+  string next_page_token = 3;
 }
 
 message RemoveParticipantRequest {
-  string namespace = 1 [(google.api.field_behavior) = REQUIRED];
-  string tournament_id = 2 [(google.api.field_behavior) = REQUIRED];
-  string user_id = 3 [(google.api.field_behavior) = REQUIRED];
+  string namespace = 1;
+  string tournament_id = 2;
+  string user_id = 3;
 }
 
 message RemoveParticipantResponse {
-  string tournament_id = 1 [(google.api.field_behavior) = REQUIRED];
-  string user_id = 2 [(google.api.field_behavior) = REQUIRED];
-  bool removed = 3 [(google.api.field_behavior) = REQUIRED];
+  string tournament_id = 1;
+  string user_id = 2;
+  bool removed = 3;
 }
 
 service TournamentService {

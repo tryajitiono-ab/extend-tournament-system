@@ -48,6 +48,7 @@ import (
 	"google.golang.org/grpc/reflection"
 
 	pb "extend-custom-guild-service/pkg/pb"
+	serviceextension "extend-custom-guild-service/pkg/pb"
 
 	sdkAuth "github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/utils/auth"
 	prometheusGrpc "github.com/grpc-ecosystem/go-grpc-prometheus"
@@ -190,23 +191,23 @@ func main() {
 
 	cloudSaveStorage := storage.NewCloudSaveStorage(&adminGameRecordService)
 
-	// Initialize Tournament storage with MongoDB (for future use)
-	// tournamentStorage := storage.NewMongoTournamentStorage(mongoClient, mongoDatabase, logger)
+	// Initialize Tournament storage with MongoDB
+	tournamentStorage := storage.NewMongoTournamentStorage(mongoClient, mongoDatabase, logger)
 
-	// Initialize Tournament authentication interceptor (for future use)
-	// tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
+	// Initialize Tournament authentication interceptor
+	tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
 
-	// Add tournament auth interceptors to the chain (for future use)
-	// unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
-	// streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
+	// Add tournament auth interceptors to the chain
+	unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
+	streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
 
 	// Register Guild Service
 	myServiceServer := service.NewMyServiceServer(tokenRepo, configRepo, refreshRepo, cloudSaveStorage)
 	pb.RegisterServiceServer(s, myServiceServer)
 
-	// TODO: Register Tournament Service when implemented
-	// tournamentServer := service.NewTournamentServiceServer(tournamentStorage, tournamentAuthInterceptor)
-	// serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
+	// Register Tournament Service
+	tournamentServer := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, tournamentAuthInterceptor, logger)
+	serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
 
 	// Enable gRPC Reflection
 	reflection.Register(s)

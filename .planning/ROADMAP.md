@@ -24,10 +24,11 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 4. Admin can start tournament to generate brackets and cancel tournament with validation
 5. Game servers can authenticate using service tokens for API access
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 - [ ] 01-foundation-01-PLAN.md — Create tournament data model and service definition
 - [ ] 01-foundation-02-PLAN.md — Implement tournament storage layer and authentication interceptors
-- [ ] 01-foundation-03-PLAN.md — Implement tournament service with full CRUD operations
+- [ ] 01-foundation-03-PLAN.md — Implement tournament service core operations
+- [ ] 01-foundation-04-PLAN.md — Integrate service with server and add bracket generation
 
 ---
 

@@ -24,6 +24,7 @@ must_haves:
     - "Tournament status enum covers all lifecycle states (draft, active, started, completed, cancelled)"
     - "HTTP annotations enable REST API generation for all tournament operations"
     - "Permission annotations integrate with AccelByte IAM for authorization"
+    - "Service token authentication enables game server access to tournament operations"
   artifacts:
     - path: "pkg/proto/tournament.proto"
       provides: "Tournament data model and service definition"
@@ -40,12 +41,16 @@ must_haves:
   key_links:
     - from: "pkg/proto/tournament.proto"
       to: "AccelByte IAM"
-      via: "permission annotations"
+      via: "permission annotations implementation in service methods"
       pattern: "option \\(permission\\.action\\)"
     - from: "pkg/proto/tournament.proto"
       to: "REST API"
       via: "HTTP annotations"
       pattern: "option \\(google\\.api\\.http\\)"
+    - from: "pkg/proto/tournament.proto"
+      to: "Game server authentication"
+      via: "service token security definitions"
+      pattern: "securityDefinitions"
 ---
 
 <objective>
@@ -90,9 +95,8 @@ Output: Complete protobuf definitions with generated Go code for tournament serv
    - Admin operations: CREATE, UPDATE on "ADMIN:NAMESPACE:{namespace}:TOURNAMENT"
    - Read operations: READ on "NAMESPACE:{namespace}:TOURNAMENT"
 6. Add OpenAPI operation summaries and descriptions following service.proto pattern
-7. Include proper security requirements for Bearer token authentication</action>
-  <verify>protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. pkg/proto/tournament.proto runs without errors</verify>
-  <action>After creating .proto file, run protoc generation to create Go files:
+7. Include proper security requirements for Bearer token authentication
+8. After creating .proto file, run protoc generation to create Go files:
 ```bash
 protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. \
   --proto_path=third_party \
@@ -100,6 +104,7 @@ protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. \
   --proto_path=pkg/proto \
   pkg/proto/tournament.proto
 ```</action>
+  <verify>protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. pkg/proto/tournament.proto runs without errors</verify>
   <done>Generated tournament.pb.go, tournament_grpc.pb.go, and tournament.pb.gw.go files with complete data model and service interface</done>
 </task>
 
@@ -111,9 +116,23 @@ protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. \
 2. Ensure admin operations require ADMIN:NAMESPACE:{namespace}:TOURNAMENT:CREATE/UPDATE
 3. Ensure read operations require NAMESPACE:{namespace}:TOURNAMENT:READ  
 4. Add permission validation comments for future reference
-5. Test that generated code includes permission metadata</action>
+5. Test that generated code includes permission metadata
+6. Explicitly implement permission annotations in service methods following existing patterns</action>
   <verify>grep -n "permission\." pkg/proto/tournament.proto shows proper permission annotations</verify>
   <done>AccelByte IAM permissions properly configured for tournament operations with admin/user distinction</done>
+</task>
+
+<task type="auto">
+  <name>Task 3: Add service token authentication support</name>
+  <files>pkg/proto/tournament.proto</files>
+  <action>Add service token authentication options for game server access:
+1. Add security definitions for both Bearer tokens (users) and service tokens (servers)
+2. Update service methods to support service token authentication for game server operations
+3. Add permission annotations that allow service tokens to access tournament data
+4. Include proper scope definitions for service token access
+5. Document authentication requirements in OpenAPI annotations</action>
+  <verify>grep -n "security\|service" pkg/proto/tournament.proto shows service token authentication configuration</verify>
+  <done>Service token authentication configured for game server access to tournament operations</done>
 </task>
 
 </tasks>

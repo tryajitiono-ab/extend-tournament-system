@@ -1,0 +1,209 @@
+// Copyright (c) 2023 AccelByte Inc. All Rights Reserved.
+// This is licensed software from AccelByte Inc, for limitations
+// and restrictions contact your company contract manager.
+
+syntax = "proto3";
+
+option csharp_namespace = "AccelByte.Extend.ServiceExtension";
+option go_package = "accelbyte.net/extend/serviceextension";
+option java_package = "net.accelbyte.extend.serviceextension";
+option java_multiple_files = true;
+
+package tournament;
+
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+import "protoc-gen-openapiv2/options/annotations.proto";
+import "permission.proto";
+
+enum TournamentStatus {
+  TOURNAMENT_STATUS_UNSPECIFIED = 0;
+  TOURNAMENT_STATUS_DRAFT = 1;
+  TOURNAMENT_STATUS_ACTIVE = 2;
+  TOURNAMENT_STATUS_STARTED = 3;
+  TOURNAMENT_STATUS_COMPLETED = 4;
+  TOURNAMENT_STATUS_CANCELLED = 5;
+}
+
+message Tournament {
+  string tournament_id = 1;
+  string name = 2;
+  string description = 3;
+  int32 max_participants = 4;
+  int32 current_participants = 5;
+  TournamentStatus status = 6;
+  google.protobuf.Timestamp created_at = 7;
+  google.protobuf.Timestamp updated_at = 8;
+  google.protobuf.Timestamp start_time = 9;
+  google.protobuf.Timestamp end_time = 10;
+}
+
+message CreateTournamentRequest {
+  string namespace = 1;
+  string name = 2;
+  string description = 3;
+  int32 max_participants = 4;
+  google.protobuf.Timestamp start_time = 5;
+  google.protobuf.Timestamp end_time = 6;
+}
+
+message CreateTournamentResponse {
+  Tournament tournament = 1;
+}
+
+message ListTournamentsRequest {
+  string namespace = 1;
+  int32 limit = 2;
+  int32 offset = 3;
+  TournamentStatus status = 4;
+  google.protobuf.Timestamp start_date_from = 5;
+  google.protobuf.Timestamp start_date_to = 6;
+}
+
+message ListTournamentsResponse {
+  repeated Tournament tournaments = 1;
+  int32 total_count = 2;
+}
+
+message GetTournamentRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+}
+
+message GetTournamentResponse {
+  Tournament tournament = 1;
+}
+
+message StartTournamentRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+}
+
+message StartTournamentResponse {
+  Tournament tournament = 1;
+}
+
+message CancelTournamentRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+}
+
+message CancelTournamentResponse {
+  Tournament tournament = 1;
+}
+
+service TournamentService {
+
+  rpc CreateTournament (CreateTournamentRequest) returns (CreateTournamentResponse) {
+    option (permission.action) = CREATE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      post: "/v1/admin/namespace/{namespace}/tournaments"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Create Tournament"
+      description: "Create a new tournament with specified configuration"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc ListTournaments (ListTournamentsRequest) returns (ListTournamentsResponse) {
+    option (permission.action) = READ;
+    option (permission.resource) = "NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      get: "/v1/public/namespace/{namespace}/tournaments"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List Tournaments"
+      description: "List tournaments with optional filtering by status and date range"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc GetTournament (GetTournamentRequest) returns (GetTournamentResponse) {
+    option (permission.action) = READ;
+    option (permission.resource) = "NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get Tournament"
+      description: "Get tournament details by tournament ID"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc StartTournament (StartTournamentRequest) returns (StartTournamentResponse) {
+    option (permission.action) = UPDATE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Start Tournament"
+      description: "Start a tournament to generate brackets and begin competition"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc CancelTournament (CancelTournamentRequest) returns (CancelTournamentResponse) {
+    option (permission.action) = UPDATE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Cancel Tournament"
+      description: "Cancel a tournament and prevent further participation"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+}
+
+// OpenAPI options for the entire API.
+option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
+  info: {
+    title: "Tournament API";
+    version: "1.0";
+  };
+  base_path: "/tournament";
+
+  security_definitions: {
+    security: {
+      key: "Bearer";
+      value: {
+        type: TYPE_API_KEY;
+        in: IN_HEADER;
+        name: "Authorization";
+      }
+    }
+  };
+};

@@ -30,6 +30,186 @@ type TournamentServiceServer struct {
 	logger            *slog.Logger
 }
 
+// TournamentStatusTransition represents a valid status transition
+type TournamentStatusTransition struct {
+	From serviceextension.TournamentStatus
+	To   serviceextension.TournamentStatus
+}
+
+// GetAllowedStatusTransitions returns the allowed transitions for each tournament status
+func (s *TournamentServiceServer) GetAllowedStatusTransitions() map[serviceextension.TournamentStatus][]serviceextension.TournamentStatus {
+	return map[serviceextension.TournamentStatus][]serviceextension.TournamentStatus{
+		serviceextension.TournamentStatus_TOURNAMENT_STATUS_DRAFT: {
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_DRAFT,     // Can stay DRAFT (for updates)
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE,    // Can be activated
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED, // Can be cancelled
+		},
+		serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE: {
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE,    // Can stay ACTIVE (for updates)
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED,   // Can be started
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED, // Can be cancelled
+		},
+		serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED: {
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED,   // Can stay STARTED
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED, // Can be completed
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED, // Can be cancelled
+		},
+		serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED: {
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED, // Terminal state
+		},
+		serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED: {
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED, // Terminal state
+		},
+		serviceextension.TournamentStatus_TOURNAMENT_STATUS_UNSPECIFIED: {
+			// Should not occur for created tournaments
+			serviceextension.TournamentStatus_TOURNAMENT_STATUS_DRAFT,
+		},
+	}
+}
+
+// ValidateStatusTransition validates if a status transition is allowed
+func (s *TournamentServiceServer) ValidateStatusTransition(from, to serviceextension.TournamentStatus) error {
+	// Get allowed transitions for the current status
+	allowedTransitions := s.GetAllowedStatusTransitions()
+
+	// Check if the 'to' status is in the allowed transitions list for the 'from' status
+	if allowedTo, exists := allowedTransitions[from]; exists {
+		for _, status := range allowedTo {
+			if status == to {
+				return nil // Transition is allowed
+			}
+		}
+	}
+
+	return grpcStatus.Errorf(codes.InvalidArgument,
+		"invalid tournament status transition from %v to %v",
+		s.GetStatusName(from),
+		s.GetStatusName(to))
+}
+
+// GetStatusName returns a human-readable name for tournament status
+func (s *TournamentServiceServer) GetStatusName(status serviceextension.TournamentStatus) string {
+	switch status {
+	case serviceextension.TournamentStatus_TOURNAMENT_STATUS_DRAFT:
+		return "DRAFT"
+	case serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE:
+		return "ACTIVE"
+	case serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED:
+		return "STARTED"
+	case serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED:
+		return "COMPLETED"
+	case serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED:
+		return "CANCELLED"
+	case serviceextension.TournamentStatus_TOURNAMENT_STATUS_UNSPECIFIED:
+		return "UNSPECIFIED"
+	default:
+		return "UNKNOWN"
+	}
+}
+
+// CanTransitionTo checks if a tournament can transition to the target status
+func (s *TournamentServiceServer) CanTransitionTo(current, target serviceextension.TournamentStatus) bool {
+	return s.ValidateStatusTransition(current, target) == nil
+}
+
+// IsTerminalStatus checks if the given status is a terminal state
+func (s *TournamentServiceServer) IsTerminalStatus(status serviceextension.TournamentStatus) bool {
+	return status == serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED ||
+		status == serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED
+}
+
+// CanBeCancelled checks if a tournament with the given status can be cancelled
+func (s *TournamentServiceServer) CanBeCancelled(status serviceextension.TournamentStatus) bool {
+	return s.CanTransitionTo(status, serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED)
+}
+
+// CanBeStarted checks if a tournament with the given status can be started
+func (s *TournamentServiceServer) CanBeStarted(status serviceextension.TournamentStatus) bool {
+	return s.CanTransitionTo(status, serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED)
+}
+
+// CompleteTournament completes a tournament (changes from STARTED to COMPLETED)
+func (s *TournamentServiceServer) CompleteTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+	s.logger.Info("CompleteTournament called", "namespace", req.Namespace, "tournament_id", req.TournamentId)
+
+	// Validate required fields
+	if req.Namespace == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
+	}
+	if req.TournamentId == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament_id is required")
+	}
+
+	// Check admin permissions for tournament completion
+	permission := s.authInterceptor.GetTournamentPermission("UPDATE", req.Namespace)
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+		s.logger.Warn("complete tournament permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	// Get current tournament to validate status
+	tournament, err := s.tournamentStorage.GetTournament(ctx, req.Namespace, req.TournamentId)
+	if err != nil {
+		s.logger.Error("failed to get tournament for completion", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	// Validate status transition using centralized validation
+	newStatus := serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED
+	if err := s.ValidateStatusTransition(tournament.Status, newStatus); err != nil {
+		s.logger.Warn("invalid tournament status transition for completion",
+			"error", err,
+			"tournament_id", req.TournamentId,
+			"current_status", s.GetStatusName(tournament.Status),
+			"target_status", s.GetStatusName(newStatus))
+		return nil, err
+	}
+
+	// Store previous status for logging
+	previousStatus := tournament.Status
+
+	// Update tournament status to completed
+	tournament.Status = newStatus
+	tournament.UpdatedAt = timestamppb.New(time.Now())
+
+	// Update tournament in storage
+	updatedTournament, err := s.tournamentStorage.UpdateTournament(ctx, req.Namespace, req.TournamentId, tournament)
+	if err != nil {
+		s.logger.Error("failed to complete tournament", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	// Log status change for auditing
+	s.LogStatusChange(ctx, updatedTournament.TournamentId, req.Namespace, previousStatus, newStatus, "Tournament completed")
+
+	s.logger.Info("tournament completed successfully",
+		"tournament_id", updatedTournament.TournamentId,
+		"namespace", req.Namespace,
+		"name", updatedTournament.Name,
+		"previous_status", s.GetStatusName(previousStatus))
+
+	// Log that this is a terminal state
+	s.logger.Info("tournament reached terminal state",
+		"tournament_id", updatedTournament.TournamentId,
+		"namespace", req.Namespace,
+		"terminal_status", s.GetStatusName(newStatus))
+
+	return &serviceextension.StartTournamentResponse{
+		Tournament: updatedTournament,
+	}, nil
+}
+
+// LogStatusChange logs a tournament status change for auditing
+func (s *TournamentServiceServer) LogStatusChange(ctx context.Context, tournamentID, namespace string, from, to serviceextension.TournamentStatus, reason string) {
+	s.logger.Info("tournament status changed",
+		"tournament_id", tournamentID,
+		"namespace", namespace,
+		"from_status", s.GetStatusName(from),
+		"to_status", s.GetStatusName(to),
+		"reason", reason,
+		"timestamp", time.Now().UTC())
+}
+
 // NewTournamentServiceServer creates a new TournamentServiceServer instance
 func NewTournamentServiceServer(
 	tokenRepo repository.TokenRepository,
@@ -204,19 +384,22 @@ func (s *TournamentServiceServer) CancelTournament(ctx context.Context, req *ser
 		return nil, err
 	}
 
-	// Validate that tournament can be cancelled
-	if tournament.Status == serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED {
-		return nil, grpcStatus.Errorf(codes.FailedPrecondition, "cannot cancel tournament that has already started")
-	}
-	if tournament.Status == serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED {
-		return nil, grpcStatus.Errorf(codes.FailedPrecondition, "cannot cancel tournament that has already completed")
-	}
-	if tournament.Status == serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED {
-		return nil, grpcStatus.Errorf(codes.FailedPrecondition, "tournament is already cancelled")
+	// Validate status transition using centralized validation
+	newStatus := serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED
+	if err := s.ValidateStatusTransition(tournament.Status, newStatus); err != nil {
+		s.logger.Warn("invalid tournament status transition for cancellation",
+			"error", err,
+			"tournament_id", req.TournamentId,
+			"current_status", s.GetStatusName(tournament.Status),
+			"target_status", s.GetStatusName(newStatus))
+		return nil, err
 	}
 
+	// Store previous status for logging
+	previousStatus := tournament.Status
+
 	// Update tournament status to cancelled
-	tournament.Status = serviceextension.TournamentStatus_TOURNAMENT_STATUS_CANCELLED
+	tournament.Status = newStatus
 	tournament.UpdatedAt = timestamppb.New(time.Now())
 
 	// Update tournament in storage
@@ -226,12 +409,81 @@ func (s *TournamentServiceServer) CancelTournament(ctx context.Context, req *ser
 		return nil, err
 	}
 
+	// Log status change for auditing
+	s.LogStatusChange(ctx, updatedTournament.TournamentId, req.Namespace, previousStatus, newStatus, "Tournament cancelled by admin")
+
 	s.logger.Info("tournament cancelled successfully",
 		"tournament_id", updatedTournament.TournamentId,
 		"namespace", req.Namespace,
-		"name", updatedTournament.Name)
+		"name", updatedTournament.Name,
+		"previous_status", s.GetStatusName(previousStatus))
 
 	return &serviceextension.CancelTournamentResponse{
+		Tournament: updatedTournament,
+	}, nil
+}
+
+// ActivateTournament activates a tournament (changes from DRAFT to ACTIVE)
+func (s *TournamentServiceServer) ActivateTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+	s.logger.Info("ActivateTournament called", "namespace", req.Namespace, "tournament_id", req.TournamentId)
+
+	// Validate required fields
+	if req.Namespace == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
+	}
+	if req.TournamentId == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament_id is required")
+	}
+
+	// Check admin permissions for tournament activation
+	permission := s.authInterceptor.GetTournamentPermission("UPDATE", req.Namespace)
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+		s.logger.Warn("activate tournament permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	// Get current tournament to validate status
+	tournament, err := s.tournamentStorage.GetTournament(ctx, req.Namespace, req.TournamentId)
+	if err != nil {
+		s.logger.Error("failed to get tournament for activation", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	// Validate status transition using centralized validation
+	newStatus := serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE
+	if err := s.ValidateStatusTransition(tournament.Status, newStatus); err != nil {
+		s.logger.Warn("invalid tournament status transition for activation",
+			"error", err,
+			"tournament_id", req.TournamentId,
+			"current_status", s.GetStatusName(tournament.Status),
+			"target_status", s.GetStatusName(newStatus))
+		return nil, err
+	}
+
+	// Store previous status for logging
+	previousStatus := tournament.Status
+
+	// Update tournament status to active
+	tournament.Status = newStatus
+	tournament.UpdatedAt = timestamppb.New(time.Now())
+
+	// Update tournament in storage
+	updatedTournament, err := s.tournamentStorage.UpdateTournament(ctx, req.Namespace, req.TournamentId, tournament)
+	if err != nil {
+		s.logger.Error("failed to activate tournament", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	// Log status change for auditing
+	s.LogStatusChange(ctx, updatedTournament.TournamentId, req.Namespace, previousStatus, newStatus, "Tournament activated by admin")
+
+	s.logger.Info("tournament activated successfully",
+		"tournament_id", updatedTournament.TournamentId,
+		"namespace", req.Namespace,
+		"name", updatedTournament.Name,
+		"previous_status", s.GetStatusName(previousStatus))
+
+	return &serviceextension.StartTournamentResponse{
 		Tournament: updatedTournament,
 	}, nil
 }
@@ -262,13 +514,22 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 		return nil, err
 	}
 
-	// Validate that tournament can be started
-	if tournament.Status != serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE {
-		return nil, grpcStatus.Errorf(codes.FailedPrecondition, "can only start tournaments with ACTIVE status, current status: %v", tournament.Status)
+	// Validate status transition using centralized validation
+	newStatus := serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED
+	if err := s.ValidateStatusTransition(tournament.Status, newStatus); err != nil {
+		s.logger.Warn("invalid tournament status transition for starting",
+			"error", err,
+			"tournament_id", req.TournamentId,
+			"current_status", s.GetStatusName(tournament.Status),
+			"target_status", s.GetStatusName(newStatus))
+		return nil, err
 	}
 
+	// Store previous status for logging
+	previousStatus := tournament.Status
+
 	// Update tournament status to started
-	tournament.Status = serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED
+	tournament.Status = newStatus
 	tournament.UpdatedAt = timestamppb.New(time.Now())
 
 	// Update tournament in storage
@@ -278,10 +539,14 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 		return nil, err
 	}
 
+	// Log status change for auditing
+	s.LogStatusChange(ctx, updatedTournament.TournamentId, req.Namespace, previousStatus, newStatus, "Tournament started by admin")
+
 	s.logger.Info("tournament started successfully",
 		"tournament_id", updatedTournament.TournamentId,
 		"namespace", req.Namespace,
-		"name", updatedTournament.Name)
+		"name", updatedTournament.Name,
+		"previous_status", s.GetStatusName(previousStatus))
 
 	return &serviceextension.StartTournamentResponse{
 		Tournament: updatedTournament,

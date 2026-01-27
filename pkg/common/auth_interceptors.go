@@ -272,3 +272,96 @@ func (t *TournamentAuthInterceptor) extractOperationFromMethod(fullMethod string
 		return ""
 	}
 }
+
+// GetContextNamespace extracts namespace from request context
+func GetContextNamespace(ctx context.Context) (string, error) {
+	// Extract namespace from request metadata
+	meta, found := metadata.FromIncomingContext(ctx)
+	if !found {
+		return "", status.Error(codes.Unauthenticated, "metadata is missing")
+	}
+
+	// Try to extract namespace from various possible metadata sources
+	if nsHeaders := meta["namespace"]; len(nsHeaders) > 0 {
+		return nsHeaders[0], nil
+	}
+
+	// Try from authorization token if available
+	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
+		authorization := authHeaders[0]
+		if strings.HasPrefix(authorization, "Bearer ") {
+			// For now, return default namespace since token parsing would require additional IAM integration
+			// In a full implementation, you'd parse the JWT token to extract the namespace
+			return GetEnv("AB_NAMESPACE", "accelbyte"), nil
+		}
+	}
+
+	return "", status.Error(codes.Unauthenticated, "namespace not found in context")
+}
+
+// GetContextUserID extracts user ID from request context
+func GetContextUserID(ctx context.Context) (string, error) {
+	meta, found := metadata.FromIncomingContext(ctx)
+	if !found {
+		return "", status.Error(codes.Unauthenticated, "metadata is missing")
+	}
+
+	// Extract user ID from various possible metadata sources
+	if userIDHeaders := meta["x-user-id"]; len(userIDHeaders) > 0 {
+		return userIDHeaders[0], nil
+	}
+
+	// Try from authorization token if available
+	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
+		authorization := authHeaders[0]
+		if strings.HasPrefix(authorization, "Bearer ") {
+			// For now, return a placeholder since token parsing would require additional IAM integration
+			// In a full implementation, you'd parse the JWT token to extract the user ID
+			return "placeholder-user-id", nil
+		}
+	}
+
+	return "", status.Error(codes.Unauthenticated, "user ID not found in context")
+}
+
+// GetContextUsername extracts username from request context
+func GetContextUsername(ctx context.Context) (string, error) {
+	meta, found := metadata.FromIncomingContext(ctx)
+	if !found {
+		return "", status.Error(codes.Unauthenticated, "metadata is missing")
+	}
+
+	// Extract username from various possible metadata sources
+	if usernameHeaders := meta["x-username"]; len(usernameHeaders) > 0 {
+		return usernameHeaders[0], nil
+	}
+
+	// Try from authorization token if available
+	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
+		authorization := authHeaders[0]
+		if strings.HasPrefix(authorization, "Bearer ") {
+			// For now, return a placeholder since token parsing would require additional IAM integration
+			// In a full implementation, you'd parse the JWT token to extract the username
+			return "placeholder-username", nil
+		}
+	}
+
+	return "", status.Error(codes.Unauthenticated, "username not found in context")
+}
+
+// IsAdminUser checks if the current user has admin privileges
+func IsAdminUser(ctx context.Context) (bool, error) {
+	meta, found := metadata.FromIncomingContext(ctx)
+	if !found {
+		return false, status.Error(codes.Unauthenticated, "metadata is missing")
+	}
+
+	// Check admin status from various possible metadata sources
+	if adminHeaders := meta["x-is-admin"]; len(adminHeaders) > 0 {
+		return adminHeaders[0] == "true", nil
+	}
+
+	// For now, return false since proper role checking would require additional IAM integration
+	// In a full implementation, you'd parse the JWT token to check user roles and permissions
+	return false, nil
+}

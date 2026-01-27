@@ -6,7 +6,9 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"math"
 	"time"
 
 	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/repository"
@@ -126,6 +128,133 @@ func (s *TournamentServiceServer) CanBeCancelled(status serviceextension.Tournam
 // CanBeStarted checks if a tournament with the given status can be started
 func (s *TournamentServiceServer) CanBeStarted(status serviceextension.TournamentStatus) bool {
 	return s.CanTransitionTo(status, serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED)
+}
+
+// TournamentParticipant represents a participant in the tournament
+type TournamentParticipant struct {
+	UserId      string `json:"userId"`
+	Username    string `json:"username"`
+	DisplayName string `json:"displayName"`
+}
+
+// Bracket represents a single match in a tournament bracket
+type Bracket struct {
+	MatchId      string                 `json:"matchId"`
+	Round        int32                  `json:"round"`
+	Position     int32                  `json:"position"`
+	Participant1 *TournamentParticipant `json:"participant1,omitempty"`
+	Participant2 *TournamentParticipant `json:"participant2,omitempty"`
+	Winner       string                 `json:"winner,omitempty"`
+	Bye          bool                   `json:"bye"`
+}
+
+// BracketData represents the complete tournament bracket structure
+type BracketData struct {
+	TotalRounds int32       `json:"totalRounds"`
+	Rounds      [][]Bracket `json:"rounds"`
+	StartedAt   string      `json:"startedAt"`
+}
+
+// GenerateBrackets generates a single-elimination bracket for the tournament
+func (s *TournamentServiceServer) GenerateBrackets(participants []TournamentParticipant) (*BracketData, error) {
+	s.logger.Info("generating tournament brackets", "participant_count", len(participants))
+
+	if len(participants) < 2 {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "at least 2 participants required for bracket generation")
+	}
+
+	// Calculate required rounds (next power of 2)
+	participantCount := len(participants)
+	totalRounds := int32(math.Ceil(math.Log2(float64(participantCount))))
+
+	// Find next power of 2 for bracket size
+	bracketSize := int(math.Pow(2, float64(totalRounds)))
+
+	// Calculate number of byes needed
+	byeCount := bracketSize - participantCount
+
+	s.logger.Info("bracket calculation",
+		"participants", participantCount,
+		"bracket_size", bracketSize,
+		"total_rounds", totalRounds,
+		"bye_count", byeCount)
+
+	// Initialize bracket rounds
+	bracketData := &BracketData{
+		TotalRounds: totalRounds,
+		Rounds:      make([][]Bracket, totalRounds),
+		StartedAt:   time.Now().UTC().Format(time.RFC3339),
+	}
+
+	// Generate first round with participants and byes
+	firstRound := make([]Bracket, bracketSize/2)
+
+	// Shuffle participants for random seeding (for now, use order as provided)
+	// In a real implementation, you might want to seed based on rankings
+	currentParticipantIndex := 0
+
+	for i := 0; i < len(firstRound); i++ {
+		match := Bracket{
+			MatchId:  fmt.Sprintf("match-r1-m%d", i+1),
+			Round:    1,
+			Position: int32(i),
+			Bye:      false,
+		}
+
+		// Add first participant
+		if currentParticipantIndex < len(participants) {
+			participant := participants[currentParticipantIndex]
+			match.Participant1 = &TournamentParticipant{
+				UserId:      participant.UserId,
+				Username:    participant.Username,
+				DisplayName: participant.DisplayName,
+			}
+			currentParticipantIndex++
+		}
+
+		// Add second participant or assign bye
+		if currentParticipantIndex < len(participants) {
+			participant := participants[currentParticipantIndex]
+			match.Participant2 = &TournamentParticipant{
+				UserId:      participant.UserId,
+				Username:    participant.Username,
+				DisplayName: participant.DisplayName,
+			}
+			currentParticipantIndex++
+		} else if byeCount > 0 {
+			// Assign bye to participant 1
+			match.Bye = true
+			byeCount--
+		}
+
+		firstRound[i] = match
+	}
+
+	bracketData.Rounds[0] = firstRound
+
+	// Generate subsequent rounds (empty slots to be filled as tournament progresses)
+	for round := 1; round < int(totalRounds); round++ {
+		matchesInRound := int(math.Pow(2, float64(totalRounds-int32(round))))
+		roundMatches := make([]Bracket, matchesInRound)
+
+		for i := 0; i < matchesInRound; i++ {
+			match := Bracket{
+				MatchId:  fmt.Sprintf("match-r%d-m%d", round+1, i+1),
+				Round:    int32(round + 1),
+				Position: int32(i),
+				Bye:      false,
+			}
+			roundMatches[i] = match
+		}
+
+		bracketData.Rounds[round] = roundMatches
+	}
+
+	s.logger.Info("bracket generation completed",
+		"total_rounds", bracketData.TotalRounds,
+		"first_round_matches", len(bracketData.Rounds[0]))
+
+	return bracketData, nil
 }
 
 // CompleteTournament completes a tournament (changes from STARTED to COMPLETED)
@@ -525,8 +654,43 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 		return nil, err
 	}
 
+	// Validate tournament has sufficient participants for bracket generation
+	if tournament.CurrentParticipants < 2 {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "at least 2 participants required to start tournament (current: %d)", tournament.CurrentParticipants)
+	}
+
 	// Store previous status for logging
 	previousStatus := tournament.Status
+
+	// Generate brackets before changing status
+	s.logger.Info("generating brackets for tournament start", "tournament_id", req.TournamentId, "participants", tournament.CurrentParticipants)
+
+	// For now, create mock participants since participant registration isn't implemented yet
+	// In Phase 2, this will be replaced with actual registered participants
+	mockParticipants := make([]TournamentParticipant, tournament.CurrentParticipants)
+	for i := 0; i < int(tournament.CurrentParticipants); i++ {
+		mockParticipants[i] = TournamentParticipant{
+			UserId:      fmt.Sprintf("user-%d", i+1),
+			Username:    fmt.Sprintf("player%d", i+1),
+			DisplayName: fmt.Sprintf("Player %d", i+1),
+		}
+	}
+
+	bracketData, err := s.GenerateBrackets(mockParticipants)
+	if err != nil {
+		s.logger.Error("failed to generate brackets", "error", err, "tournament_id", req.TournamentId)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to generate tournament brackets: %v", err)
+	}
+
+	// Log bracket generation details
+	s.logger.Info("brackets generated successfully",
+		"tournament_id", req.TournamentId,
+		"total_rounds", bracketData.TotalRounds,
+		"first_round_matches", len(bracketData.Rounds[0]))
+
+	// TODO: Store bracket data in tournament record when tournament data model supports it
+	// For now, brackets are generated and logged but not persisted
+	// This will be enhanced in future phases when participant registration is implemented
 
 	// Update tournament status to started
 	tournament.Status = newStatus

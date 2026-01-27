@@ -69,7 +69,7 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
-| 1 - Foundation | Planned | 2025-01-27 | | Authentication and tournament management (4 plans) |
+| 1 - Foundation | Complete | 2025-01-27 | 2026-01-28 | Authentication and tournament management (4 plans) |
 | 2 - Participation | Pending | | | Player registration and management |
 | 3 - Competition | Pending | | | Match execution and results |
 

@@ -86,11 +86,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| TOURN-01 | Phase 1 | Pending |
-| TOURN-02 | Phase 1 | Pending |
-| TOURN-03 | Phase 1 | Pending |
-| TOURN-04 | Phase 1 | Pending |
-| TOURN-05 | Phase 1 | Pending |
+| TOURN-01 | Phase 1 | Complete |
+| TOURN-02 | Phase 1 | Complete |
+| TOURN-03 | Phase 1 | Complete |
+| TOURN-04 | Phase 1 | Complete |
+| TOURN-05 | Phase 1 | Complete |
 | REG-01 | Phase 2 | Pending |
 | REG-02 | Phase 2 | Pending |
 | REG-03 | Phase 2 | Pending |
@@ -108,10 +108,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RESULT-02 | Phase 3 | Pending |
 | RESULT-03 | Phase 3 | Pending |
 | RESULT-04 | Phase 3 | Pending |
-| AUTH-01 | Phase 1 | Pending |
-| AUTH-02 | Phase 1 | Pending |
-| AUTH-03 | Phase 1 | Pending |
-| AUTH-04 | Phase 1 | Pending |
+| AUTH-01 | Phase 1 | Complete |
+| AUTH-02 | Phase 1 | Complete |
+| AUTH-03 | Phase 1 | Partial (minor gap) |
+| AUTH-04 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total
@@ -120,4 +120,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2025-01-27*
-*Last updated: 2025-01-27 after initial definition*
+*Last updated: 2026-01-28 after Phase 1 completion*

@@ -27,6 +27,9 @@ type TournamentStorage interface {
 	GetTournament(ctx context.Context, namespace string, tournamentID string) (*serviceextension.Tournament, error)
 	ListTournaments(ctx context.Context, namespace string, limit, offset int32, status serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error)
 	UpdateTournament(ctx context.Context, namespace string, tournamentID string, tournament *serviceextension.Tournament) (*serviceextension.Tournament, error)
+	GetTournamentForRegistration(ctx context.Context, namespace string, tournamentID string) (*serviceextension.Tournament, error)
+	UpdateParticipantCount(ctx context.Context, namespace string, tournamentID string, increment int32) error
+	CheckTournamentCapacity(ctx context.Context, namespace string, tournamentID string) (bool, error)
 }
 
 // MongoTournamentStorage implements TournamentStorage using MongoDB
@@ -268,4 +271,93 @@ func (m *MongoTournamentStorage) documentToProto(doc *tournamentDocument) *servi
 		StartTime:           timestamppb.New(doc.StartTime),
 		EndTime:             timestamppb.New(doc.EndTime),
 	}
+}
+
+// GetTournamentForRegistration gets tournament with additional validation for registration
+func (m *MongoTournamentStorage) GetTournamentForRegistration(ctx context.Context, namespace, tournamentID string) (*serviceextension.Tournament, error) {
+	collection := m.client.Database(m.database).Collection(m.collection)
+
+	var tournament tournamentDocument
+	err := collection.FindOne(ctx, bson.M{
+		"tournament_id": tournamentID,
+		"namespace":     namespace,
+	}).Decode(&tournament)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return nil, grpcStatus.Errorf(codes.NotFound, "tournament not found: %s", tournamentID)
+		}
+		m.logger.Error("failed to get tournament for registration", "error", err, "tournament_id", tournamentID, "namespace", namespace)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to get tournament: %v", err)
+	}
+
+	// Additional validation for registration
+	if tournament.Status != serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE {
+		return nil, grpcStatus.Errorf(codes.FailedPrecondition, "tournament not open for registration, current status: %v", tournament.Status)
+	}
+
+	return m.documentToProto(&tournament), nil
+}
+
+// UpdateParticipantCount atomically updates tournament participant count
+func (m *MongoTournamentStorage) UpdateParticipantCount(ctx context.Context, namespace, tournamentID string, increment int32) error {
+	collection := m.client.Database(m.database).Collection(m.collection)
+
+	filter := bson.M{
+		"tournament_id": tournamentID,
+		"namespace":     namespace,
+	}
+
+	update := bson.M{"$inc": bson.M{"current_participants": increment}}
+
+	result, err := collection.UpdateOne(ctx, filter, update)
+	if err != nil {
+		m.logger.Error("failed to update participant count", "error", err, "tournament_id", tournamentID, "increment", increment)
+		return grpcStatus.Errorf(codes.Internal, "failed to update participant count: %v", err)
+	}
+
+	if result.MatchedCount == 0 {
+		return grpcStatus.Errorf(codes.NotFound, "tournament not found: %s", tournamentID)
+	}
+
+	// Validate count doesn't go below 0 or above max
+	var updatedTournament tournamentDocument
+	err = collection.FindOne(ctx, filter).Decode(&updatedTournament)
+	if err != nil {
+		m.logger.Error("failed to verify updated tournament", "error", err, "tournament_id", tournamentID)
+		return grpcStatus.Errorf(codes.Internal, "failed to verify updated tournament: %v", err)
+	}
+
+	if updatedTournament.CurrentParticipants < 0 {
+		m.logger.Error("participant count became negative", "count", updatedTournament.CurrentParticipants, "tournament_id", tournamentID)
+		return grpcStatus.Errorf(codes.Internal, "participant count cannot be negative")
+	}
+
+	if updatedTournament.CurrentParticipants > updatedTournament.MaxParticipants {
+		m.logger.Error("participant count exceeds maximum", "count", updatedTournament.CurrentParticipants, "max", updatedTournament.MaxParticipants, "tournament_id", tournamentID)
+		return grpcStatus.Errorf(codes.FailedPrecondition, "participant count exceeds maximum capacity")
+	}
+
+	m.logger.Info("tournament participant count updated", "tournament_id", tournamentID, "new_count", updatedTournament.CurrentParticipants, "increment", increment)
+
+	return nil
+}
+
+// CheckTournamentCapacity returns whether tournament has space for more participants
+func (m *MongoTournamentStorage) CheckTournamentCapacity(ctx context.Context, namespace, tournamentID string) (bool, error) {
+	collection := m.client.Database(m.database).Collection(m.collection)
+
+	var tournament tournamentDocument
+	err := collection.FindOne(ctx, bson.M{
+		"tournament_id": tournamentID,
+		"namespace":     namespace,
+	}).Decode(&tournament)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return false, grpcStatus.Errorf(codes.NotFound, "tournament not found: %s", tournamentID)
+		}
+		m.logger.Error("failed to get tournament for capacity check", "error", err, "tournament_id", tournamentID, "namespace", namespace)
+		return false, grpcStatus.Errorf(codes.Internal, "failed to get tournament: %v", err)
+	}
+
+	return tournament.CurrentParticipants < tournament.MaxParticipants, nil
 }

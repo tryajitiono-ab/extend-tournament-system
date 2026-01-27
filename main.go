@@ -35,6 +35,8 @@ import (
 	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.opentelemetry.io/contrib/propagators/b3"
 	"go.opentelemetry.io/otel"
@@ -158,6 +160,28 @@ func main() {
 		os.Exit(1)
 	}
 
+	// Initialize MongoDB connection
+	mongoURI := common.GetEnv("MONGODB_URI", "mongodb://localhost:27017")
+	mongoDatabase := common.GetEnv("MONGODB_DATABASE", "tournament_service")
+
+	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	if err != nil {
+		logger.Error("failed to connect to MongoDB", "error", err)
+		os.Exit(1)
+	}
+	defer func() {
+		if err := mongoClient.Disconnect(ctx); err != nil {
+			logger.Error("failed to disconnect from MongoDB", "error", err)
+		}
+	}()
+
+	// Ping MongoDB to verify connection
+	if err := mongoClient.Ping(ctx, nil); err != nil {
+		logger.Error("failed to ping MongoDB", "error", err)
+		os.Exit(1)
+	}
+	logger.Info("connected to MongoDB", "uri", mongoURI, "database", mongoDatabase)
+
 	// Initialize the AccelByte CloudSave service
 	adminGameRecordService := cloudsave.AdminGameRecordService{
 		Client:          factory.NewCloudsaveClient(configRepo),
@@ -166,9 +190,23 @@ func main() {
 
 	cloudSaveStorage := storage.NewCloudSaveStorage(&adminGameRecordService)
 
+	// Initialize Tournament storage with MongoDB (for future use)
+	// tournamentStorage := storage.NewMongoTournamentStorage(mongoClient, mongoDatabase, logger)
+
+	// Initialize Tournament authentication interceptor (for future use)
+	// tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
+
+	// Add tournament auth interceptors to the chain (for future use)
+	// unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
+	// streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
+
 	// Register Guild Service
 	myServiceServer := service.NewMyServiceServer(tokenRepo, configRepo, refreshRepo, cloudSaveStorage)
 	pb.RegisterServiceServer(s, myServiceServer)
+
+	// TODO: Register Tournament Service when implemented
+	// tournamentServer := service.NewTournamentServiceServer(tournamentStorage, tournamentAuthInterceptor)
+	// serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
 
 	// Enable gRPC Reflection
 	reflection.Register(s)

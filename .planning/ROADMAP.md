@@ -25,6 +25,8 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 5. Game servers can authenticate using service tokens for API access
 
 **Plans:** 4 plans
+
+**Plans:** 4 plans
 - [ ] 01-foundation-01-PLAN.md — Create tournament data model and service definition
 - [ ] 01-foundation-02-PLAN.md — Implement tournament storage layer and authentication interceptors
 - [ ] 01-foundation-03-PLAN.md — Implement tournament service core operations
@@ -67,7 +69,7 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
-| 1 - Foundation | Planned | 2025-01-27 | | Authentication and tournament management |
+| 1 - Foundation | Planned | 2025-01-27 | | Authentication and tournament management (4 plans) |
 | 2 - Participation | Pending | | | Player registration and management |
 | 3 - Competition | Pending | | | Match execution and results |
 
@@ -85,6 +87,20 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 ---
 
+---
+
+## Phase 1 Plan Structure
+
+| Plan | Objective |
+|------|-----------|
+| 01-foundation-01 | Create tournament data model and service definition with AccelByte IAM integration |
+| 01-foundation-02 | Implement tournament storage layer and authentication interceptors |
+| 01-foundation-03 | Implement tournament service with CRUD operations |
+| 01-foundation-04 | Integrate tournament service with gRPC server and add bracket generation |
+
+---
+
 *Roadmap created: 2025-01-27*
 *Phase 1 planning complete: 2025-01-27*
+*Plans created: 4 plans in 4 waves*
 *Ready for execution*

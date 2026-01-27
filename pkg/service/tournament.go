@@ -24,12 +24,13 @@ import (
 // TournamentServiceServer implements the TournamentService gRPC service
 type TournamentServiceServer struct {
 	serviceextension.UnimplementedTournamentServiceServer
-	tokenRepo         repository.TokenRepository
-	configRepo        repository.ConfigRepository
-	refreshRepo       repository.RefreshTokenRepository
-	tournamentStorage storage.TournamentStorage
-	authInterceptor   *extendcustomguildservice.TournamentAuthInterceptor
-	logger            *slog.Logger
+	tokenRepo          repository.TokenRepository
+	configRepo         repository.ConfigRepository
+	refreshRepo        repository.RefreshTokenRepository
+	tournamentStorage  storage.TournamentStorage
+	participantStorage *storage.ParticipantStorage // Add this line
+	authInterceptor    *extendcustomguildservice.TournamentAuthInterceptor
+	logger             *slog.Logger
 }
 
 // TournamentStatusTransition represents a valid status transition
@@ -345,16 +346,18 @@ func NewTournamentServiceServer(
 	configRepo repository.ConfigRepository,
 	refreshRepo repository.RefreshTokenRepository,
 	tournamentStorage storage.TournamentStorage,
+	participantStorage *storage.ParticipantStorage, // Add this parameter
 	authInterceptor *extendcustomguildservice.TournamentAuthInterceptor,
 	logger *slog.Logger,
 ) *TournamentServiceServer {
 	return &TournamentServiceServer{
-		tokenRepo:         tokenRepo,
-		configRepo:        configRepo,
-		refreshRepo:       refreshRepo,
-		tournamentStorage: tournamentStorage,
-		authInterceptor:   authInterceptor,
-		logger:            logger,
+		tokenRepo:          tokenRepo,
+		configRepo:         configRepo,
+		refreshRepo:        refreshRepo,
+		tournamentStorage:  tournamentStorage,
+		participantStorage: participantStorage, // Add this line
+		authInterceptor:    authInterceptor,
+		logger:             logger,
 	}
 }
 
@@ -715,4 +718,59 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 	return &serviceextension.StartTournamentResponse{
 		Tournament: updatedTournament,
 	}, nil
+}
+
+// GetTournamentWithParticipants retrieves tournament details with current participant count
+func (s *TournamentServiceServer) GetTournamentWithParticipants(ctx context.Context, req *serviceextension.GetTournamentRequest) (*serviceextension.GetTournamentResponse, error) {
+	// Use existing GetTournament logic first
+	response, err := s.GetTournament(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Get participant count for more accurate info
+	participantsReq := &serviceextension.GetTournamentParticipantsRequest{
+		Namespace:    req.GetNamespace(),
+		TournamentId: req.GetTournamentId(),
+		PageSize:     1, // We only need count
+	}
+
+	participantsResp, err := s.participantStorage.GetParticipants(ctx, participantsReq)
+	if err != nil {
+		s.logger.Warn("failed to get participant count for tournament",
+			"tournament_id", req.GetTournamentId(),
+			"error", err)
+		// Continue with tournament data, just log the error
+	} else {
+		// Update tournament's current participants with actual count
+		if response.Tournament != nil {
+			response.Tournament.CurrentParticipants = participantsResp.GetTotalParticipants()
+		}
+	}
+
+	return response, nil
+}
+
+// StartTournamentWithValidation starts tournament with participant validation
+func (s *TournamentServiceServer) StartTournamentWithValidation(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+	// Check minimum participant requirements
+	participantsReq := &serviceextension.GetTournamentParticipantsRequest{
+		Namespace:    req.GetNamespace(),
+		TournamentId: req.GetTournamentId(),
+	}
+
+	participantsResp, err := s.participantStorage.GetParticipants(ctx, participantsReq)
+	if err != nil {
+		s.logger.Error("failed to get participants for tournament start validation",
+			"tournament_id", req.GetTournamentId(),
+			"error", err)
+		return nil, fmt.Errorf("failed to validate participants: %w", err)
+	}
+
+	if participantsResp.GetTotalParticipants() < 2 {
+		return nil, fmt.Errorf("tournament requires at least 2 participants to start")
+	}
+
+	// Continue with existing StartTournament logic
+	return s.StartTournament(ctx, req)
 }

@@ -24,6 +24,11 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 4. Admin can start tournament to generate brackets and cancel tournament with validation
 5. Game servers can authenticate using service tokens for API access
 
+**Plans:** 3 plans
+- [ ] 01-foundation-01-PLAN.md — Create tournament data model and service definition
+- [ ] 01-foundation-02-PLAN.md — Implement tournament storage layer and authentication interceptors
+- [ ] 01-foundation-03-PLAN.md — Implement tournament service with full CRUD operations
+
 ---
 
 ### Phase 2 - Participation
@@ -61,7 +66,7 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
-| 1 - Foundation | Pending | | | Authentication and tournament management |
+| 1 - Foundation | Planned | 2025-01-27 | | Authentication and tournament management |
 | 2 - Participation | Pending | | | Player registration and management |
 | 3 - Competition | Pending | | | Match execution and results |
 
@@ -80,4 +85,5 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 ---
 
 *Roadmap created: 2025-01-27*
-*Ready for phase planning*
+*Phase 1 planning complete: 2025-01-27*
+*Ready for execution*

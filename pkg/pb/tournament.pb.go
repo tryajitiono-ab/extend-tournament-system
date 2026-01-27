@@ -86,6 +86,66 @@ func (TournamentStatus) EnumDescriptor() ([]byte, []int) {
 	return file_tournament_proto_rawDescGZIP(), []int{0}
 }
 
+type TournamentParticipant struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
+	DisplayName   string                 `protobuf:"bytes,3,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *TournamentParticipant) Reset() {
+	*x = TournamentParticipant{}
+	mi := &file_tournament_proto_msgTypes[0]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *TournamentParticipant) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*TournamentParticipant) ProtoMessage() {}
+
+func (x *TournamentParticipant) ProtoReflect() protoreflect.Message {
+	mi := &file_tournament_proto_msgTypes[0]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use TournamentParticipant.ProtoReflect.Descriptor instead.
+func (*TournamentParticipant) Descriptor() ([]byte, []int) {
+	return file_tournament_proto_rawDescGZIP(), []int{0}
+}
+
+func (x *TournamentParticipant) GetUserId() string {
+	if x != nil {
+		return x.UserId
+	}
+	return ""
+}
+
+func (x *TournamentParticipant) GetUsername() string {
+	if x != nil {
+		return x.Username
+	}
+	return ""
+}
+
+func (x *TournamentParticipant) GetDisplayName() string {
+	if x != nil {
+		return x.DisplayName
+	}
+	return ""
+}
+
 type Tournament struct {
 	state               protoimpl.MessageState `protogen:"open.v1"`
 	TournamentId        string                 `protobuf:"bytes,1,opt,name=tournament_id,json=tournamentId,proto3" json:"tournament_id,omitempty"`
@@ -104,7 +164,7 @@ type Tournament struct {
 
 func (x *Tournament) Reset() {
 	*x = Tournament{}
-	mi := &file_tournament_proto_msgTypes[0]
+	mi := &file_tournament_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -116,7 +176,7 @@ func (x *Tournament) String() string {
 func (*Tournament) ProtoMessage() {}
 
 func (x *Tournament) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[0]
+	mi := &file_tournament_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -129,7 +189,7 @@ func (x *Tournament) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Tournament.ProtoReflect.Descriptor instead.
 func (*Tournament) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{0}
+	return file_tournament_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Tournament) GetTournamentId() string {
@@ -216,7 +276,7 @@ type CreateTournamentRequest struct {
 
 func (x *CreateTournamentRequest) Reset() {
 	*x = CreateTournamentRequest{}
-	mi := &file_tournament_proto_msgTypes[1]
+	mi := &file_tournament_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -228,7 +288,7 @@ func (x *CreateTournamentRequest) String() string {
 func (*CreateTournamentRequest) ProtoMessage() {}
 
 func (x *CreateTournamentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[1]
+	mi := &file_tournament_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -241,7 +301,7 @@ func (x *CreateTournamentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTournamentRequest.ProtoReflect.Descriptor instead.
 func (*CreateTournamentRequest) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{1}
+	return file_tournament_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *CreateTournamentRequest) GetNamespace() string {
@@ -295,7 +355,7 @@ type CreateTournamentResponse struct {
 
 func (x *CreateTournamentResponse) Reset() {
 	*x = CreateTournamentResponse{}
-	mi := &file_tournament_proto_msgTypes[2]
+	mi := &file_tournament_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -307,7 +367,7 @@ func (x *CreateTournamentResponse) String() string {
 func (*CreateTournamentResponse) ProtoMessage() {}
 
 func (x *CreateTournamentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[2]
+	mi := &file_tournament_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -320,7 +380,7 @@ func (x *CreateTournamentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CreateTournamentResponse.ProtoReflect.Descriptor instead.
 func (*CreateTournamentResponse) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{2}
+	return file_tournament_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *CreateTournamentResponse) GetTournament() *Tournament {
@@ -344,7 +404,7 @@ type ListTournamentsRequest struct {
 
 func (x *ListTournamentsRequest) Reset() {
 	*x = ListTournamentsRequest{}
-	mi := &file_tournament_proto_msgTypes[3]
+	mi := &file_tournament_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -356,7 +416,7 @@ func (x *ListTournamentsRequest) String() string {
 func (*ListTournamentsRequest) ProtoMessage() {}
 
 func (x *ListTournamentsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[3]
+	mi := &file_tournament_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -369,7 +429,7 @@ func (x *ListTournamentsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTournamentsRequest.ProtoReflect.Descriptor instead.
 func (*ListTournamentsRequest) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{3}
+	return file_tournament_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *ListTournamentsRequest) GetNamespace() string {
@@ -424,7 +484,7 @@ type ListTournamentsResponse struct {
 
 func (x *ListTournamentsResponse) Reset() {
 	*x = ListTournamentsResponse{}
-	mi := &file_tournament_proto_msgTypes[4]
+	mi := &file_tournament_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -436,7 +496,7 @@ func (x *ListTournamentsResponse) String() string {
 func (*ListTournamentsResponse) ProtoMessage() {}
 
 func (x *ListTournamentsResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[4]
+	mi := &file_tournament_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -449,7 +509,7 @@ func (x *ListTournamentsResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use ListTournamentsResponse.ProtoReflect.Descriptor instead.
 func (*ListTournamentsResponse) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{4}
+	return file_tournament_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *ListTournamentsResponse) GetTournaments() []*Tournament {
@@ -476,7 +536,7 @@ type GetTournamentRequest struct {
 
 func (x *GetTournamentRequest) Reset() {
 	*x = GetTournamentRequest{}
-	mi := &file_tournament_proto_msgTypes[5]
+	mi := &file_tournament_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -488,7 +548,7 @@ func (x *GetTournamentRequest) String() string {
 func (*GetTournamentRequest) ProtoMessage() {}
 
 func (x *GetTournamentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[5]
+	mi := &file_tournament_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -501,7 +561,7 @@ func (x *GetTournamentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTournamentRequest.ProtoReflect.Descriptor instead.
 func (*GetTournamentRequest) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{5}
+	return file_tournament_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *GetTournamentRequest) GetNamespace() string {
@@ -527,7 +587,7 @@ type GetTournamentResponse struct {
 
 func (x *GetTournamentResponse) Reset() {
 	*x = GetTournamentResponse{}
-	mi := &file_tournament_proto_msgTypes[6]
+	mi := &file_tournament_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -539,7 +599,7 @@ func (x *GetTournamentResponse) String() string {
 func (*GetTournamentResponse) ProtoMessage() {}
 
 func (x *GetTournamentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[6]
+	mi := &file_tournament_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -552,7 +612,7 @@ func (x *GetTournamentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetTournamentResponse.ProtoReflect.Descriptor instead.
 func (*GetTournamentResponse) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{6}
+	return file_tournament_proto_rawDescGZIP(), []int{7}
 }
 
 func (x *GetTournamentResponse) GetTournament() *Tournament {
@@ -572,7 +632,7 @@ type StartTournamentRequest struct {
 
 func (x *StartTournamentRequest) Reset() {
 	*x = StartTournamentRequest{}
-	mi := &file_tournament_proto_msgTypes[7]
+	mi := &file_tournament_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -584,7 +644,7 @@ func (x *StartTournamentRequest) String() string {
 func (*StartTournamentRequest) ProtoMessage() {}
 
 func (x *StartTournamentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[7]
+	mi := &file_tournament_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -597,7 +657,7 @@ func (x *StartTournamentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartTournamentRequest.ProtoReflect.Descriptor instead.
 func (*StartTournamentRequest) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{7}
+	return file_tournament_proto_rawDescGZIP(), []int{8}
 }
 
 func (x *StartTournamentRequest) GetNamespace() string {
@@ -623,7 +683,7 @@ type StartTournamentResponse struct {
 
 func (x *StartTournamentResponse) Reset() {
 	*x = StartTournamentResponse{}
-	mi := &file_tournament_proto_msgTypes[8]
+	mi := &file_tournament_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -635,7 +695,7 @@ func (x *StartTournamentResponse) String() string {
 func (*StartTournamentResponse) ProtoMessage() {}
 
 func (x *StartTournamentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[8]
+	mi := &file_tournament_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -648,7 +708,7 @@ func (x *StartTournamentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartTournamentResponse.ProtoReflect.Descriptor instead.
 func (*StartTournamentResponse) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{8}
+	return file_tournament_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *StartTournamentResponse) GetTournament() *Tournament {
@@ -668,7 +728,7 @@ type CancelTournamentRequest struct {
 
 func (x *CancelTournamentRequest) Reset() {
 	*x = CancelTournamentRequest{}
-	mi := &file_tournament_proto_msgTypes[9]
+	mi := &file_tournament_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -680,7 +740,7 @@ func (x *CancelTournamentRequest) String() string {
 func (*CancelTournamentRequest) ProtoMessage() {}
 
 func (x *CancelTournamentRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[9]
+	mi := &file_tournament_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -693,7 +753,7 @@ func (x *CancelTournamentRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelTournamentRequest.ProtoReflect.Descriptor instead.
 func (*CancelTournamentRequest) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{9}
+	return file_tournament_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *CancelTournamentRequest) GetNamespace() string {
@@ -719,7 +779,7 @@ type CancelTournamentResponse struct {
 
 func (x *CancelTournamentResponse) Reset() {
 	*x = CancelTournamentResponse{}
-	mi := &file_tournament_proto_msgTypes[10]
+	mi := &file_tournament_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -731,7 +791,7 @@ func (x *CancelTournamentResponse) String() string {
 func (*CancelTournamentResponse) ProtoMessage() {}
 
 func (x *CancelTournamentResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_tournament_proto_msgTypes[10]
+	mi := &file_tournament_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -744,7 +804,7 @@ func (x *CancelTournamentResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CancelTournamentResponse.ProtoReflect.Descriptor instead.
 func (*CancelTournamentResponse) Descriptor() ([]byte, []int) {
-	return file_tournament_proto_rawDescGZIP(), []int{10}
+	return file_tournament_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *CancelTournamentResponse) GetTournament() *Tournament {
@@ -759,7 +819,11 @@ var File_tournament_proto protoreflect.FileDescriptor
 const file_tournament_proto_rawDesc = "" +
 	"\n" +
 	"\x10tournament.proto\x12\n" +
-	"tournament\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x10permission.proto\"\xe3\x03\n" +
+	"tournament\x1a\x1cgoogle/api/annotations.proto\x1a\x1fgoogle/protobuf/timestamp.proto\x1a.protoc-gen-openapiv2/options/annotations.proto\x1a\x10permission.proto\"o\n" +
+	"\x15TournamentParticipant\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x1a\n" +
+	"\busername\x18\x02 \x01(\tR\busername\x12!\n" +
+	"\fdisplay_name\x18\x03 \x01(\tR\vdisplayName\"\xe3\x03\n" +
 	"\n" +
 	"Tournament\x12#\n" +
 	"\rtournament_id\x18\x01 \x01(\tR\ftournamentId\x12\x12\n" +
@@ -878,48 +942,49 @@ func file_tournament_proto_rawDescGZIP() []byte {
 }
 
 var file_tournament_proto_enumTypes = make([]protoimpl.EnumInfo, 1)
-var file_tournament_proto_msgTypes = make([]protoimpl.MessageInfo, 11)
+var file_tournament_proto_msgTypes = make([]protoimpl.MessageInfo, 12)
 var file_tournament_proto_goTypes = []any{
 	(TournamentStatus)(0),            // 0: tournament.TournamentStatus
-	(*Tournament)(nil),               // 1: tournament.Tournament
-	(*CreateTournamentRequest)(nil),  // 2: tournament.CreateTournamentRequest
-	(*CreateTournamentResponse)(nil), // 3: tournament.CreateTournamentResponse
-	(*ListTournamentsRequest)(nil),   // 4: tournament.ListTournamentsRequest
-	(*ListTournamentsResponse)(nil),  // 5: tournament.ListTournamentsResponse
-	(*GetTournamentRequest)(nil),     // 6: tournament.GetTournamentRequest
-	(*GetTournamentResponse)(nil),    // 7: tournament.GetTournamentResponse
-	(*StartTournamentRequest)(nil),   // 8: tournament.StartTournamentRequest
-	(*StartTournamentResponse)(nil),  // 9: tournament.StartTournamentResponse
-	(*CancelTournamentRequest)(nil),  // 10: tournament.CancelTournamentRequest
-	(*CancelTournamentResponse)(nil), // 11: tournament.CancelTournamentResponse
-	(*timestamppb.Timestamp)(nil),    // 12: google.protobuf.Timestamp
+	(*TournamentParticipant)(nil),    // 1: tournament.TournamentParticipant
+	(*Tournament)(nil),               // 2: tournament.Tournament
+	(*CreateTournamentRequest)(nil),  // 3: tournament.CreateTournamentRequest
+	(*CreateTournamentResponse)(nil), // 4: tournament.CreateTournamentResponse
+	(*ListTournamentsRequest)(nil),   // 5: tournament.ListTournamentsRequest
+	(*ListTournamentsResponse)(nil),  // 6: tournament.ListTournamentsResponse
+	(*GetTournamentRequest)(nil),     // 7: tournament.GetTournamentRequest
+	(*GetTournamentResponse)(nil),    // 8: tournament.GetTournamentResponse
+	(*StartTournamentRequest)(nil),   // 9: tournament.StartTournamentRequest
+	(*StartTournamentResponse)(nil),  // 10: tournament.StartTournamentResponse
+	(*CancelTournamentRequest)(nil),  // 11: tournament.CancelTournamentRequest
+	(*CancelTournamentResponse)(nil), // 12: tournament.CancelTournamentResponse
+	(*timestamppb.Timestamp)(nil),    // 13: google.protobuf.Timestamp
 }
 var file_tournament_proto_depIdxs = []int32{
 	0,  // 0: tournament.Tournament.status:type_name -> tournament.TournamentStatus
-	12, // 1: tournament.Tournament.created_at:type_name -> google.protobuf.Timestamp
-	12, // 2: tournament.Tournament.updated_at:type_name -> google.protobuf.Timestamp
-	12, // 3: tournament.Tournament.start_time:type_name -> google.protobuf.Timestamp
-	12, // 4: tournament.Tournament.end_time:type_name -> google.protobuf.Timestamp
-	12, // 5: tournament.CreateTournamentRequest.start_time:type_name -> google.protobuf.Timestamp
-	12, // 6: tournament.CreateTournamentRequest.end_time:type_name -> google.protobuf.Timestamp
-	1,  // 7: tournament.CreateTournamentResponse.tournament:type_name -> tournament.Tournament
+	13, // 1: tournament.Tournament.created_at:type_name -> google.protobuf.Timestamp
+	13, // 2: tournament.Tournament.updated_at:type_name -> google.protobuf.Timestamp
+	13, // 3: tournament.Tournament.start_time:type_name -> google.protobuf.Timestamp
+	13, // 4: tournament.Tournament.end_time:type_name -> google.protobuf.Timestamp
+	13, // 5: tournament.CreateTournamentRequest.start_time:type_name -> google.protobuf.Timestamp
+	13, // 6: tournament.CreateTournamentRequest.end_time:type_name -> google.protobuf.Timestamp
+	2,  // 7: tournament.CreateTournamentResponse.tournament:type_name -> tournament.Tournament
 	0,  // 8: tournament.ListTournamentsRequest.status:type_name -> tournament.TournamentStatus
-	12, // 9: tournament.ListTournamentsRequest.start_date_from:type_name -> google.protobuf.Timestamp
-	12, // 10: tournament.ListTournamentsRequest.start_date_to:type_name -> google.protobuf.Timestamp
-	1,  // 11: tournament.ListTournamentsResponse.tournaments:type_name -> tournament.Tournament
-	1,  // 12: tournament.GetTournamentResponse.tournament:type_name -> tournament.Tournament
-	1,  // 13: tournament.StartTournamentResponse.tournament:type_name -> tournament.Tournament
-	1,  // 14: tournament.CancelTournamentResponse.tournament:type_name -> tournament.Tournament
-	2,  // 15: tournament.TournamentService.CreateTournament:input_type -> tournament.CreateTournamentRequest
-	4,  // 16: tournament.TournamentService.ListTournaments:input_type -> tournament.ListTournamentsRequest
-	6,  // 17: tournament.TournamentService.GetTournament:input_type -> tournament.GetTournamentRequest
-	8,  // 18: tournament.TournamentService.StartTournament:input_type -> tournament.StartTournamentRequest
-	10, // 19: tournament.TournamentService.CancelTournament:input_type -> tournament.CancelTournamentRequest
-	3,  // 20: tournament.TournamentService.CreateTournament:output_type -> tournament.CreateTournamentResponse
-	5,  // 21: tournament.TournamentService.ListTournaments:output_type -> tournament.ListTournamentsResponse
-	7,  // 22: tournament.TournamentService.GetTournament:output_type -> tournament.GetTournamentResponse
-	9,  // 23: tournament.TournamentService.StartTournament:output_type -> tournament.StartTournamentResponse
-	11, // 24: tournament.TournamentService.CancelTournament:output_type -> tournament.CancelTournamentResponse
+	13, // 9: tournament.ListTournamentsRequest.start_date_from:type_name -> google.protobuf.Timestamp
+	13, // 10: tournament.ListTournamentsRequest.start_date_to:type_name -> google.protobuf.Timestamp
+	2,  // 11: tournament.ListTournamentsResponse.tournaments:type_name -> tournament.Tournament
+	2,  // 12: tournament.GetTournamentResponse.tournament:type_name -> tournament.Tournament
+	2,  // 13: tournament.StartTournamentResponse.tournament:type_name -> tournament.Tournament
+	2,  // 14: tournament.CancelTournamentResponse.tournament:type_name -> tournament.Tournament
+	3,  // 15: tournament.TournamentService.CreateTournament:input_type -> tournament.CreateTournamentRequest
+	5,  // 16: tournament.TournamentService.ListTournaments:input_type -> tournament.ListTournamentsRequest
+	7,  // 17: tournament.TournamentService.GetTournament:input_type -> tournament.GetTournamentRequest
+	9,  // 18: tournament.TournamentService.StartTournament:input_type -> tournament.StartTournamentRequest
+	11, // 19: tournament.TournamentService.CancelTournament:input_type -> tournament.CancelTournamentRequest
+	4,  // 20: tournament.TournamentService.CreateTournament:output_type -> tournament.CreateTournamentResponse
+	6,  // 21: tournament.TournamentService.ListTournaments:output_type -> tournament.ListTournamentsResponse
+	8,  // 22: tournament.TournamentService.GetTournament:output_type -> tournament.GetTournamentResponse
+	10, // 23: tournament.TournamentService.StartTournament:output_type -> tournament.StartTournamentResponse
+	12, // 24: tournament.TournamentService.CancelTournament:output_type -> tournament.CancelTournamentResponse
 	20, // [20:25] is the sub-list for method output_type
 	15, // [15:20] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
@@ -939,7 +1004,7 @@ func file_tournament_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tournament_proto_rawDesc), len(file_tournament_proto_rawDesc)),
 			NumEnums:      1,
-			NumMessages:   11,
+			NumMessages:   12,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

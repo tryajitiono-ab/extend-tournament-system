@@ -31,10 +31,15 @@ protoc \
   --grpc-gateway_opt=paths=source_relative \
   $(find_all_proto_files)
 
-# Step 2: Generate OpenAPI/Swagger ONLY for service.proto (the one with HTTP endpoints)
-protoc \
-  -I "${PROTO_DIR}" \
-  --openapiv2_out "${APIDOCS_DIR}" \
-  --openapiv2_opt=logtostderr=true \
-  "${PROTO_DIR}"/service.proto
+# Step 2: Generate OpenAPI/Swagger for service.proto and tournament.proto (services with HTTP endpoints)
+for proto_file in service.proto tournament.proto; do
+  if [[ -f "${PROTO_DIR}/${proto_file}" ]]; then
+    echo "Generating OpenAPI docs for ${proto_file}..."
+    protoc \
+      -I "${PROTO_DIR}" \
+      --openapiv2_out "${APIDOCS_DIR}" \
+      --openapiv2_opt=logtostderr=true \
+      "${PROTO_DIR}/${proto_file}"
+  fi
+done
 

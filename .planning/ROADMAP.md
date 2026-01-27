@@ -52,7 +52,9 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 **Plans:** 4 plans
 
-**Status:** Planned
+**Plans:** 4 plans
+
+**Status:** Ready for execution
 - [ ] 02-participation-01-PLAN.md — Participant protobuf definitions and registration endpoints
 - [ ] 02-participation-02-PLAN.md — Participant storage with concurrent-safe operations
 - [ ] 02-participation-03-PLAN.md — Registration service with capacity enforcement
@@ -81,7 +83,7 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
 | 1 - Foundation | Complete | 2025-01-27 | 2026-01-28 | Authentication and tournament management (5 plans, 17/17 verified) |
-| 2 - Participation | Planned | | | Player registration and management (4 plans in 2 waves) |
+| 2 - Participation | Planned | | | Player registration and management (4 plans in 4 waves) |
 | 3 - Competition | Pending | | | Match execution and results |
 
 ## Requirement Coverage
@@ -114,5 +116,6 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 *Roadmap created: 2025-01-27*
 *Phase 1 planning complete: 2025-01-27*
-*Plans created: 4 plans in 4 waves*
+*Phase 2 planning complete: 2026-01-28*
+*Phase 2: 4 plans in 4 waves*
 *Ready for execution*

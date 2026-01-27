@@ -2,7 +2,7 @@
 phase: 02-participation
 plan: 04
 type: execute
-wave: 2
+wave: 4
 depends_on: ["02-participation-03"]
 files_modified: ["cmd/server/main.go", "pkg/pb/tournament_grpc.pb.go"]
 autonomous: true

@@ -2,7 +2,7 @@
 phase: 02-participation
 plan: 03
 type: execute
-wave: 2
+wave: 3
 depends_on: ["02-participation-02"]
 files_modified: ["pkg/service/participant.go", "pkg/service/tournament.go"]
 autonomous: true

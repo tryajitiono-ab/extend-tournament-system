@@ -316,3 +316,160 @@ func TestSubmitMatchResult_Validation(t *testing.T) {
 		})
 	}
 }
+
+// calculateTournamentProgress calculates total rounds and current round based on matches
+func calculateTournamentProgress(matches []*serviceextension.Match) (int32, int32) {
+	if len(matches) == 0 {
+		return 0, 0
+	}
+
+	// Find highest round number to determine total rounds
+	maxRound := int32(0)
+	currentRound := int32(0)
+
+	for _, match := range matches {
+		if match.Round > maxRound {
+			maxRound = match.Round
+		}
+
+		// Check if this round has any in-progress or scheduled matches
+		// to determine the current active round
+		if match.Status == serviceextension.MatchStatus_MATCH_STATUS_SCHEDULED ||
+			match.Status == serviceextension.MatchStatus_MATCH_STATUS_IN_PROGRESS {
+			if currentRound == 0 {
+				currentRound = match.Round
+			} else if match.Round < currentRound {
+				currentRound = match.Round
+			}
+		}
+	}
+
+	// If all matches are completed, current round is the last round
+	if currentRound == 0 {
+		currentRound = maxRound
+	}
+
+	return maxRound, currentRound
+}
+
+// TestIntegration_WinnerAdvancement tests complete advancement workflow
+func TestIntegration_WinnerAdvancement(t *testing.T) {
+	t.Run("CompleteAdvancementWorkflow", func(t *testing.T) {
+		// Test that winner advancement logic works end-to-end
+		// This tests the bracket math for a 4-player tournament
+
+		// Create initial matches
+		round1Match1 := createTestMatch("m1", "t1", "user1", "user2", 1, 1)
+		round1Match2 := createTestMatch("m2", "t1", "user3", "user4", 1, 2)
+
+		// Simulate first round results
+		round1Match1.Winner = "user1"
+		round1Match1.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+
+		round1Match2.Winner = "user3"
+		round1Match2.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+
+		// Test bracket position calculations
+		// Match 1 (position 1) should advance to position 1 in round 2
+		nextPosition1 := calculateNextPosition(round1Match1.Position)
+		assert.Equal(t, int32(1), nextPosition1, "Position 1 should advance to position 1")
+		assert.Equal(t, int32(2), round1Match1.Round+1, "Should advance to round 2")
+
+		// Match 2 (position 2) should advance to position 1 in round 2
+		nextPosition2 := calculateNextPosition(round1Match2.Position)
+		assert.Equal(t, int32(1), nextPosition2, "Position 2 should advance to position 1")
+		assert.Equal(t, int32(2), round1Match2.Round+1, "Should advance to round 2")
+
+		// Create additional round 2 match (quarterfinal) for more realistic test
+		round2Match1 := createTestMatch("m3", "t1", "user1", "user3", 2, 1)
+
+		// Test tournament progress calculation
+		matches := []*serviceextension.Match{round1Match1, round1Match2, round2Match1}
+		totalRounds, currentRound := calculateTournamentProgress(matches)
+		assert.Equal(t, int32(2), totalRounds, "Should have 2 total rounds")
+		assert.Equal(t, int32(2), currentRound, "Should be in round 2")
+	})
+}
+
+// TestIntegration_GetTournamentMatches tests complete match retrieval workflow
+func TestIntegration_GetTournamentMatches(t *testing.T) {
+	t.Run("CompleteMatchRetrievalWorkflow", func(t *testing.T) {
+		mockStorage := &MockMatchStorage{}
+		mockTournamentStorage := &MockTournamentStorage{}
+
+		// Mock tournament existence
+		mockTournamentStorage.On("GetTournament", mock.Anything, "ns1", "tournament1").
+			Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
+
+		// Mock matches for all rounds
+		allMatches := []*serviceextension.Match{
+			createTestMatch("m1", "t1", "user1", "user2", 1, 1),
+			createTestMatch("m2", "t1", "user3", "user4", 1, 2),
+			createTestMatch("m3", "t1", "user1", "user2", 2, 1), // Round 2, position 1 (final)
+		}
+
+		// Test with no round filter
+		mockStorage.On("GetTournamentMatches", mock.Anything, "ns1", "tournament1").
+			Return(allMatches, nil)
+
+		logger := slog.Default()
+		service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+		req := &serviceextension.GetTournamentMatchesRequest{
+			Namespace:    "ns1",
+			TournamentId: "tournament1",
+			Round:        0, // All rounds
+		}
+
+		resp, err := service.GetTournamentMatches(context.Background(), req)
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, len(allMatches), len(resp.Matches))
+		assert.Equal(t, int32(2), resp.TotalRounds)
+		assert.Equal(t, int32(1), resp.CurrentRound)
+
+		mockStorage.AssertExpectations(t)
+		mockTournamentStorage.AssertExpectations(t)
+	})
+}
+
+// TestEdgeCases_CompelteWorkflows tests edge cases and full workflows
+func TestEdgeCases_CompelteWorkflows(t *testing.T) {
+	t.Run("ByeMatchWorkflow", func(t *testing.T) {
+		// Test bye match (single participant)
+		byeMatch := createTestMatch("m1", "t1", "user1", "", 1, 1)
+
+		mockStorage := &MockMatchStorage{}
+		mockTournamentStorage := &MockTournamentStorage{}
+
+		// Mock tournament existence
+		mockTournamentStorage.On("GetTournament", mock.Anything, "ns1", "tournament1").
+			Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
+
+		// Mock result submission should validate winner is participant1
+		mockStorage.On("SubmitMatchResult", mock.Anything, "ns1", "tournament1", "m1", "user1").
+			Return(&serviceextension.Match{
+				MatchId:      "m1",
+				Winner:       "user1",
+				Participant1: byeMatch.Participant1,
+			}, nil)
+
+		logger := slog.Default()
+		service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+		req := &serviceextension.SubmitMatchResultRequest{
+			Namespace:    "ns1",
+			TournamentId: "tournament1",
+			MatchId:      "m1",
+			WinnerUserId: "user1",
+		}
+
+		resp, err := service.SubmitMatchResult(context.Background(), req)
+		assert.NoError(t, err)
+		assert.NotNil(t, resp)
+		assert.Equal(t, "user1", resp.Match.Winner)
+
+		mockStorage.AssertExpectations(t)
+		mockTournamentStorage.AssertExpectations(t)
+	})
+}

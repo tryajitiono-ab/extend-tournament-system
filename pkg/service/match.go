@@ -190,6 +190,67 @@ func (m *MatchService) advanceWinner(ctx context.Context, namespace string, matc
 	return nil
 }
 
+// CheckTournamentCompletion checks if a tournament is complete and returns the winner
+func (m *MatchService) CheckTournamentCompletion(ctx context.Context, namespace, tournamentID string) (bool, string, error) {
+	m.logger.Info("checking tournament completion", "namespace", namespace, "tournament_id", tournamentID)
+
+	// Get all matches for the tournament
+	matches, err := m.matchStorage.GetTournamentMatches(ctx, namespace, tournamentID)
+	if err != nil {
+		m.logger.Error("failed to get tournament matches for completion check", "error", err, "tournament_id", tournamentID)
+		return false, "", grpcStatus.Errorf(codes.Internal, "failed to get tournament matches: %v", err)
+	}
+
+	if len(matches) == 0 {
+		m.logger.Warn("no matches found for tournament completion check", "tournament_id", tournamentID)
+		return false, "", nil
+	}
+
+	// Check if all matches are completed or cancelled
+	allFinished := true
+	var finalMatchWinner string
+	maxRound := int32(0)
+
+	for _, match := range matches {
+		// Track the highest round to find the final match
+		if match.Round > maxRound {
+			maxRound = match.Round
+		}
+
+		// Check if match is not finished
+		if match.Status != serviceextension.MatchStatus_MATCH_STATUS_COMPLETED &&
+			match.Status != serviceextension.MatchStatus_MATCH_STATUS_CANCELLED {
+			allFinished = false
+		}
+
+		// Track winner from the highest round (final match)
+		if match.Round == maxRound && match.Status == serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+			finalMatchWinner = match.Winner
+		}
+	}
+
+	if allFinished && finalMatchWinner != "" {
+		m.logger.Info("tournament completion detected",
+			"tournament_id", tournamentID,
+			"total_matches", len(matches),
+			"max_round", maxRound,
+			"winner", finalMatchWinner)
+		return true, finalMatchWinner, nil
+	}
+
+	if allFinished {
+		m.logger.Warn("tournament matches finished but no winner found", "tournament_id", tournamentID)
+		return true, "", nil
+	}
+
+	m.logger.Info("tournament not yet complete",
+		"tournament_id", tournamentID,
+		"total_matches", len(matches),
+		"max_round", maxRound)
+
+	return false, "", nil
+}
+
 // GetTournamentMatches retrieves all matches for a tournament
 func (m *MatchService) GetTournamentMatches(ctx context.Context, req *serviceextension.GetTournamentMatchesRequest) (*serviceextension.GetTournamentMatchesResponse, error) {
 	m.logger.Info("GetTournamentMatches called", "namespace", req.Namespace, "tournament_id", req.TournamentId, "round", req.Round)

@@ -214,15 +214,16 @@ func main() {
 		logger,
 	)
 
+	// Initialize Tournament authentication interceptor
+	tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
+
 	// Initialize Match service
 	matchService := service.NewMatchService(
 		matchStorage,
 		tournamentStorage,
+		tournamentAuthInterceptor,
 		logger,
 	)
-
-	// Initialize Tournament authentication interceptor
-	tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
 
 	// Add tournament auth interceptors to the chain
 	unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())

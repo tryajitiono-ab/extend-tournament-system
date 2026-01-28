@@ -16,16 +16,19 @@ type TournamentServer struct {
 	serviceextension.UnimplementedTournamentServiceServer
 	*service.TournamentServiceServer
 	*service.ParticipantService
+	*service.MatchService
 }
 
 // NewTournamentServer creates a new tournament server instance
 func NewTournamentServer(
 	tournamentService *service.TournamentServiceServer,
 	participantService *service.ParticipantService,
+	matchService *service.MatchService,
 ) *TournamentServer {
 	return &TournamentServer{
 		TournamentServiceServer: tournamentService,
 		ParticipantService:      participantService,
+		MatchService:            matchService,
 	}
 }
 
@@ -79,4 +82,26 @@ func (s *TournamentServer) StartTournament(ctx context.Context, req *serviceexte
 // CompleteTournament completes a tournament
 func (s *TournamentServer) CompleteTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
 	return s.TournamentServiceServer.CompleteTournament(ctx, req)
+}
+
+// Match operations delegated to MatchService
+
+// GetTournamentMatches retrieves all matches for a tournament
+func (s *TournamentServer) GetTournamentMatches(ctx context.Context, req *serviceextension.GetTournamentMatchesRequest) (*serviceextension.GetTournamentMatchesResponse, error) {
+	return s.MatchService.GetTournamentMatches(ctx, req)
+}
+
+// GetMatch retrieves a specific match by ID
+func (s *TournamentServer) GetMatch(ctx context.Context, req *serviceextension.GetMatchRequest) (*serviceextension.GetMatchResponse, error) {
+	return s.MatchService.GetMatch(ctx, req)
+}
+
+// SubmitMatchResult submits a match result (game server)
+func (s *TournamentServer) SubmitMatchResult(ctx context.Context, req *serviceextension.SubmitMatchResultRequest) (*serviceextension.SubmitMatchResultResponse, error) {
+	return s.MatchService.SubmitMatchResult(ctx, req)
+}
+
+// AdminSubmitMatchResult submits a match result (admin override)
+func (s *TournamentServer) AdminSubmitMatchResult(ctx context.Context, req *serviceextension.AdminSubmitMatchResultRequest) (*serviceextension.AdminSubmitMatchResultResponse, error) {
+	return s.MatchService.AdminSubmitMatchResult(ctx, req)
 }

@@ -198,9 +198,25 @@ func main() {
 	// Initialize Participant storage with MongoDB
 	participantStorage := storage.NewParticipantStorage(mongoClient, mongoDatabase, logger)
 
+	// Initialize Match storage with MongoDB
+	matchStorage := storage.NewMongoMatchStorage(mongoClient, mongoDatabase, logger)
+
+	// Create match storage indexes
+	if err := matchStorage.EnsureIndexes(ctx); err != nil {
+		logger.Error("failed to create match storage indexes", "error", err)
+		// Continue execution but log the error
+	}
+
 	// Initialize Participant service
 	participantService := service.NewParticipantService(
 		participantStorage,
+		tournamentStorage,
+		logger,
+	)
+
+	// Initialize Match service
+	matchService := service.NewMatchService(
+		matchStorage,
 		tournamentStorage,
 		logger,
 	)
@@ -219,10 +235,11 @@ func main() {
 	// Initialize Tournament service
 	tournamentService := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
 
-	// Register Tournament Service with participant integration
+	// Register Tournament Service with participant and match integration
 	tournamentServer := server.NewTournamentServer(
 		tournamentService,
 		participantService,
+		matchService,
 	)
 	serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
 

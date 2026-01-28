@@ -380,8 +380,8 @@ func (m *MongoMatchStorage) validateMatchWinner(match *serviceextension.Match, w
 	return grpcStatus.Errorf(codes.InvalidArgument, "winner %s is not a participant in match %s", winnerUserID, match.MatchId)
 }
 
-// ensureIndexes creates database indexes for the matches collection
-func (m *MongoMatchStorage) ensureIndexes(ctx context.Context) error {
+// EnsureIndexes creates database indexes for the matches collection
+func (m *MongoMatchStorage) EnsureIndexes(ctx context.Context) error {
 	collection := m.client.Database(m.database).Collection(m.matchCollection)
 
 	// Compound index for tournament and round queries

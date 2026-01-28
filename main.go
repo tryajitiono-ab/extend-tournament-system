@@ -192,18 +192,17 @@ func main() {
 
 	cloudSaveStorage := storage.NewCloudSaveStorage(&adminGameRecordService)
 
-	// Initialize Tournament storage with MongoDB
-	tournamentStorage := storage.NewMongoTournamentStorage(mongoClient, mongoDatabase, logger)
+	// Initialize storage registry with MongoDB
+	storageRegistry := storage.NewStorageRegistry(mongoClient, mongoDatabase, logger)
 
-	// Initialize Participant storage with MongoDB
-	participantStorage := storage.NewParticipantStorage(mongoClient, mongoDatabase, logger)
+	// Create all storage instances using registry
+	tournamentStorage := storageRegistry.NewTournamentStorage()
+	participantStorage := storageRegistry.NewParticipantStorage()
+	matchStorage := storageRegistry.NewMatchStorage()
 
-	// Initialize Match storage with MongoDB
-	matchStorage := storage.NewMongoMatchStorage(mongoClient, mongoDatabase, logger)
-
-	// Create match storage indexes
-	if err := matchStorage.EnsureIndexes(ctx); err != nil {
-		logger.Error("failed to create match storage indexes", "error", err)
+	// Ensure all database indexes are created
+	if err := storageRegistry.EnsureAllIndexes(ctx); err != nil {
+		logger.Error("failed to create storage indexes", "error", err)
 		// Continue execution but log the error
 	}
 

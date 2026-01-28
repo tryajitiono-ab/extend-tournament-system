@@ -106,11 +106,7 @@ func (m *MatchService) calculateTournamentProgress(matches []*serviceextension.M
 }
 
 // advanceWinner advances winner to next round match
-func (m *MatchService) advanceWinner(ctx context.Context, match *serviceextension.Match) error {
-	// Don't advance if this is the final match (no next round)
-	// For now, we'll implement basic advancement logic
-	// In a real implementation, you would find or create the next round match
-
+func (m *MatchService) advanceWinner(ctx context.Context, namespace string, match *serviceextension.Match) error {
 	// Calculate next round and position
 	nextRound := match.Round + 1
 	nextPosition := calculateNextPosition(match.Position)
@@ -123,8 +119,74 @@ func (m *MatchService) advanceWinner(ctx context.Context, match *serviceextensio
 		"to_round", nextRound,
 		"to_position", nextPosition)
 
-	// TODO: Implement actual advancement logic in storage layer
-	// For now, this logs the intended advancement behavior
+	// Find the winner participant from the current match
+	var winnerParticipant *serviceextension.TournamentParticipant
+	if match.Participant1 != nil && match.Participant1.UserId == match.Winner {
+		winnerParticipant = match.Participant1
+	} else if match.Participant2 != nil && match.Participant2.UserId == match.Winner {
+		winnerParticipant = match.Participant2
+	}
+
+	if winnerParticipant == nil {
+		return grpcStatus.Errorf(codes.Internal, "winner participant not found in match %s", match.MatchId)
+	}
+
+	// Get next round matches to find where to place the winner
+	nextRoundMatches, err := m.matchStorage.GetMatchesByRound(ctx, namespace, match.TournamentId, nextRound)
+	if err != nil {
+		m.logger.Error("failed to get next round matches", "error", err, "next_round", nextRound)
+		return grpcStatus.Errorf(codes.Internal, "failed to get next round matches: %v", err)
+	}
+
+	// Find the match at the calculated next position
+	var nextRoundMatch *serviceextension.Match
+	for _, nextMatch := range nextRoundMatches {
+		if nextMatch.Position == nextPosition {
+			nextRoundMatch = nextMatch
+			break
+		}
+	}
+
+	// If no match exists for the next position, this might be the final round
+	if nextRoundMatch == nil {
+		m.logger.Info("no next round match found, tournament might be in final round",
+			"match_id", match.MatchId,
+			"current_round", match.Round,
+			"next_round", nextRound,
+			"next_position", nextPosition)
+		return nil
+	}
+
+	// Update the next round match with the advancing participant
+	updated := false
+	if nextRoundMatch.Participant1 == nil {
+		nextRoundMatch.Participant1 = winnerParticipant
+		updated = true
+	} else if nextRoundMatch.Participant2 == nil {
+		nextRoundMatch.Participant2 = winnerParticipant
+		updated = true
+	}
+
+	if !updated {
+		return grpcStatus.Errorf(codes.Internal, "next round match %s already has both participants", nextRoundMatch.MatchId)
+	}
+
+	// Save the updated next round match
+	if err := m.matchStorage.UpdateMatch(ctx, match.TournamentId, nextRoundMatch); err != nil {
+		m.logger.Error("failed to update next round match with advancing participant",
+			"error", err,
+			"next_match_id", nextRoundMatch.MatchId,
+			"winner_user_id", match.Winner)
+		return grpcStatus.Errorf(codes.Internal, "failed to update next round match: %v", err)
+	}
+
+	m.logger.Info("winner advanced successfully",
+		"match_id", match.MatchId,
+		"winner", match.Winner,
+		"next_match_id", nextRoundMatch.MatchId,
+		"next_round", nextRound,
+		"next_position", nextPosition)
+
 	return nil
 }
 
@@ -262,7 +324,7 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 	}
 
 	// Advance winner to next round
-	if err := m.advanceWinner(ctx, match); err != nil {
+	if err := m.advanceWinner(ctx, req.Namespace, match); err != nil {
 		m.logger.Error("failed to advance winner", "error", err, "match_id", match.MatchId, "winner", match.Winner)
 		// Don't fail the result submission if advancement fails, just log the error
 	}
@@ -321,7 +383,7 @@ func (m *MatchService) AdminSubmitMatchResult(ctx context.Context, req *servicee
 	}
 
 	// Advance winner to next round
-	if err := m.advanceWinner(ctx, match); err != nil {
+	if err := m.advanceWinner(ctx, req.Namespace, match); err != nil {
 		m.logger.Error("failed to advance winner after admin submission", "error", err, "match_id", match.MatchId, "winner", match.Winner)
 		// Don't fail the result submission if advancement fails, just log the error
 	}

@@ -259,6 +259,74 @@ func (m *MongoMatchStorage) GetMatchesByRound(ctx context.Context, namespace, to
 	return matches, nil
 }
 
+// SubmitMatchResult submits a match result with transaction safety
+func (m *MongoMatchStorage) SubmitMatchResult(ctx context.Context, namespace, tournamentID, matchID, winnerUserID string) (*serviceextension.Match, error) {
+	session, err := m.client.StartSession()
+	if err != nil {
+		m.logger.Error("failed to start session", "error", err)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to start session: %v", err)
+	}
+	defer session.EndSession(ctx)
+
+	result, err := session.WithTransaction(ctx, func(sessCtx mongo.SessionContext) (interface{}, error) {
+		// Step 1: Get match for update and validate
+		match, err := m.getMatchForUpdate(sessCtx, namespace, tournamentID, matchID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to get match: %w", err)
+		}
+
+		// Step 2: Validate match status allows result submission
+		if match.Status == serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+			return nil, errors.New("match already completed")
+		}
+		if match.Status == serviceextension.MatchStatus_MATCH_STATUS_CANCELLED {
+			return nil, errors.New("match is cancelled")
+		}
+
+		// Step 3: Validate winner is one of the participants
+		if err := m.validateMatchWinner(match, winnerUserID); err != nil {
+			return nil, err
+		}
+
+		// Step 4: Update match with result
+		now := time.Now()
+		match.Winner = winnerUserID
+		match.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+		match.CompletedAt = timestamppb.New(now)
+
+		// Update in database
+		if err := m.UpdateMatch(sessCtx, namespace, match); err != nil {
+			return nil, fmt.Errorf("failed to update match: %w", err)
+		}
+
+		// Step 5: Log the result submission
+		m.logger.Info("match result submitted",
+			"match_id", matchID,
+			"tournament_id", tournamentID,
+			"winner_user_id", winnerUserID,
+			"namespace", namespace,
+			"completed_at", now)
+
+		return match, nil
+	})
+
+	if err != nil {
+		m.logger.Error("transaction failed", "error", err, "match_id", matchID, "winner_user_id", winnerUserID)
+
+		// Return appropriate gRPC status codes
+		if errors.Is(err, errors.New("match already completed")) {
+			return nil, grpcStatus.Errorf(codes.AlreadyExists, "match already completed: %s", matchID)
+		}
+		if errors.Is(err, errors.New("match is cancelled")) {
+			return nil, grpcStatus.Errorf(codes.FailedPrecondition, "match is cancelled: %s", matchID)
+		}
+
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to submit match result: %v", err)
+	}
+
+	return result.(*serviceextension.Match), nil
+}
+
 // documentToProto converts MongoDB document to protobuf message
 func (m *MongoMatchStorage) documentToProto(doc *matchDocument) *serviceextension.Match {
 	match := &serviceextension.Match{

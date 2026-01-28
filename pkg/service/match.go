@@ -62,6 +62,11 @@ func (m *MatchService) validateMatchWinner(match *serviceextension.Match, winner
 		return grpcStatus.Errorf(codes.InvalidArgument, "winner_user_id is required")
 	}
 
+	// Check if match is already completed
+	if match.Status == serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+		return grpcStatus.Errorf(codes.FailedPrecondition, "match %s is already completed", match.MatchId)
+	}
+
 	// Check if winner matches participant1
 	if match.Participant1 != nil && match.Participant1.UserId == winnerUserID {
 		return nil
@@ -189,7 +194,7 @@ func (m *MatchService) advanceWinner(ctx context.Context, namespace string, matc
 	}
 
 	// Save the updated next round match
-	if err := m.matchStorage.UpdateMatch(ctx, match.TournamentId, nextRoundMatch); err != nil {
+	if err := m.matchStorage.UpdateMatch(ctx, namespace, nextRoundMatch); err != nil {
 		m.logger.Error("failed to update next round match with advancing participant",
 			"error", err,
 			"next_match_id", nextRoundMatch.MatchId,

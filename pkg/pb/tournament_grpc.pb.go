@@ -31,6 +31,10 @@ const (
 	TournamentService_RegisterForTournament_FullMethodName     = "/tournament.TournamentService/RegisterForTournament"
 	TournamentService_GetTournamentParticipants_FullMethodName = "/tournament.TournamentService/GetTournamentParticipants"
 	TournamentService_RemoveParticipant_FullMethodName         = "/tournament.TournamentService/RemoveParticipant"
+	TournamentService_GetTournamentMatches_FullMethodName      = "/tournament.TournamentService/GetTournamentMatches"
+	TournamentService_GetMatch_FullMethodName                  = "/tournament.TournamentService/GetMatch"
+	TournamentService_SubmitMatchResult_FullMethodName         = "/tournament.TournamentService/SubmitMatchResult"
+	TournamentService_AdminSubmitMatchResult_FullMethodName    = "/tournament.TournamentService/AdminSubmitMatchResult"
 )
 
 // TournamentServiceClient is the client API for TournamentService service.
@@ -45,6 +49,10 @@ type TournamentServiceClient interface {
 	RegisterForTournament(ctx context.Context, in *RegisterForTournamentRequest, opts ...grpc.CallOption) (*RegisterForTournamentResponse, error)
 	GetTournamentParticipants(ctx context.Context, in *GetTournamentParticipantsRequest, opts ...grpc.CallOption) (*GetTournamentParticipantsResponse, error)
 	RemoveParticipant(ctx context.Context, in *RemoveParticipantRequest, opts ...grpc.CallOption) (*RemoveParticipantResponse, error)
+	GetTournamentMatches(ctx context.Context, in *GetTournamentMatchesRequest, opts ...grpc.CallOption) (*GetTournamentMatchesResponse, error)
+	GetMatch(ctx context.Context, in *GetMatchRequest, opts ...grpc.CallOption) (*GetMatchResponse, error)
+	SubmitMatchResult(ctx context.Context, in *SubmitMatchResultRequest, opts ...grpc.CallOption) (*SubmitMatchResultResponse, error)
+	AdminSubmitMatchResult(ctx context.Context, in *AdminSubmitMatchResultRequest, opts ...grpc.CallOption) (*AdminSubmitMatchResultResponse, error)
 }
 
 type tournamentServiceClient struct {
@@ -135,6 +143,46 @@ func (c *tournamentServiceClient) RemoveParticipant(ctx context.Context, in *Rem
 	return out, nil
 }
 
+func (c *tournamentServiceClient) GetTournamentMatches(ctx context.Context, in *GetTournamentMatchesRequest, opts ...grpc.CallOption) (*GetTournamentMatchesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetTournamentMatchesResponse)
+	err := c.cc.Invoke(ctx, TournamentService_GetTournamentMatches_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) GetMatch(ctx context.Context, in *GetMatchRequest, opts ...grpc.CallOption) (*GetMatchResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetMatchResponse)
+	err := c.cc.Invoke(ctx, TournamentService_GetMatch_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) SubmitMatchResult(ctx context.Context, in *SubmitMatchResultRequest, opts ...grpc.CallOption) (*SubmitMatchResultResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(SubmitMatchResultResponse)
+	err := c.cc.Invoke(ctx, TournamentService_SubmitMatchResult_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *tournamentServiceClient) AdminSubmitMatchResult(ctx context.Context, in *AdminSubmitMatchResultRequest, opts ...grpc.CallOption) (*AdminSubmitMatchResultResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(AdminSubmitMatchResultResponse)
+	err := c.cc.Invoke(ctx, TournamentService_AdminSubmitMatchResult_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // TournamentServiceServer is the server API for TournamentService service.
 // All implementations should embed UnimplementedTournamentServiceServer
 // for forward compatibility.
@@ -147,6 +195,10 @@ type TournamentServiceServer interface {
 	RegisterForTournament(context.Context, *RegisterForTournamentRequest) (*RegisterForTournamentResponse, error)
 	GetTournamentParticipants(context.Context, *GetTournamentParticipantsRequest) (*GetTournamentParticipantsResponse, error)
 	RemoveParticipant(context.Context, *RemoveParticipantRequest) (*RemoveParticipantResponse, error)
+	GetTournamentMatches(context.Context, *GetTournamentMatchesRequest) (*GetTournamentMatchesResponse, error)
+	GetMatch(context.Context, *GetMatchRequest) (*GetMatchResponse, error)
+	SubmitMatchResult(context.Context, *SubmitMatchResultRequest) (*SubmitMatchResultResponse, error)
+	AdminSubmitMatchResult(context.Context, *AdminSubmitMatchResultRequest) (*AdminSubmitMatchResultResponse, error)
 }
 
 // UnimplementedTournamentServiceServer should be embedded to have
@@ -179,6 +231,18 @@ func (UnimplementedTournamentServiceServer) GetTournamentParticipants(context.Co
 }
 func (UnimplementedTournamentServiceServer) RemoveParticipant(context.Context, *RemoveParticipantRequest) (*RemoveParticipantResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method RemoveParticipant not implemented")
+}
+func (UnimplementedTournamentServiceServer) GetTournamentMatches(context.Context, *GetTournamentMatchesRequest) (*GetTournamentMatchesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetTournamentMatches not implemented")
+}
+func (UnimplementedTournamentServiceServer) GetMatch(context.Context, *GetMatchRequest) (*GetMatchResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetMatch not implemented")
+}
+func (UnimplementedTournamentServiceServer) SubmitMatchResult(context.Context, *SubmitMatchResultRequest) (*SubmitMatchResultResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method SubmitMatchResult not implemented")
+}
+func (UnimplementedTournamentServiceServer) AdminSubmitMatchResult(context.Context, *AdminSubmitMatchResultRequest) (*AdminSubmitMatchResultResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method AdminSubmitMatchResult not implemented")
 }
 func (UnimplementedTournamentServiceServer) testEmbeddedByValue() {}
 
@@ -344,6 +408,78 @@ func _TournamentService_RemoveParticipant_Handler(srv interface{}, ctx context.C
 	return interceptor(ctx, in, info, handler)
 }
 
+func _TournamentService_GetTournamentMatches_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetTournamentMatchesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).GetTournamentMatches(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TournamentService_GetTournamentMatches_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).GetTournamentMatches(ctx, req.(*GetTournamentMatchesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_GetMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetMatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).GetMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TournamentService_GetMatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).GetMatch(ctx, req.(*GetMatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_SubmitMatchResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SubmitMatchResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).SubmitMatchResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TournamentService_SubmitMatchResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).SubmitMatchResult(ctx, req.(*SubmitMatchResultRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _TournamentService_AdminSubmitMatchResult_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(AdminSubmitMatchResultRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(TournamentServiceServer).AdminSubmitMatchResult(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: TournamentService_AdminSubmitMatchResult_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(TournamentServiceServer).AdminSubmitMatchResult(ctx, req.(*AdminSubmitMatchResultRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // TournamentService_ServiceDesc is the grpc.ServiceDesc for TournamentService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -382,6 +518,22 @@ var TournamentService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "RemoveParticipant",
 			Handler:    _TournamentService_RemoveParticipant_Handler,
+		},
+		{
+			MethodName: "GetTournamentMatches",
+			Handler:    _TournamentService_GetTournamentMatches_Handler,
+		},
+		{
+			MethodName: "GetMatch",
+			Handler:    _TournamentService_GetMatch_Handler,
+		},
+		{
+			MethodName: "SubmitMatchResult",
+			Handler:    _TournamentService_SubmitMatchResult_Handler,
+		},
+		{
+			MethodName: "AdminSubmitMatchResult",
+			Handler:    _TournamentService_AdminSubmitMatchResult_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

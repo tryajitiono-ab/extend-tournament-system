@@ -78,6 +78,13 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 4. System automatically advances winners to next round and updates tournament status
 5. Users can view current standings, match history, and tournament winner declaration
 
+**Plans:** 3 plans
+
+**Plans:**
+- [x] 03-competition-01-PLAN.md — Match protobuf messages and service endpoints
+- [x] 03-competition-02-PLAN.md — Match storage with MongoDB and transaction support
+- [x] 03-competition-03-PLAN.md — Match service with TDD-tested business logic
+
 ---
 
 ## Progress
@@ -86,7 +93,7 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 |-------|--------|------------|---------------|-------|
 | 1 - Foundation | Complete | 2025-01-27 | 2026-01-28 | Authentication and tournament management (5 plans, 17/17 verified) |
 | 2 - Participation | Complete | 2026-01-28 | 2026-01-28 | Player registration and management (4 plans, 16/16 verified) |
-| 3 - Competition | Pending | | | Match execution and results |
+| 3 - Competition | Planned | 2026-01-28 | | Match execution and results (3 plans ready) |
 
 ## Requirement Coverage
 
@@ -116,8 +123,18 @@ This roadmap delivers a complete tournament management system in 3 phases, start
 
 ---
 
+## Phase 3 Plan Structure
+
+| Plan | Objective |
+|------|-----------|
+| 03-competition-01 | Match protobuf messages and service endpoints |
+| 03-competition-02 | Match storage with MongoDB and transaction support |
+| 03-competition-03 | Match service with TDD-tested business logic |
+
+---
+
 *Roadmap created: 2025-01-27*
 *Phase 1 planning complete: 2025-01-27*
 *Phase 2 planning complete: 2026-01-28*
 *Phase 2 execution complete: 2026-01-28*
-*Phase 3: Ready for planning*
+*Phase 3 planning complete: 2026-01-29*

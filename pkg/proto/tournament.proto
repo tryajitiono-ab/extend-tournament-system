@@ -145,6 +145,71 @@ message RemoveParticipantResponse {
   bool removed = 3;
 }
 
+enum MatchStatus {
+  MATCH_STATUS_UNSPECIFIED = 0;
+  MATCH_STATUS_SCHEDULED = 1;
+  MATCH_STATUS_IN_PROGRESS = 2;
+  MATCH_STATUS_COMPLETED = 3;
+  MATCH_STATUS_CANCELLED = 4;
+}
+
+message Match {
+  string match_id = 1;
+  string tournament_id = 2;
+  int32 round = 3;
+  int32 position = 4;
+  TournamentParticipant participant1 = 5;
+  TournamentParticipant participant2 = 6;
+  string winner = 7;
+  MatchStatus status = 8;
+  google.protobuf.Timestamp started_at = 9;
+  google.protobuf.Timestamp completed_at = 10;
+}
+
+message GetTournamentMatchesRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+  int32 round = 3;
+}
+
+message GetTournamentMatchesResponse {
+  repeated Match matches = 1;
+  int32 total_rounds = 2;
+  int32 current_round = 3;
+}
+
+message GetMatchRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+  string match_id = 3;
+}
+
+message GetMatchResponse {
+  Match match = 1;
+}
+
+message SubmitMatchResultRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+  string match_id = 3;
+  string winner_user_id = 4;
+}
+
+message SubmitMatchResultResponse {
+  Match match = 1;
+}
+
+message AdminSubmitMatchResultRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+  string match_id = 3;
+  string winner_user_id = 4;
+}
+
+message AdminSubmitMatchResultResponse {
+  Match match = 1;
+}
+
 service TournamentService {
 
   rpc CreateTournament (CreateTournamentRequest) returns (CreateTournamentResponse) {
@@ -305,6 +370,82 @@ service TournamentService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Remove Tournament Participant"
       description: "Admin-only: Remove participant from tournament"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc GetTournamentMatches (GetTournamentMatchesRequest) returns (GetTournamentMatchesResponse) {
+    option (google.api.http) = {
+      get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get Tournament Matches"
+      description: "Get all matches for a tournament organized by round"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc GetMatch (GetMatchRequest) returns (GetMatchResponse) {
+    option (google.api.http) = {
+      get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get Match Details"
+      description: "Get detailed information about a specific match"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc SubmitMatchResult (SubmitMatchResultRequest) returns (SubmitMatchResultResponse) {
+    option (google.api.http) = {
+      post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Submit Match Result"
+      description: "Game server: Submit match result with winner information"
+      security: {
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc AdminSubmitMatchResult (AdminSubmitMatchResultRequest) returns (AdminSubmitMatchResultResponse) {
+    option (permission.action) = UPDATE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result/admin"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Admin Submit Match Result"
+      description: "Admin override: Submit match result with winner information"
       security: {
         security_requirement: {
           key: "Bearer"

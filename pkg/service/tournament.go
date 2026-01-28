@@ -28,9 +28,10 @@ type TournamentServiceServer struct {
 	configRepo         repository.ConfigRepository
 	refreshRepo        repository.RefreshTokenRepository
 	tournamentStorage  storage.TournamentStorage
-	participantStorage *storage.ParticipantStorage // Add this line
-	authInterceptor    *extendcustomguildservice.TournamentAuthInterceptor
-	logger             *slog.Logger
+	participantStorage *storage.ParticipantStorage
+
+	authInterceptor *extendcustomguildservice.TournamentAuthInterceptor
+	logger          *slog.Logger
 }
 
 // TournamentStatusTransition represents a valid status transition
@@ -258,9 +259,82 @@ func (s *TournamentServiceServer) GenerateBrackets(participants []TournamentPart
 	return bracketData, nil
 }
 
-// CompleteTournament completes a tournament (changes from STARTED to COMPLETED)
-func (s *TournamentServiceServer) CompleteTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
-	s.logger.Info("CompleteTournament called", "namespace", req.Namespace, "tournament_id", req.TournamentId)
+// CompleteTournament completes a tournament with winner declaration
+func (s *TournamentServiceServer) CompleteTournament(ctx context.Context, namespace, tournamentID, winnerUserID string) (*serviceextension.Tournament, error) {
+	s.logger.Info("CompleteTournament called", "namespace", namespace, "tournament_id", tournamentID, "winner", winnerUserID)
+
+	// Validate required fields
+	if namespace == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
+	}
+	if tournamentID == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament_id is required")
+	}
+
+	// Check admin permissions for tournament completion
+	permission := s.authInterceptor.GetTournamentPermission("UPDATE", namespace)
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, namespace); err != nil {
+		s.logger.Warn("complete tournament permission denied", "error", err, "namespace", namespace, "tournament_id", tournamentID)
+		return nil, err
+	}
+
+	// Get current tournament to validate status
+	tournament, err := s.tournamentStorage.GetTournament(ctx, namespace, tournamentID)
+	if err != nil {
+		s.logger.Error("failed to get tournament for completion", "error", err, "namespace", namespace, "tournament_id", tournamentID)
+		return nil, err
+	}
+
+	// Validate status transition using centralized validation
+	newStatus := serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED
+	if err := s.ValidateStatusTransition(tournament.Status, newStatus); err != nil {
+		s.logger.Warn("invalid tournament status transition for completion",
+			"error", err,
+			"tournament_id", tournamentID,
+			"current_status", s.GetStatusName(tournament.Status),
+			"target_status", s.GetStatusName(newStatus))
+		return nil, err
+	}
+
+	// Store previous status for logging
+	previousStatus := tournament.Status
+
+	// Update tournament status to completed and set winner
+	tournament.Status = newStatus
+	tournament.UpdatedAt = timestamppb.New(time.Now())
+	// TODO: Add winner field to Tournament protobuf when available
+	// For now, we'll log the winner but can't store it in the tournament record
+
+	// Update tournament in storage
+	updatedTournament, err := s.tournamentStorage.UpdateTournament(ctx, namespace, tournamentID, tournament)
+	if err != nil {
+		s.logger.Error("failed to complete tournament", "error", err, "namespace", namespace, "tournament_id", tournamentID)
+		return nil, err
+	}
+
+	// Log status change for auditing
+	s.LogStatusChange(ctx, updatedTournament.TournamentId, namespace, previousStatus, newStatus, "Tournament completed")
+
+	s.logger.Info("tournament completed successfully",
+		"tournament_id", updatedTournament.TournamentId,
+		"namespace", namespace,
+		"name", updatedTournament.Name,
+		"previous_status", s.GetStatusName(previousStatus),
+		"winner_user_id", winnerUserID)
+
+	// Log that this is a terminal state
+	s.logger.Info("tournament reached terminal state",
+		"tournament_id", updatedTournament.TournamentId,
+		"namespace", namespace,
+		"terminal_status", s.GetStatusName(newStatus),
+		"winner", winnerUserID)
+
+	return updatedTournament, nil
+}
+
+// CompleteTournamentByAdmin completes a tournament via admin request (changes from STARTED to COMPLETED)
+func (s *TournamentServiceServer) CompleteTournamentByAdmin(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+	s.logger.Info("CompleteTournamentByAdmin called", "namespace", req.Namespace, "tournament_id", req.TournamentId)
 
 	// Validate required fields
 	if req.Namespace == "" {
@@ -270,59 +344,11 @@ func (s *TournamentServiceServer) CompleteTournament(ctx context.Context, req *s
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament_id is required")
 	}
 
-	// Check admin permissions for tournament completion
-	permission := s.authInterceptor.GetTournamentPermission("UPDATE", req.Namespace)
-	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
-		s.logger.Warn("complete tournament permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
-		return nil, err
-	}
-
-	// Get current tournament to validate status
-	tournament, err := s.tournamentStorage.GetTournament(ctx, req.Namespace, req.TournamentId)
+	// Use the actual completion logic without requiring winner since it's admin action
+	updatedTournament, err := s.CompleteTournament(ctx, req.Namespace, req.TournamentId, "")
 	if err != nil {
-		s.logger.Error("failed to get tournament for completion", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 		return nil, err
 	}
-
-	// Validate status transition using centralized validation
-	newStatus := serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED
-	if err := s.ValidateStatusTransition(tournament.Status, newStatus); err != nil {
-		s.logger.Warn("invalid tournament status transition for completion",
-			"error", err,
-			"tournament_id", req.TournamentId,
-			"current_status", s.GetStatusName(tournament.Status),
-			"target_status", s.GetStatusName(newStatus))
-		return nil, err
-	}
-
-	// Store previous status for logging
-	previousStatus := tournament.Status
-
-	// Update tournament status to completed
-	tournament.Status = newStatus
-	tournament.UpdatedAt = timestamppb.New(time.Now())
-
-	// Update tournament in storage
-	updatedTournament, err := s.tournamentStorage.UpdateTournament(ctx, req.Namespace, req.TournamentId, tournament)
-	if err != nil {
-		s.logger.Error("failed to complete tournament", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
-		return nil, err
-	}
-
-	// Log status change for auditing
-	s.LogStatusChange(ctx, updatedTournament.TournamentId, req.Namespace, previousStatus, newStatus, "Tournament completed")
-
-	s.logger.Info("tournament completed successfully",
-		"tournament_id", updatedTournament.TournamentId,
-		"namespace", req.Namespace,
-		"name", updatedTournament.Name,
-		"previous_status", s.GetStatusName(previousStatus))
-
-	// Log that this is a terminal state
-	s.logger.Info("tournament reached terminal state",
-		"tournament_id", updatedTournament.TournamentId,
-		"namespace", req.Namespace,
-		"terminal_status", s.GetStatusName(newStatus))
 
 	return &serviceextension.StartTournamentResponse{
 		Tournament: updatedTournament,
@@ -346,7 +372,7 @@ func NewTournamentServiceServer(
 	configRepo repository.ConfigRepository,
 	refreshRepo repository.RefreshTokenRepository,
 	tournamentStorage storage.TournamentStorage,
-	participantStorage *storage.ParticipantStorage, // Add this parameter
+	participantStorage *storage.ParticipantStorage,
 	authInterceptor *extendcustomguildservice.TournamentAuthInterceptor,
 	logger *slog.Logger,
 ) *TournamentServiceServer {
@@ -355,9 +381,10 @@ func NewTournamentServiceServer(
 		configRepo:         configRepo,
 		refreshRepo:        refreshRepo,
 		tournamentStorage:  tournamentStorage,
-		participantStorage: participantStorage, // Add this line
-		authInterceptor:    authInterceptor,
-		logger:             logger,
+		participantStorage: participantStorage,
+
+		authInterceptor: authInterceptor,
+		logger:          logger,
 	}
 }
 
@@ -668,32 +695,93 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 	// Generate brackets before changing status
 	s.logger.Info("generating brackets for tournament start", "tournament_id", req.TournamentId, "participants", tournament.CurrentParticipants)
 
-	// For now, create mock participants since participant registration isn't implemented yet
-	// In Phase 2, this will be replaced with actual registered participants
-	mockParticipants := make([]TournamentParticipant, tournament.CurrentParticipants)
-	for i := 0; i < int(tournament.CurrentParticipants); i++ {
-		mockParticipants[i] = TournamentParticipant{
-			UserId:      fmt.Sprintf("user-%d", i+1),
-			Username:    fmt.Sprintf("player%d", i+1),
-			DisplayName: fmt.Sprintf("Player %d", i+1),
+	// Note: Match creation is now handled at server level in enhanced StartTournament method
+	// This method only handles to basic status transition now
+	// Get participants for validation
+	participantsReq := &serviceextension.GetTournamentParticipantsRequest{
+		Namespace:    req.Namespace,
+		TournamentId: req.TournamentId,
+		PageSize:     100, // Get all participants
+	}
+
+	participantsResp, err := s.participantStorage.GetParticipants(ctx, participantsReq)
+	if err != nil {
+		s.logger.Error("failed to get participants for bracket generation", "error", err, "tournament_id", req.TournamentId)
+		return nil, grpcStatus.Errorf(codes.Internal, "failed to get tournament participants: %v", err)
+	}
+
+	if len(participantsResp.Participants) < 2 {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "at least 2 participants required to start tournament (current: %d)", len(participantsResp.Participants))
+	}
+
+	// Convert registered participants to TournamentParticipant format for bracket generation
+	tournamentParticipants := make([]TournamentParticipant, len(participantsResp.Participants))
+	for i, participant := range participantsResp.Participants {
+		tournamentParticipants[i] = TournamentParticipant{
+			UserId:      participant.UserId,
+			Username:    participant.Username,
+			DisplayName: participant.DisplayName,
 		}
 	}
 
-	bracketData, err := s.GenerateBrackets(mockParticipants)
+	// Generate bracket structure
+	bracketData, err := s.GenerateBrackets(tournamentParticipants)
 	if err != nil {
 		s.logger.Error("failed to generate brackets", "error", err, "tournament_id", req.TournamentId)
 		return nil, grpcStatus.Errorf(codes.Internal, "failed to generate tournament brackets: %v", err)
 	}
 
-	// Log bracket generation details
-	s.logger.Info("brackets generated successfully",
-		"tournament_id", req.TournamentId,
-		"total_rounds", bracketData.TotalRounds,
-		"first_round_matches", len(bracketData.Rounds[0]))
+	// Convert bracket data to protobuf Match objects for storage
+	var allMatches []*serviceextension.Match
+	for roundIdx, round := range bracketData.Rounds {
+		for matchIdx, bracket := range round {
+			match := &serviceextension.Match{
+				MatchId:   fmt.Sprintf("match-r%d-m%d", roundIdx+1, matchIdx+1),
+				Round:     int32(roundIdx + 1),
+				Position:  int32(matchIdx),
+				Status:    serviceextension.MatchStatus_MATCH_STATUS_SCHEDULED,
+				StartedAt: timestamppb.Now(),
+			}
 
-	// TODO: Store bracket data in tournament record when tournament data model supports it
-	// For now, brackets are generated and logged but not persisted
-	// This will be enhanced in future phases when participant registration is implemented
+			// Add participant 1 if exists
+			if bracket.Participant1 != nil {
+				match.Participant1 = &serviceextension.TournamentParticipant{
+					UserId:      bracket.Participant1.UserId,
+					Username:    bracket.Participant1.Username,
+					DisplayName: bracket.Participant1.DisplayName,
+				}
+			}
+
+			// Add participant 2 if exists
+			if bracket.Participant2 != nil {
+				match.Participant2 = &serviceextension.TournamentParticipant{
+					UserId:      bracket.Participant2.UserId,
+					Username:    bracket.Participant2.Username,
+					DisplayName: bracket.Participant2.DisplayName,
+				}
+			}
+
+			// Handle bye participants (automatic advancement)
+			if bracket.Bye && match.Participant1 != nil {
+				match.Winner = match.Participant1.UserId
+				match.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+				match.CompletedAt = timestamppb.Now()
+			}
+
+			allMatches = append(allMatches, match)
+		}
+	}
+
+	// TODO: Create all matches in storage using MatchService
+	// This will be implemented when MatchService is properly integrated
+	// For now, match creation needs to be handled at the server level
+	if len(allMatches) > 0 {
+		s.logger.Info("tournament matches ready to be created",
+			"tournament_id", req.TournamentId,
+			"total_rounds", bracketData.TotalRounds,
+			"first_round_matches", len(bracketData.Rounds[0]),
+			"total_matches", len(allMatches))
+	}
 
 	// Update tournament status to started
 	tournament.Status = newStatus

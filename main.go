@@ -225,7 +225,10 @@ func main() {
 		logger,
 	)
 
-	// Add tournament auth interceptors to the chain
+	// Initialize Tournament service
+	tournamentService := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
+
+	// Add tournament auth interceptors to chain
 	unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
 	streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
 
@@ -233,14 +236,12 @@ func main() {
 	myServiceServer := service.NewMyServiceServer(tokenRepo, configRepo, refreshRepo, cloudSaveStorage)
 	pb.RegisterServiceServer(s, myServiceServer)
 
-	// Initialize Tournament service
-	tournamentService := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
-
 	// Register Tournament Service with participant and match integration
 	tournamentServer := server.NewTournamentServer(
 		tournamentService,
 		participantService,
 		matchService,
+		logger,
 	)
 	serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
 

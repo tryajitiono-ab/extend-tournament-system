@@ -7,9 +7,11 @@ package service
 import (
 	"context"
 	"log/slog"
+	"time"
 
 	"google.golang.org/grpc/codes"
 	grpcStatus "google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/timestamppb"
 
 	extendcustomguildservice "extend-custom-guild-service/pkg/common"
 	serviceextension "extend-custom-guild-service/pkg/pb"
@@ -37,6 +39,21 @@ func NewMatchService(
 		authInterceptor:   authInterceptor,
 		logger:            logger,
 	}
+}
+
+// CreateTournamentMatches creates all matches for a tournament from generated bracket data
+func (m *MatchService) CreateTournamentMatches(ctx context.Context, namespace, tournamentID string, matches []*serviceextension.Match) error {
+	m.logger.Info("creating tournament matches", "tournament_id", tournamentID, "match_count", len(matches))
+
+	// Create all matches in storage using bulk insert
+	err := m.matchStorage.CreateMatches(ctx, namespace, tournamentID, matches)
+	if err != nil {
+		m.logger.Error("failed to create tournament matches", "error", err, "tournament_id", tournamentID)
+		return grpcStatus.Errorf(codes.Internal, "failed to create tournament matches: %v", err)
+	}
+
+	m.logger.Info("tournament matches created successfully", "tournament_id", tournamentID, "match_count", len(matches))
+	return nil
 }
 
 // validateMatchWinner validates that the winner is one of the participants
@@ -251,6 +268,38 @@ func (m *MatchService) CheckTournamentCompletion(ctx context.Context, namespace,
 	return false, "", nil
 }
 
+// completeTournament completes a tournament using tournament storage
+func (m *MatchService) completeTournament(ctx context.Context, namespace, tournamentID, winnerUserID string) error {
+	m.logger.Info("completing tournament", "namespace", namespace, "tournament_id", tournamentID, "winner", winnerUserID)
+
+	// Get current tournament
+	tournament, err := m.tournamentStorage.GetTournament(ctx, namespace, tournamentID)
+	if err != nil {
+		m.logger.Error("failed to get tournament for completion", "error", err, "tournament_id", tournamentID)
+		return grpcStatus.Errorf(codes.Internal, "failed to get tournament: %v", err)
+	}
+
+	// Update tournament status to completed
+	tournament.Status = serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED
+	tournament.UpdatedAt = timestamppb.New(time.Now())
+	// TODO: Add winner field to Tournament protobuf when available
+
+	// Update tournament in storage
+	_, err = m.tournamentStorage.UpdateTournament(ctx, namespace, tournamentID, tournament)
+	if err != nil {
+		m.logger.Error("failed to complete tournament", "error", err, "tournament_id", tournamentID)
+		return grpcStatus.Errorf(codes.Internal, "failed to complete tournament: %v", err)
+	}
+
+	m.logger.Info("tournament completed successfully",
+		"tournament_id", tournamentID,
+		"namespace", namespace,
+		"name", tournament.Name,
+		"winner_user_id", winnerUserID)
+
+	return nil
+}
+
 // GetTournamentMatches retrieves all matches for a tournament
 func (m *MatchService) GetTournamentMatches(ctx context.Context, req *serviceextension.GetTournamentMatchesRequest) (*serviceextension.GetTournamentMatchesResponse, error) {
 	m.logger.Info("GetTournamentMatches called", "namespace", req.Namespace, "tournament_id", req.TournamentId, "round", req.Round)
@@ -390,6 +439,24 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 		// Don't fail the result submission if advancement fails, just log the error
 	}
 
+	// Check if tournament is complete after this match result
+	isComplete, winner, err := m.CheckTournamentCompletion(ctx, req.Namespace, req.TournamentId)
+	if err != nil {
+		m.logger.Error("failed to check tournament completion", "error", err, "tournament_id", req.TournamentId)
+		// Don't fail the result submission, just log the error
+	} else if isComplete {
+		m.logger.Info("tournament completed, attempting to finalize", "tournament_id", req.TournamentId, "winner", winner)
+
+		// Complete the tournament with winner
+		err := m.completeTournament(ctx, req.Namespace, req.TournamentId, winner)
+		if err != nil {
+			m.logger.Error("failed to complete tournament", "error", err, "tournament_id", req.TournamentId, "winner", winner)
+			// Don't fail the result submission, just log the error
+		} else {
+			m.logger.Info("tournament finalized successfully", "tournament_id", req.TournamentId, "winner", winner)
+		}
+	}
+
 	m.logger.Info("match result submitted successfully",
 		"match_id", req.MatchId,
 		"tournament_id", req.TournamentId,
@@ -447,6 +514,24 @@ func (m *MatchService) AdminSubmitMatchResult(ctx context.Context, req *servicee
 	if err := m.advanceWinner(ctx, req.Namespace, match); err != nil {
 		m.logger.Error("failed to advance winner after admin submission", "error", err, "match_id", match.MatchId, "winner", match.Winner)
 		// Don't fail the result submission if advancement fails, just log the error
+	}
+
+	// Check if tournament is complete after this admin result submission
+	isComplete, winner, err := m.CheckTournamentCompletion(ctx, req.Namespace, req.TournamentId)
+	if err != nil {
+		m.logger.Error("failed to check tournament completion after admin submission", "error", err, "tournament_id", req.TournamentId)
+		// Don't fail the result submission, just log the error
+	} else if isComplete {
+		m.logger.Info("tournament completed after admin submission, attempting to finalize", "tournament_id", req.TournamentId, "winner", winner)
+
+		// Complete the tournament with winner
+		err := m.completeTournament(ctx, req.Namespace, req.TournamentId, winner)
+		if err != nil {
+			m.logger.Error("failed to complete tournament after admin submission", "error", err, "tournament_id", req.TournamentId, "winner", winner)
+			// Don't fail the result submission, just log the error
+		} else {
+			m.logger.Info("tournament finalized successfully after admin submission", "tournament_id", req.TournamentId, "winner", winner)
+		}
 	}
 
 	m.logger.Info("admin match result submitted successfully",

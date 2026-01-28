@@ -9,11 +9,11 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Tournament Management
 
-- [ ] **TOURN-01**: Admin can create tournament with name, description, and max participants
-- [ ] **TOURN-02**: Users can list all available tournaments with filtering options
-- [ ] **TOURN-03**: Users can view tournament details including status and participant count
-- [ ] **TOURN-04**: Admin can start tournament to generate single-elimination brackets
-- [ ] **TOURN-05**: Admin can cancel tournament with state validation
+- [x] **TOURN-01**: Admin can create tournament with name, description, and max participants
+- [x] **TOURN-02**: Users can list all available tournaments with filtering options
+- [x] **TOURN-03**: Users can view tournament details including status and participant count
+- [x] **TOURN-04**: Admin can start tournament to generate single-elimination brackets
+- [x] **TOURN-05**: Admin can cancel tournament with state validation
 
 ### Player Registration
 
@@ -24,29 +24,29 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Match Management
 
-- [ ] **MATCH-01**: System generates single-elimination brackets when tournament starts
-- [ ] **MATCH-02**: System handles odd participant counts with bye assignments
-- [ ] **MATCH-03**: Users can view tournament matches organized by round
-- [ ] **MATCH-04**: Users can view individual match details and status
-- [ ] **MATCH-05**: Game server can submit match results with authentication
-- [ ] **MATCH-06**: Game client can submit match results with validation
-- [ ] **MATCH-07**: Admin can manually submit match results as override
-- [ ] **MATCH-08**: System automatically advances winners to next round
-- [ ] **MATCH-09**: System handles match completion and tournament status updates
+- [x] **MATCH-01**: System generates single-elimination brackets when tournament starts
+- [x] **MATCH-02**: System handles odd participant counts with bye assignments
+- [x] **MATCH-03**: Users can view tournament matches organized by round
+- [x] **MATCH-04**: Users can view individual match details and status
+- [x] **MATCH-05**: Game server can submit match results with authentication
+- [x] **MATCH-06**: Game client can submit match results with validation
+- [x] **MATCH-07**: Admin can manually submit match results as override
+- [x] **MATCH-08**: System automatically advances winners to next round
+- [x] **MATCH-09**: System handles match completion and tournament status updates
 
 ### Tournament Results
 
-- [ ] **RESULT-01**: Users can view current tournament standings
-- [ ] **RESULT-02**: Users can view match history and results
-- [ ] **RESULT-03**: System declares tournament winner upon completion
-- [ ] **RESULT-04**: Tournament status transitions from in_progress to completed
+- [x] **RESULT-01**: Users can view current tournament standings
+- [x] **RESULT-02**: Users can view match history and results
+- [x] **RESULT-03**: System declares tournament winner upon completion
+- [x] **RESULT-04**: Tournament status transitions from in_progress to completed
 
 ### Authentication & Authorization
 
-- [ ] **AUTH-01**: Players authenticate using AccelByte IAM tokens
-- [ ] **AUTH-02**: Admins authenticate using AccelByte IAM with elevated permissions
-- [ ] **AUTH-03**: Game servers authenticate using service tokens
-- [ ] **AUTH-04**: System validates user permissions for tournament operations
+- [x] **AUTH-01**: Players authenticate using AccelByte IAM tokens
+- [x] **AUTH-02**: Admins authenticate using AccelByte IAM with elevated permissions
+- [x] **AUTH-03**: Game servers authenticate using service tokens
+- [x] **AUTH-04**: System validates user permissions for tournament operations
 
 ## v2 Requirements
 

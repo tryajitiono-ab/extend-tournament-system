@@ -170,6 +170,16 @@ func (s *TournamentServer) StartTournament(ctx context.Context, req *serviceexte
 			"total_rounds", bracketData.TotalRounds,
 			"first_round_matches", len(bracketData.Rounds[0]),
 			"total_matches", len(allMatches))
+
+		// Handle bye advancement for rounds 2 and beyond
+		// Since round 1 bye participants are already marked as completed,
+		// we need to advance them to round 2
+		for round := int32(2); round <= bracketData.TotalRounds; round++ {
+			if err := s.MatchService.HandleByeAdvancement(ctx, req.Namespace, req.TournamentId, round); err != nil {
+				s.logger.Warn("failed to handle bye advancement for round", "error", err, "round", round)
+				// Don't fail tournament start, just log the warning
+			}
+		}
 	}
 
 	// Now delegate to tournament service for status change

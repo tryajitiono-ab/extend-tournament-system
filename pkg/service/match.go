@@ -268,6 +268,69 @@ func (m *MatchService) CheckTournamentCompletion(ctx context.Context, namespace,
 	return false, "", nil
 }
 
+// HandleByeAdvancement automatically advances participants with byes
+func (m *MatchService) HandleByeAdvancement(ctx context.Context, namespace, tournamentID string, round int32) error {
+	m.logger.Info("handling bye advancement", "namespace", namespace, "tournament_id", tournamentID, "round", round)
+
+	// Get all matches for the specified round
+	matches, err := m.matchStorage.GetMatchesByRound(ctx, namespace, tournamentID, round)
+	if err != nil {
+		m.logger.Error("failed to get matches for bye advancement", "error", err, "round", round)
+		return grpcStatus.Errorf(codes.Internal, "failed to get matches: %v", err)
+	}
+
+	if len(matches) == 0 {
+		m.logger.Info("no matches found for bye advancement", "round", round)
+		return nil
+	}
+
+	// Process each match for bye advancement
+	for _, match := range matches {
+		// Check if this match has a bye (only one participant)
+		if (match.Participant1 != nil && match.Participant2 == nil) ||
+			(match.Participant1 == nil && match.Participant2 != nil) {
+
+			// Identify the single participant
+			var soloParticipant *serviceextension.TournamentParticipant
+			if match.Participant1 != nil {
+				soloParticipant = match.Participant1
+			} else {
+				soloParticipant = match.Participant2
+			}
+
+			if soloParticipant == nil {
+				m.logger.Warn("match has no participants", "match_id", match.MatchId)
+				continue
+			}
+
+			m.logger.Info("advancing bye participant",
+				"match_id", match.MatchId,
+				"participant_user_id", soloParticipant.UserId,
+				"round", round)
+
+			// Update match with result (bye participant advances)
+			match.Winner = soloParticipant.UserId
+			match.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+			match.CompletedAt = timestamppb.New(time.Now())
+
+			// Save the updated match
+			if err := m.matchStorage.UpdateMatch(ctx, namespace, match); err != nil {
+				m.logger.Error("failed to update bye match", "error", err, "match_id", match.MatchId)
+				return grpcStatus.Errorf(codes.Internal, "failed to update bye match: %v", err)
+			}
+
+			// Advance the participant to next round
+			if err := m.advanceWinner(ctx, namespace, match); err != nil {
+				m.logger.Error("failed to advance bye participant to next round", "error", err, "participant_user_id", soloParticipant.UserId)
+				// Don't fail the entire operation, just log the error
+			}
+		}
+	}
+
+	m.logger.Info("bye advancement completed successfully", "round", round, "processed_matches", len(matches))
+	return nil
+}
+
 // completeTournament completes a tournament using tournament storage
 func (m *MatchService) completeTournament(ctx context.Context, namespace, tournamentID, winnerUserID string) error {
 	m.logger.Info("completing tournament", "namespace", namespace, "tournament_id", tournamentID, "winner", winnerUserID)
@@ -439,6 +502,20 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 		// Don't fail the result submission if advancement fails, just log the error
 	}
 
+	// Handle bye advancement for subsequent rounds after each match result
+	// Get the match to determine what round we're in
+	currentMatch, err := m.matchStorage.GetMatch(ctx, req.Namespace, req.TournamentId, req.MatchId)
+	if err != nil {
+		m.logger.Error("failed to get current match for bye handling", "error", err, "match_id", req.MatchId)
+	} else {
+		// Handle bye advancement for the next round
+		nextRound := currentMatch.Round + 1
+		if err := m.HandleByeAdvancement(ctx, req.Namespace, req.TournamentId, nextRound); err != nil {
+			m.logger.Error("failed to handle bye advancement for next round", "error", err, "round", nextRound)
+			// Don't fail the result submission, just log the error
+		}
+	}
+
 	// Check if tournament is complete after this match result
 	isComplete, winner, err := m.CheckTournamentCompletion(ctx, req.Namespace, req.TournamentId)
 	if err != nil {
@@ -514,6 +591,20 @@ func (m *MatchService) AdminSubmitMatchResult(ctx context.Context, req *servicee
 	if err := m.advanceWinner(ctx, req.Namespace, match); err != nil {
 		m.logger.Error("failed to advance winner after admin submission", "error", err, "match_id", match.MatchId, "winner", match.Winner)
 		// Don't fail the result submission if advancement fails, just log the error
+	}
+
+	// Handle bye advancement for subsequent rounds after each admin match result
+	// Get the match to determine what round we're in
+	currentMatch, err := m.matchStorage.GetMatch(ctx, req.Namespace, req.TournamentId, req.MatchId)
+	if err != nil {
+		m.logger.Error("failed to get current match for bye handling in admin submission", "error", err, "match_id", req.MatchId)
+	} else {
+		// Handle bye advancement for the next round
+		nextRound := currentMatch.Round + 1
+		if err := m.HandleByeAdvancement(ctx, req.Namespace, req.TournamentId, nextRound); err != nil {
+			m.logger.Error("failed to handle bye advancement for next round after admin submission", "error", err, "round", nextRound)
+			// Don't fail the result submission, just log the error
+		}
 	}
 
 	// Check if tournament is complete after this admin result submission

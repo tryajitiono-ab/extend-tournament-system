@@ -18,6 +18,17 @@ import (
 	"extend-custom-guild-service/pkg/storage"
 )
 
+// Error constants for match service operations
+const (
+	errWinnerRequired        = "winner_user_id is required"
+	errMatchAlreadyCompleted = "match %s is already completed"
+	errMatchCancelled        = "match %s is cancelled"
+	errNotParticipant        = "winner %s is not a participant in match %s"
+	errMatchNotFound         = "match not found: %s"
+	errTournamentNotFound    = "tournament not found: %s"
+	errPermissionDenied      = "permission denied for tournament operation"
+)
+
 // MatchService implements match management business logic
 type MatchService struct {
 	matchStorage      storage.MatchStorage
@@ -57,19 +68,22 @@ func (m *MatchService) CreateTournamentMatches(ctx context.Context, namespace, t
 }
 
 // validateMatchWinner validates that the winner is one of the participants
+// validateMatchWinner validates that winner is one of the participants
+// Returns nil if winner is valid participant in non-completed/cancelled match
+// Returns error if winner is empty, not a participant, or match is finished
 func (m *MatchService) validateMatchWinner(match *serviceextension.Match, winnerUserID string) error {
 	if winnerUserID == "" {
-		return grpcStatus.Errorf(codes.InvalidArgument, "winner_user_id is required")
+		return grpcStatus.Errorf(codes.InvalidArgument, errWinnerRequired)
 	}
 
 	// Check if match is already completed
 	if match.Status == serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
-		return grpcStatus.Errorf(codes.FailedPrecondition, "match %s is already completed", match.MatchId)
+		return grpcStatus.Errorf(codes.FailedPrecondition, errMatchAlreadyCompleted, match.MatchId)
 	}
 
 	// Check if match is cancelled
 	if match.Status == serviceextension.MatchStatus_MATCH_STATUS_CANCELLED {
-		return grpcStatus.Errorf(codes.FailedPrecondition, "match %s is cancelled", match.MatchId)
+		return grpcStatus.Errorf(codes.FailedPrecondition, errMatchCancelled, match.MatchId)
 	}
 
 	// Check if winner matches participant1
@@ -82,12 +96,18 @@ func (m *MatchService) validateMatchWinner(match *serviceextension.Match, winner
 		return nil
 	}
 
-	return grpcStatus.Errorf(codes.InvalidArgument, "winner %s is not a participant in match %s", winnerUserID, match.MatchId)
+	return grpcStatus.Errorf(codes.InvalidArgument, errNotParticipant, winnerUserID, match.MatchId)
 }
 
 // calculateNextPosition calculates next round position based on current position
+// Uses standard single-elimination bracket math:
+// Position 1 & 2 -> Position 1 (next round)
+// Position 3 & 4 -> Position 2 (next round)
 // Formula: nextPosition = (currentPosition - 1) / 2 + 1
 func calculateNextPosition(currentPos int32) int32 {
+	if currentPos <= 0 {
+		return 0 // Invalid position
+	}
 	return (currentPos-1)/2 + 1
 }
 

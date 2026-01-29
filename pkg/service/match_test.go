@@ -878,11 +878,10 @@ func TestAdminSubmitMatchResult(t *testing.T) {
 	mockStorage.On("GetMatch", mock.Anything, "ns1", "tournament1", "m1").
 		Return(testMatch, nil)
 
-	// Mock advancement calls
+	// Mock advancement calls - no next round match available
 	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
 		Return([]*serviceextension.Match{}, nil)
-	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
-		Return(nil)
+	// No UpdateMatch expected since no next round match exists
 
 	// Mock tournament completion check
 	mockStorage.On("GetTournamentMatches", mock.Anything, "ns1", "tournament1").
@@ -944,13 +943,13 @@ func TestHandleByeAdvancement(t *testing.T) {
 
 // TestCheckTournamentCompletion tests tournament completion detection
 func TestCheckTournamentCompletion(t *testing.T) {
-	mockStorage := &MockMatchStorage{}
-	mockTournamentStorage := &MockTournamentStorage{}
-
-	logger := slog.Default()
-	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
-
 	t.Run("IncompleteTournament", func(t *testing.T) {
+		mockStorage := &MockMatchStorage{}
+		mockTournamentStorage := &MockTournamentStorage{}
+
+		logger := slog.Default()
+		service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
 		// Create matches with some incomplete
 		matches := []*serviceextension.Match{
 			createTestMatch("m1", "tournament1", "user1", "user2", 1, 1),
@@ -977,6 +976,12 @@ func TestCheckTournamentCompletion(t *testing.T) {
 	})
 
 	t.Run("CompleteTournament", func(t *testing.T) {
+		mockStorage := &MockMatchStorage{}
+		mockTournamentStorage := &MockTournamentStorage{}
+
+		logger := slog.Default()
+		service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
 		// Create completed matches including final
 		matches := []*serviceextension.Match{
 			createTestMatch("m1", "tournament1", "user1", "user2", 1, 1),

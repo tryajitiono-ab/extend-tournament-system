@@ -67,6 +67,11 @@ func (m *MatchService) validateMatchWinner(match *serviceextension.Match, winner
 		return grpcStatus.Errorf(codes.FailedPrecondition, "match %s is already completed", match.MatchId)
 	}
 
+	// Check if match is cancelled
+	if match.Status == serviceextension.MatchStatus_MATCH_STATUS_CANCELLED {
+		return grpcStatus.Errorf(codes.FailedPrecondition, "match %s is cancelled", match.MatchId)
+	}
+
 	// Check if winner matches participant1
 	if match.Participant1 != nil && match.Participant1.UserId == winnerUserID {
 		return nil
@@ -233,12 +238,15 @@ func (m *MatchService) CheckTournamentCompletion(ctx context.Context, namespace,
 	var finalMatchWinner string
 	maxRound := int32(0)
 
+	// First pass: find the highest round
 	for _, match := range matches {
-		// Track the highest round to find the final match
 		if match.Round > maxRound {
 			maxRound = match.Round
 		}
+	}
 
+	// Second pass: check completion and find final winner
+	for _, match := range matches {
 		// Check if match is not finished
 		if match.Status != serviceextension.MatchStatus_MATCH_STATUS_COMPLETED &&
 			match.Status != serviceextension.MatchStatus_MATCH_STATUS_CANCELLED {

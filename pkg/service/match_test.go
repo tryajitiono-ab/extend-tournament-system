@@ -532,6 +532,63 @@ func TestValidateMatchWinner_AlreadyCompleted(t *testing.T) {
 	// Test that completed match rejects new winner validation
 	err := service.validateMatchWinner(match, "user2")
 	assert.Error(t, err, "Already completed match should reject new result")
+	assert.Contains(t, err.Error(), "already completed", "Error should mention already completed")
+}
+
+// TestValidateMatchWinner_CancelledMatch tests that cancelled matches reject new results
+func TestValidateMatchWinner_CancelledMatch(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Create cancelled match
+	match := createTestMatch("match1", "tournament1", "user1", "user2", 1, 1)
+	match.Status = serviceextension.MatchStatus_MATCH_STATUS_CANCELLED
+
+	// Test that cancelled match rejects winner validation
+	err := service.validateMatchWinner(match, "user1")
+	assert.Error(t, err, "Cancelled match should reject new result")
+}
+
+// TestValidateMatchWinner_InProgressMatch tests that in-progress matches accept results
+func TestValidateMatchWinner_InProgressMatch(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Create in-progress match
+	match := createTestMatch("match1", "tournament1", "user1", "user2", 1, 1)
+	match.Status = serviceextension.MatchStatus_MATCH_STATUS_IN_PROGRESS
+
+	// Test that in-progress match accepts winner validation
+	err := service.validateMatchWinner(match, "user1")
+	assert.NoError(t, err, "In-progress match should accept winner")
+}
+
+// TestValidateMatchWinner_NilParticipants tests edge case with nil participants
+func TestValidateMatchWinner_NilParticipants(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Create match with nil participant1
+	match := createTestMatch("match1", "tournament1", "user1", "user2", 1, 1)
+	match.Participant1 = nil
+
+	// Test that nil participant1 still allows participant2 as winner
+	err := service.validateMatchWinner(match, "user2")
+	assert.NoError(t, err, "Nil participant1 should still allow participant2 as winner")
+
+	// Create match with both nil participants
+	match.Participant2 = nil
+	err = service.validateMatchWinner(match, "user3")
+	assert.Error(t, err, "Match with no participants should reject any winner")
 }
 
 // TestAdvanceWinner_Position1Advancement tests position 1 advances to position 1 in next round
@@ -738,8 +795,215 @@ func TestAdvanceWinner_FinalMatch(t *testing.T) {
 	mockStorage.AssertNotCalled(t, "UpdateMatch", mock.Anything, mock.Anything, mock.Anything)
 }
 
-// TestEdgeCases_CompelteWorkflows tests edge cases and full workflows
-func TestEdgeCases_CompelteWorkflows(t *testing.T) {
+// TestCreateTournamentMatches tests bulk match creation for tournaments
+func TestCreateTournamentMatches(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Create test matches for tournament
+	matches := []*serviceextension.Match{
+		createTestMatch("m1", "tournament1", "user1", "user2", 1, 1),
+		createTestMatch("m2", "tournament1", "user3", "user4", 1, 2),
+		createTestMatch("m3", "tournament1", "", "", 2, 1), // Final match
+	}
+
+	// Mock storage calls
+	mockStorage.On("CreateMatches", mock.Anything, "ns1", "tournament1", matches).
+		Return(nil)
+
+	err := service.CreateTournamentMatches(context.Background(), "ns1", "tournament1", matches)
+	assert.NoError(t, err, "Tournament matches creation should succeed")
+
+	mockStorage.AssertExpectations(t)
+}
+
+// TestGetMatch tests individual match retrieval
+func TestGetMatch(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Test match
+	testMatch := createTestMatch("m1", "tournament1", "user1", "user2", 1, 1)
+
+	// Mock storage calls
+	mockTournamentStorage.On("GetTournament", mock.Anything, "ns1", "tournament1").
+		Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
+	mockStorage.On("GetMatch", mock.Anything, "ns1", "tournament1", "m1").
+		Return(testMatch, nil)
+
+	req := &serviceextension.GetMatchRequest{
+		Namespace:    "ns1",
+		TournamentId: "tournament1",
+		MatchId:      "m1",
+	}
+
+	resp, err := service.GetMatch(context.Background(), req)
+	assert.NoError(t, err, "Match retrieval should succeed")
+	assert.NotNil(t, resp)
+	assert.Equal(t, testMatch.MatchId, resp.Match.MatchId)
+	assert.Equal(t, testMatch.TournamentId, resp.Match.TournamentId)
+
+	mockStorage.AssertExpectations(t)
+	mockTournamentStorage.AssertExpectations(t)
+}
+
+// TestAdminSubmitMatchResult tests admin match result submission
+func TestAdminSubmitMatchResult(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Test match with winner
+	testMatch := createTestMatch("m1", "tournament1", "user1", "user2", 1, 1)
+	testMatch.Winner = "user1"
+	testMatch.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+
+	// Mock tournament existence
+	mockTournamentStorage.On("GetTournament", mock.Anything, "ns1", "tournament1").
+		Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
+
+	// Mock result submission
+	mockStorage.On("SubmitMatchResult", mock.Anything, "ns1", "tournament1", "m1", "user1").
+		Return(testMatch, nil)
+
+	// Mock GetMatch call for advancement
+	mockStorage.On("GetMatch", mock.Anything, "ns1", "tournament1", "m1").
+		Return(testMatch, nil)
+
+	// Mock advancement calls
+	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
+		Return([]*serviceextension.Match{}, nil)
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
+		Return(nil)
+
+	// Mock tournament completion check
+	mockStorage.On("GetTournamentMatches", mock.Anything, "ns1", "tournament1").
+		Return([]*serviceextension.Match{testMatch}, nil)
+
+	// Mock tournament completion
+	mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*serviceextension.Tournament")).
+		Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
+
+	req := &serviceextension.AdminSubmitMatchResultRequest{
+		Namespace:    "ns1",
+		TournamentId: "tournament1",
+		MatchId:      "m1",
+		WinnerUserId: "user1",
+	}
+
+	resp, err := service.AdminSubmitMatchResult(context.Background(), req)
+	assert.NoError(t, err, "Admin match result submission should succeed")
+	assert.NotNil(t, resp)
+	assert.Equal(t, testMatch.Winner, resp.Match.Winner)
+
+	mockStorage.AssertExpectations(t)
+	mockTournamentStorage.AssertExpectations(t)
+}
+
+// TestHandleByeAdvancement tests bye participant advancement
+func TestHandleByeAdvancement(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Create bye match (only participant1)
+	byeMatch := createTestMatch("m1", "tournament1", "user1", "", 1, 1)
+
+	// Create next round match for advancement
+	nextMatch := createTestMatch("m2", "tournament1", "", "", 2, 1)
+
+	// Mock storage calls
+	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(1)).
+		Return([]*serviceextension.Match{byeMatch}, nil)
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.MatchedBy(func(match *serviceextension.Match) bool {
+		return match.MatchId == "m1" && match.Winner == "user1" && match.Status == serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+	})).Return(nil)
+
+	// Mock advancement to next round
+	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
+		Return([]*serviceextension.Match{nextMatch}, nil)
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.MatchedBy(func(match *serviceextension.Match) bool {
+		return match.MatchId == "m2" && match.Participant1 != nil && match.Participant1.UserId == "user1"
+	})).Return(nil)
+
+	err := service.HandleByeAdvancement(context.Background(), "ns1", "tournament1", 1)
+	assert.NoError(t, err, "Bye advancement should succeed")
+
+	mockStorage.AssertExpectations(t)
+}
+
+// TestCheckTournamentCompletion tests tournament completion detection
+func TestCheckTournamentCompletion(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
+
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	t.Run("IncompleteTournament", func(t *testing.T) {
+		// Create matches with some incomplete
+		matches := []*serviceextension.Match{
+			createTestMatch("m1", "tournament1", "user1", "user2", 1, 1),
+			createTestMatch("m2", "tournament1", "user3", "user4", 1, 2),
+			createTestMatch("m3", "tournament1", "", "", 2, 1), // Final match (no winner)
+		}
+
+		// Complete first match
+		matches[0].Winner = "user1"
+		matches[0].Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+
+		// Second match still scheduled
+		matches[1].Status = serviceextension.MatchStatus_MATCH_STATUS_SCHEDULED
+
+		mockStorage.On("GetTournamentMatches", mock.Anything, "ns1", "tournament1").
+			Return(matches, nil)
+
+		isComplete, winner, err := service.CheckTournamentCompletion(context.Background(), "ns1", "tournament1")
+		assert.NoError(t, err, "Tournament completion check should succeed")
+		assert.False(t, isComplete, "Tournament should not be complete")
+		assert.Empty(t, winner, "Winner should be empty for incomplete tournament")
+
+		mockStorage.AssertExpectations(t)
+	})
+
+	t.Run("CompleteTournament", func(t *testing.T) {
+		// Create completed matches including final
+		matches := []*serviceextension.Match{
+			createTestMatch("m1", "tournament1", "user1", "user2", 1, 1),
+			createTestMatch("m2", "tournament1", "user3", "user4", 1, 2),
+			createTestMatch("m3", "tournament1", "user1", "user3", 2, 1), // Final match completed
+		}
+
+		// Complete all matches
+		for _, match := range matches {
+			match.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+		}
+		matches[2].Winner = "user1" // Final match winner
+
+		mockStorage.On("GetTournamentMatches", mock.Anything, "ns1", "tournament1").
+			Return(matches, nil)
+
+		isComplete, winner, err := service.CheckTournamentCompletion(context.Background(), "ns1", "tournament1")
+		assert.NoError(t, err, "Tournament completion check should succeed")
+		assert.True(t, isComplete, "Tournament should be complete")
+		assert.Equal(t, "user1", winner, "Should return final match winner")
+
+		mockStorage.AssertExpectations(t)
+	})
+}
+
+// TestEdgeCases_CompleteWorkflows tests edge cases and full workflows
+func TestEdgeCases_CompleteWorkflows(t *testing.T) {
 	t.Run("ByeMatchWorkflow", func(t *testing.T) {
 		// Test bye match (single participant)
 		byeMatch := createTestMatch("m1", "tournament1", "user1", "", 1, 1)

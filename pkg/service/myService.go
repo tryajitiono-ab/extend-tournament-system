@@ -6,8 +6,8 @@ package service
 
 import (
 	"context"
-	pb "extend-custom-guild-service/pkg/pb"
-	"extend-custom-guild-service/pkg/storage"
+	pb "extend-tournament-service/pkg/pb"
+	"extend-tournament-service/pkg/storage"
 	"fmt"
 
 	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/repository"

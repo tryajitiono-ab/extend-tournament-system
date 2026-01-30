@@ -10,13 +10,16 @@ services:
       - AB_CLIENT_SECRET=${AB_CLIENT_SECRET}
       - AB_BASE_URL=${AB_BASE_URL}
       - AB_NAMESPACE=${AB_NAMESPACE}
+      - BASE_PATH=${BASE_PATH}
       - PLUGIN_GRPC_SERVER_AUTH_ENABLED
+      - MONGODB_URI=mongodb://admin:password@mongodb:27017/tournament?authSource=admin
       - OTEL_EXPORTER_ZIPKIN_ENDPOINT=http://host.docker.internal:9411/api/v2/spans # Zipkin
-      - BASE_PATH
       # - GRPC_GO_LOG_VERBOSITY_LEVEL="99" # enable to debug grpc
       # - GRPC_GO_LOG_SEVERITY_LEVEL=info # enable to debug grpc
     extra_hosts:
       - host.docker.internal:host-gateway
+    depends_on:
+      - mongodb
     # logging:
     #   driver: loki
     #   options:
@@ -24,3 +27,16 @@ services:
     #     mode: non-blocking
     #     max-buffer-size: 4m
     #     loki-retries: "3"
+  mongodb:
+    image: mongo:8.0
+    ports:
+      - "27017:27017"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=admin
+      - MONGO_INITDB_ROOT_PASSWORD=password
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s

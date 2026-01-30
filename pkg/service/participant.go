@@ -9,9 +9,9 @@ import (
 	"fmt"
 	"log/slog"
 
-	extendcustomguildservice "extend-custom-guild-service/pkg/common"
-	serviceextension "extend-custom-guild-service/pkg/pb"
-	"extend-custom-guild-service/pkg/storage"
+	extendcustomguildservice "extend-tournament-service/pkg/common"
+	serviceextension "extend-tournament-service/pkg/pb"
+	"extend-tournament-service/pkg/storage"
 )
 
 // ParticipantService handles participant registration operations

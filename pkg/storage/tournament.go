@@ -18,7 +18,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	serviceextension "extend-custom-guild-service/pkg/pb"
+	serviceextension "extend-tournament-service/pkg/pb"
 )
 
 // TournamentStorage defines the interface for tournament data persistence

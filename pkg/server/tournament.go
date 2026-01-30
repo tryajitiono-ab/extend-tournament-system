@@ -9,8 +9,8 @@ import (
 	"fmt"
 	"log/slog"
 
-	serviceextension "extend-custom-guild-service/pkg/pb"
-	"extend-custom-guild-service/pkg/service"
+	serviceextension "extend-tournament-service/pkg/pb"
+	"extend-tournament-service/pkg/service"
 )
 
 // TournamentServer implements the TournamentService gRPC interface

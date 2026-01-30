@@ -9,7 +9,7 @@ import (
 	"log/slog"
 	"testing"
 
-	serviceextension "extend-custom-guild-service/pkg/pb"
+	serviceextension "extend-tournament-service/pkg/pb"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"

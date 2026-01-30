@@ -5,55 +5,32 @@
 package main
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
-	"extend-custom-guild-service/pkg/server"
-	"extend-custom-guild-service/pkg/service"
-	"extend-custom-guild-service/pkg/storage"
 	"fmt"
-	"log"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
-	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 
-	"github.com/go-openapi/loads"
+	"extend-tournament-service/pkg/common"
+	"extend-tournament-service/pkg/server"
+	"extend-tournament-service/pkg/service"
+	"extend-tournament-service/pkg/storage"
 
-	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/service/cloudsave"
-
-	"extend-custom-guild-service/pkg/common"
-
-	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/repository"
-
-	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/factory"
-	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/service/iam"
-	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
-	"github.com/prometheus/client_golang/prometheus"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
-	"go.opentelemetry.io/contrib/propagators/b3"
-	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/propagation"
-	"go.opentelemetry.io/otel/trace"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/health"
-	"google.golang.org/grpc/health/grpc_health_v1"
-	"google.golang.org/grpc/reflection"
-
-	pb "extend-custom-guild-service/pkg/pb"
-	serviceextension "extend-custom-guild-service/pkg/pb"
+	serviceextension "extend-tournament-service/pkg/pb"
 
 	sdkAuth "github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/utils/auth"
 	prometheusGrpc "github.com/grpc-ecosystem/go-grpc-prometheus"
 	prometheusCollectors "github.com/prometheus/client_golang/prometheus/collectors"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"google.golang.org/grpc"
+	grpc_health_v1 "google.golang.org/grpc/health/grpc_health_v1"
+	"google.golang.org/grpc/reflection"
 )
 
 const (
@@ -162,11 +139,21 @@ func main() {
 		os.Exit(1)
 	}
 
-	// Initialize MongoDB connection
-	mongoURI := common.GetEnv("MONGODB_URI", "mongodb://localhost:27017")
-	mongoDatabase := common.GetEnv("MONGODB_DATABASE", "tournament_service")
+	// Initialize MongoDB storage
+	docdbHost := common.GetEnv("DOCDB_HOST", "mongodb:27017")
+	docdbUsername := common.GetEnv("DOCDB_USERNAME", "admin")
+	docdbPassword := common.GetEnv("DOCDB_PASSWORD", "password")
+	docdbCaCertFilePath := common.GetEnv("DOCDB_CA_CERT_FILE_PATH", "")
+	mongoConnectionString := fmt.Sprintf("mongodb://%s:%s@%s/?tls=true&tlsCAFile=%s", docdbUsername, docdbPassword, docdbHost, docdbCaCertFilePath)
+	minPoolSize := uint64(common.GetEnvInt("DOCDB_MIN_POOL_SIZE", 5))
+	maxPoolSize := uint64(common.GetEnvInt("DOCDB_MAX_POOL_SIZE", 30))
+	mongoDatabase := common.GetEnv("DOCDB_DATABASE_NAME", "tournament_service")
 
-	mongoClient, err := mongo.Connect(ctx, options.Client().ApplyURI(mongoURI))
+	mongoClient, err := mongo.Connect(ctx, options.Client().
+		ApplyURI(mongoConnectionString).
+		SetRetryWrites(false).
+		SetMinPoolSize(minPoolSize).
+		SetMaxPoolSize(maxPoolSize))
 	if err != nil {
 		logger.Error("failed to connect to MongoDB", "error", err)
 		os.Exit(1)
@@ -182,7 +169,7 @@ func main() {
 		logger.Error("failed to ping MongoDB", "error", err)
 		os.Exit(1)
 	}
-	logger.Info("connected to MongoDB", "uri", mongoURI, "database", mongoDatabase)
+	logger.Info("connected to MongoDB", "uri", mongoConnectionString, "database", mongoDatabase)
 
 	// Initialize the AccelByte CloudSave service
 	adminGameRecordService := cloudsave.AdminGameRecordService{
@@ -230,10 +217,6 @@ func main() {
 	// Add tournament auth interceptors to chain
 	unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
 	streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
-
-	// Register Guild Service
-	myServiceServer := service.NewMyServiceServer(tokenRepo, configRepo, refreshRepo, cloudSaveStorage)
-	pb.RegisterServiceServer(s, myServiceServer)
 
 	// Register Tournament Service with participant and match integration
 	tournamentServer := server.NewTournamentServer(

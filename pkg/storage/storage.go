@@ -7,7 +7,7 @@ package storage
 import (
 	"context"
 	"encoding/json"
-	pb "extend-custom-guild-service/pkg/pb"
+	pb "extend-tournament-service/pkg/pb"
 	"log/slog"
 
 	"github.com/AccelByte/accelbyte-go-sdk/cloudsave-sdk/pkg/cloudsaveclientmodels"

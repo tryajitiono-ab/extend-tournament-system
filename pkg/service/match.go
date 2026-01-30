@@ -13,9 +13,9 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	extendcustomguildservice "extend-custom-guild-service/pkg/common"
-	serviceextension "extend-custom-guild-service/pkg/pb"
-	"extend-custom-guild-service/pkg/storage"
+	extendcustomguildservice "extend-tournament-service/pkg/common"
+	serviceextension "extend-tournament-service/pkg/pb"
+	"extend-tournament-service/pkg/storage"
 )
 
 // Error constants for match service operations

@@ -8,7 +8,7 @@ import (
 	"log/slog"
 	"testing"
 
-	serviceextension "extend-custom-guild-service/pkg/pb"
+	serviceextension "extend-tournament-service/pkg/pb"
 
 	"github.com/stretchr/testify/assert"
 	"google.golang.org/protobuf/types/known/timestamppb"

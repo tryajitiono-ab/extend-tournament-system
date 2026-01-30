@@ -19,7 +19,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	serviceextension "extend-custom-guild-service/pkg/pb"
+	serviceextension "extend-tournament-service/pkg/pb"
 )
 
 // ParticipantStorage handles participant data operations

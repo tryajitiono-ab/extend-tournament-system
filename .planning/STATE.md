@@ -2,19 +2,21 @@
 
 **Project:** Tournament Management System  
 **Started:** 2025-01-27  
-**Milestone v1.0:** COMPLETE ✓ (2026-02-01)
+**Milestone v1.0:** COMPLETE ✓ (2026-02-01)  
+**Milestone v1.1:** IN PROGRESS (started 2026-02-01)
 
 ## Project Reference
 
 **Core Value:** Players can compete in organized tournaments with automated bracket management and real-time result tracking.
 
-**Milestone Status:** v1.0 Complete - All 3 phases delivered with 24/24 requirements satisfied
+**Current Milestone:** v1.1 - Tournament Viewing UI (defining requirements)
 
 ## Current Position
 
-**Phase:** All phases complete (Foundation, Participation, Competition)  
-**Status:** Milestone v1.0 complete - Production ready with 8/10 UAT tests passed  
-**Progress:** ████████████ 100% (14/14 plans complete, all requirements delivered)
+**Phase:** Not started (defining requirements)  
+**Plan:** —  
+**Status:** Defining requirements for v1.1  
+**Last activity:** 2026-02-01 — Milestone v1.1 started
 
 ## Performance Metrics
 

@@ -12,21 +12,26 @@ Players can compete in organized tournaments with automated bracket management a
 
 ### Validated
 
-- ✓ Clean Architecture foundation with Go, MongoDB, and AccelByte Extend SDK — existing
-- ✓ HTTP REST API structure with proper authentication middleware — existing  
-- ✓ Database connection and indexing patterns — existing
-- ✓ Logging, tracing, and error handling infrastructure — existing
+- ✓ Clean Architecture foundation with Go, MongoDB, and AccelByte Extend SDK — v1.0
+- ✓ HTTP REST API structure with proper authentication middleware — v1.0
+- ✓ Database connection and indexing patterns — v1.0
+- ✓ Logging, tracing, and error handling infrastructure — v1.0
+- ✓ Tournament lifecycle management (create, start, complete, cancel) — v1.0
+- ✓ Single-elimination bracket generation with bye handling — v1.0
+- ✓ Player registration and withdrawal with forfeit logic — v1.0
+- ✓ Match result submission and validation — v1.0
+- ✓ Automatic winner advancement to next round — v1.0
+- ✓ Tournament standings calculation — v1.0
+- ✓ Admin tournament controls — v1.0
+- ✓ Public tournament browsing API — v1.0
 
 ### Active
 
-- [x] Tournament lifecycle management (create, start, complete, cancel)
-- [x] Single-elimination bracket generation with bye handling
-- [x] Player registration and withdrawal with forfeit logic
-- [x] Match result submission and validation
-- [x] Automatic winner advancement to next round
-- [x] Tournament standings calculation
-- [x] Admin tournament controls
-- [x] Public tournament browsing
+- [ ] Tournament list web page (browse all tournaments)
+- [ ] Tournament detail web page (view details, bracket, results)
+- [ ] Traditional bracket tree visualization (single-elimination)
+- [ ] Mobile-responsive layout
+- [ ] Static file serving from Go service
 
 ### Out of Scope
 
@@ -78,5 +83,16 @@ Players can compete in organized tournaments with automated bracket management a
 | Game server result reporting | Most secure and reliable, prevents player tampering | ✓ Complete |
 | Manual tournament start | Admin control over timing, ensures adequate participation | ✓ Complete |
 
+## Current Milestone: v1.1 Tournament Viewing UI
+
+**Goal:** Public users can view tournaments, brackets, and results through a web interface
+
+**Target features:**
+- Tournament list page (browse available tournaments)
+- Tournament detail page (view tournament info, bracket tree, results)
+- Traditional bracket visualization for single-elimination format
+- Mobile-responsive design
+- Static HTML/CSS/JS served from Go service
+
 ---
-*Last updated: 2026-02-01 after milestone v1.0 completion*
+*Last updated: 2026-02-01 - Starting milestone v1.1*

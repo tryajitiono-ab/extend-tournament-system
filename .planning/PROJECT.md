@@ -19,14 +19,14 @@ Players can compete in organized tournaments with automated bracket management a
 
 ### Active
 
-- [ ] Tournament lifecycle management (create, start, complete, cancel)
-- [ ] Single-elimination bracket generation with bye handling
-- [ ] Player registration and withdrawal with forfeit logic
-- [ ] Match result submission and validation
-- [ ] Automatic winner advancement to next round
-- [ ] Tournament standings calculation
-- [ ] Admin tournament controls
-- [ ] Public tournament browsing
+- [x] Tournament lifecycle management (create, start, complete, cancel)
+- [x] Single-elimination bracket generation with bye handling
+- [x] Player registration and withdrawal with forfeit logic
+- [x] Match result submission and validation
+- [x] Automatic winner advancement to next round
+- [x] Tournament standings calculation
+- [x] Admin tournament controls
+- [x] Public tournament browsing
 
 ### Out of Scope
 
@@ -72,11 +72,11 @@ Players can compete in organized tournaments with automated bracket management a
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| Single-elimination format for v1 | Simpler implementation, faster tournaments, clear competitive structure | — Pending |
-| MongoDB for data storage | Flexible schema for tournament data, good for document-based entities | ✓ Good |
-| REST API only | Simpler integration, universal compatibility, sufficient for tournament needs | — Pending |
-| Game server result reporting | Most secure and reliable, prevents player tampering | — Pending |
-| Manual tournament start | Admin control over timing, ensures adequate participation | — Pending |
+| Single-elimination format for v1 | Simpler implementation, faster tournaments, clear competitive structure | ✓ Complete |
+| MongoDB for data storage | Flexible schema for tournament data, good for document-based entities | ✓ Complete |
+| REST API only | Simpler integration, universal compatibility, sufficient for tournament needs | ✓ Complete |
+| Game server result reporting | Most secure and reliable, prevents player tampering | ✓ Complete |
+| Manual tournament start | Admin control over timing, ensures adequate participation | ✓ Complete |
 
 ---
-*Last updated: 2025-01-27 after project initialization*
+*Last updated: 2026-02-01 after milestone v1.0 completion*

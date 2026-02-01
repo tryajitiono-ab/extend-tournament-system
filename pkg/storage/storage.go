@@ -6,24 +6,10 @@ package storage
 
 import (
 	"context"
-	"encoding/json"
-	pb "extend-tournament-service/pkg/pb"
 	"log/slog"
 
-	"github.com/AccelByte/accelbyte-go-sdk/cloudsave-sdk/pkg/cloudsaveclientmodels"
-
-	"github.com/AccelByte/accelbyte-go-sdk/cloudsave-sdk/pkg/cloudsaveclient/admin_game_record"
-	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/service/cloudsave"
 	"go.mongodb.org/mongo-driver/mongo"
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
-
-// Storage interface for cloudsave operations (guild service legacy)
-type Storage interface {
-	GetGuildProgress(ctx context.Context, namespace string, key string) (*pb.GuildProgress, error)
-	SaveGuildProgress(ctx context.Context, namespace string, key string, value *pb.GuildProgress) (*pb.GuildProgress, error)
-}
 
 // StorageRegistry provides factory functions for all storage types following established patterns
 type StorageRegistry struct {
@@ -68,70 +54,4 @@ func (r *StorageRegistry) EnsureAllIndexes(ctx context.Context) error {
 
 	r.logger.Info("all storage indexes created successfully")
 	return nil
-}
-
-type CloudsaveStorage struct {
-	csStorage *cloudsave.AdminGameRecordService
-}
-
-func NewCloudSaveStorage(csStorage *cloudsave.AdminGameRecordService) *CloudsaveStorage {
-	return &CloudsaveStorage{
-		csStorage: csStorage,
-	}
-}
-
-func (c *CloudsaveStorage) SaveGuildProgress(ctx context.Context, namespace string, key string, value *pb.GuildProgress) (*pb.GuildProgress, error) {
-	input := &admin_game_record.AdminPostGameRecordHandlerV1Params{
-		Body:      value,
-		Key:       key,
-		Namespace: namespace,
-		Context:   ctx,
-	}
-	response, err := c.csStorage.AdminPostGameRecordHandlerV1Short(input)
-	if err != nil {
-		return nil, err
-	}
-
-	guildProgress, err := parseResponseToGuildProgress(response)
-	if err != nil {
-		return nil, err
-	}
-
-	return guildProgress, nil
-}
-
-func (c *CloudsaveStorage) GetGuildProgress(ctx context.Context, namespace string, key string) (*pb.GuildProgress, error) {
-	input := &admin_game_record.AdminGetGameRecordHandlerV1Params{
-		Key:       key,
-		Namespace: namespace,
-		Context:   ctx,
-	}
-	response, err := c.csStorage.AdminGetGameRecordHandlerV1Short(input)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Error getting guild progress: %v", err)
-	}
-
-	guildProgress, err := parseResponseToGuildProgress(response)
-	if err != nil {
-		return nil, err
-	}
-
-	return guildProgress, nil
-}
-
-func parseResponseToGuildProgress(response *cloudsaveclientmodels.ModelsGameRecordAdminResponse) (*pb.GuildProgress, error) {
-	// Convert the response value to a JSON string
-	valueJSON, err := json.Marshal(response.Value)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Error marshalling value into JSON: %v", err)
-	}
-
-	// Unmarshal the JSON string into a pb.GuildProgress
-	var guildProgress pb.GuildProgress
-	err = json.Unmarshal(valueJSON, &guildProgress)
-	if err != nil {
-		return nil, status.Errorf(codes.Internal, "Error unmarshalling value into GuildProgress: %v", err)
-	}
-
-	return &guildProgress, nil
 }

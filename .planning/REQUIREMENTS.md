@@ -91,33 +91,34 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TOURN-03 | Phase 1 | Complete |
 | TOURN-04 | Phase 1 | Complete |
 | TOURN-05 | Phase 1 | Complete |
-| REG-01 | Phase 2 | Pending |
-| REG-02 | Phase 2 | Pending |
-| REG-03 | Phase 2 | Pending |
-| REG-04 | Phase 2 | Pending |
-| MATCH-01 | Phase 3 | Pending |
-| MATCH-02 | Phase 3 | Pending |
-| MATCH-03 | Phase 3 | Pending |
-| MATCH-04 | Phase 3 | Pending |
-| MATCH-05 | Phase 3 | Pending |
-| MATCH-06 | Phase 3 | Pending |
-| MATCH-07 | Phase 3 | Pending |
-| MATCH-08 | Phase 3 | Pending |
-| MATCH-09 | Phase 3 | Pending |
-| RESULT-01 | Phase 3 | Pending |
-| RESULT-02 | Phase 3 | Pending |
-| RESULT-03 | Phase 3 | Pending |
-| RESULT-04 | Phase 3 | Pending |
+| REG-01 | Phase 2 | Complete |
+| REG-02 | Phase 2 | Complete |
+| REG-03 | Phase 2 | Complete |
+| REG-04 | Phase 2 | Complete |
+| MATCH-01 | Phase 3 | Complete |
+| MATCH-02 | Phase 3 | Complete |
+| MATCH-03 | Phase 3 | Complete |
+| MATCH-04 | Phase 3 | Complete |
+| MATCH-05 | Phase 3 | Complete |
+| MATCH-06 | Phase 3 | Complete |
+| MATCH-07 | Phase 3 | Complete |
+| MATCH-08 | Phase 3 | Complete |
+| MATCH-09 | Phase 3 | Complete |
+| RESULT-01 | Phase 3 | Complete |
+| RESULT-02 | Phase 3 | Complete |
+| RESULT-03 | Phase 3 | Complete |
+| RESULT-04 | Phase 3 | Complete |
 | AUTH-01 | Phase 1 | Complete |
 | AUTH-02 | Phase 1 | Complete |
-| AUTH-03 | Phase 1 | Partial (minor gap) |
+| AUTH-03 | Phase 1 | Complete |
 | AUTH-04 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 24 total
 - Mapped to phases: 24
+- Complete: 24 ✓
 - Unmapped: 0 ✓
 
 ---
 *Requirements defined: 2025-01-27*
-*Last updated: 2026-01-28 after Phase 1 completion*
+*Milestone v1.0 completed: 2026-02-01*

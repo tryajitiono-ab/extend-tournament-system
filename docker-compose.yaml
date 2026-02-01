@@ -12,7 +12,7 @@ services:
       - AB_NAMESPACE=${AB_NAMESPACE}
       - BASE_PATH=${BASE_PATH}
       - PLUGIN_GRPC_SERVER_AUTH_ENABLED
-      - MONGODB_URI=mongodb://admin:password@mongodb:27017/tournament?authSource=admin
+      - MONGODB_URI=mongodb://mongodb:27017/?replicaSet=rs0
       - OTEL_EXPORTER_ZIPKIN_ENDPOINT=http://host.docker.internal:9411/api/v2/spans # Zipkin
       # - GRPC_GO_LOG_VERBOSITY_LEVEL="99" # enable to debug grpc
       # - GRPC_GO_LOG_SEVERITY_LEVEL=info # enable to debug grpc
@@ -31,12 +31,21 @@ services:
     image: mongo:8.0
     ports:
       - "27017:27017"
-    environment:
-      - MONGO_INITDB_ROOT_USERNAME=admin
-      - MONGO_INITDB_ROOT_PASSWORD=password
+    command: ["--replSet", "rs0", "--bind_ip_all"]
     healthcheck:
-      test: ["CMD", "mongosh", "--eval", "db.runCommand({ ping: 1 })"]
+      test: |
+        mongosh --eval "
+        try {
+          rs.status();
+        } catch(e) {
+          rs.initiate({
+            _id: 'rs0',
+            members: [{ _id: 0, host: 'mongodb:27017' }]
+          });
+        }
+        db.runCommand({ ping: 1 });
+        "
       interval: 10s
-      retries: 5
-      start_period: 30s
+      retries: 10
+      start_period: 40s
       timeout: 10s

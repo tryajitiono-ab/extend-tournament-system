@@ -5,13 +5,17 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"log"
 	"log/slog"
 	"net"
 	"net/http"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
@@ -21,14 +25,27 @@ import (
 	"extend-tournament-service/pkg/service"
 	"extend-tournament-service/pkg/storage"
 
-	serviceextension "extend-tournament-service/pkg/pb"
+	pb "extend-tournament-service/pkg/pb"
 
+	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/factory"
+	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/repository"
+	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/service/iam"
 	sdkAuth "github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/utils/auth"
+	"github.com/go-openapi/loads"
+	"github.com/grpc-ecosystem/go-grpc-middleware/v2/interceptors/logging"
 	prometheusGrpc "github.com/grpc-ecosystem/go-grpc-prometheus"
+	"github.com/prometheus/client_golang/prometheus"
 	prometheusCollectors "github.com/prometheus/client_golang/prometheus/collectors"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
+	"go.opentelemetry.io/contrib/propagators/b3"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/propagation"
+	oteltrace "go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/health"
 	grpc_health_v1 "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
@@ -76,7 +93,7 @@ func main() {
 	loggingOptions := []logging.Option{
 		logging.WithLogOnEvents(logging.StartCall, logging.FinishCall, logging.PayloadReceived, logging.PayloadSent),
 		logging.WithFieldsFromContext(func(ctx context.Context) logging.Fields {
-			if span := trace.SpanContextFromContext(ctx); span.IsSampled() {
+			if span := oteltrace.SpanContextFromContext(ctx); span.IsSampled() {
 				return logging.Fields{"traceID", span.TraceID().String()}
 			}
 
@@ -107,10 +124,19 @@ func main() {
 		ConfigRepository:       configRepo,
 	}
 
+	// Configure IAM authorization (only if auth is enabled)
 	if strings.ToLower(common.GetEnv("PLUGIN_GRPC_SERVER_AUTH_ENABLED", "true")) == "true" {
+		clientId := configRepo.GetClientId()
+		clientSecret := configRepo.GetClientSecret()
+		err := oauthService.LoginClient(&clientId, &clientSecret)
+		if err != nil {
+			logger.Error("error unable to login using clientId and clientSecret", "error", err)
+			os.Exit(1)
+		}
+
 		refreshInterval := common.GetEnvInt("REFRESH_INTERVAL", 600)
 		common.Validator = common.NewTokenValidator(oauthService, time.Duration(refreshInterval)*time.Second, true)
-		err := common.Validator.Initialize(ctx)
+		err = common.Validator.Initialize(ctx)
 		if err != nil {
 			logger.Info(err.Error())
 		}
@@ -121,6 +147,8 @@ func main() {
 		unaryServerInterceptors = append(unaryServerInterceptors, unaryServerInterceptor)
 		streamServerInterceptors = append(streamServerInterceptors, serverServerInterceptor)
 		logger.Info("added auth interceptors")
+	} else {
+		logger.Info("authentication disabled for testing")
 	}
 
 	// Create gRPC Server
@@ -130,21 +158,23 @@ func main() {
 		grpc.ChainStreamInterceptor(streamServerInterceptors...),
 	)
 
-	// Configure IAM authorization
-	clientId := configRepo.GetClientId()
-	clientSecret := configRepo.GetClientSecret()
-	err := oauthService.LoginClient(&clientId, &clientSecret)
-	if err != nil {
-		logger.Error("error unable to login using clientId and clientSecret", "error", err)
-		os.Exit(1)
+	// Initialize MongoDB storage
+	// Support MONGODB_URI for direct connection string (useful for replica sets)
+	mongoConnectionString := common.GetEnv("MONGODB_URI", "")
+	if mongoConnectionString == "" {
+		// Fall back to building connection string from individual components
+		docdbHost := common.GetEnv("DOCDB_HOST", "mongodb:27017")
+		docdbUsername := common.GetEnv("DOCDB_USERNAME", "admin")
+		docdbPassword := common.GetEnv("DOCDB_PASSWORD", "password")
+		docdbCaCertFilePath := common.GetEnv("DOCDB_CA_CERT_FILE_PATH", "")
+
+		if docdbCaCertFilePath != "" {
+			mongoConnectionString = fmt.Sprintf("mongodb://%s:%s@%s/?tls=true&tlsCAFile=%s", docdbUsername, docdbPassword, docdbHost, docdbCaCertFilePath)
+		} else {
+			mongoConnectionString = fmt.Sprintf("mongodb://%s:%s@%s/", docdbUsername, docdbPassword, docdbHost)
+		}
 	}
 
-	// Initialize MongoDB storage
-	docdbHost := common.GetEnv("DOCDB_HOST", "mongodb:27017")
-	docdbUsername := common.GetEnv("DOCDB_USERNAME", "admin")
-	docdbPassword := common.GetEnv("DOCDB_PASSWORD", "password")
-	docdbCaCertFilePath := common.GetEnv("DOCDB_CA_CERT_FILE_PATH", "")
-	mongoConnectionString := fmt.Sprintf("mongodb://%s:%s@%s/?tls=true&tlsCAFile=%s", docdbUsername, docdbPassword, docdbHost, docdbCaCertFilePath)
 	minPoolSize := uint64(common.GetEnvInt("DOCDB_MIN_POOL_SIZE", 5))
 	maxPoolSize := uint64(common.GetEnvInt("DOCDB_MAX_POOL_SIZE", 30))
 	mongoDatabase := common.GetEnv("DOCDB_DATABASE_NAME", "tournament_service")
@@ -171,14 +201,6 @@ func main() {
 	}
 	logger.Info("connected to MongoDB", "uri", mongoConnectionString, "database", mongoDatabase)
 
-	// Initialize the AccelByte CloudSave service
-	adminGameRecordService := cloudsave.AdminGameRecordService{
-		Client:          factory.NewCloudsaveClient(configRepo),
-		TokenRepository: tokenRepo,
-	}
-
-	cloudSaveStorage := storage.NewCloudSaveStorage(&adminGameRecordService)
-
 	// Initialize storage registry with MongoDB
 	storageRegistry := storage.NewStorageRegistry(mongoClient, mongoDatabase, logger)
 
@@ -200,8 +222,19 @@ func main() {
 		logger,
 	)
 
-	// Initialize Tournament authentication interceptor
-	tournamentAuthInterceptor := common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
+	// Initialize Tournament authentication interceptor (only if auth is enabled)
+	var tournamentAuthInterceptor *common.TournamentAuthInterceptor
+	if strings.ToLower(common.GetEnv("PLUGIN_GRPC_SERVER_AUTH_ENABLED", "true")) == "true" {
+		tournamentAuthInterceptor = common.NewTournamentAuthInterceptor(oauthService, common.Validator, logger)
+		// Add tournament auth interceptors to chain
+		unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
+		streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
+		logger.Info("tournament auth interceptors enabled")
+	} else {
+		// Create a nil-safe interceptor for testing
+		tournamentAuthInterceptor = common.NewTournamentAuthInterceptor(oauthService, nil, logger)
+		logger.Info("tournament auth interceptors disabled")
+	}
 
 	// Initialize Match service
 	matchService := service.NewMatchService(
@@ -214,10 +247,6 @@ func main() {
 	// Initialize Tournament service
 	tournamentService := service.NewTournamentServiceServer(tokenRepo, configRepo, refreshRepo, tournamentStorage, participantStorage, tournamentAuthInterceptor, logger)
 
-	// Add tournament auth interceptors to chain
-	unaryServerInterceptors = append(unaryServerInterceptors, tournamentAuthInterceptor.TournamentUnaryInterceptor())
-	streamServerInterceptors = append(streamServerInterceptors, tournamentAuthInterceptor.TournamentStreamInterceptor())
-
 	// Register Tournament Service with participant and match integration
 	tournamentServer := server.NewTournamentServer(
 		tournamentService,
@@ -225,7 +254,7 @@ func main() {
 		matchService,
 		logger,
 	)
-	serviceextension.RegisterTournamentServiceServer(s, tournamentServer)
+	pb.RegisterTournamentServiceServer(s, tournamentServer)
 
 	// Enable gRPC Reflection
 	reflection.Register(s)

@@ -35,8 +35,10 @@ func NewTournamentAuthInterceptor(oauthService iam.OAuth20Service, validator val
 
 // CheckTournamentPermission validates if a user has the required tournament permission
 func (t *TournamentAuthInterceptor) CheckTournamentPermission(ctx context.Context, requiredPermission *iam.Permission, namespace string) error {
+	// If validator is nil, authentication is disabled (testing mode)
 	if t.validator == nil {
-		return status.Error(codes.Internal, "authorization token validator is not set")
+		t.logger.Debug("authentication disabled, skipping permission check")
+		return nil
 	}
 
 	// Extract token from metadata

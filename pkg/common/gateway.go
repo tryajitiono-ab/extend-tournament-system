@@ -17,20 +17,29 @@ import (
 )
 
 type Gateway struct {
-	mux *runtime.ServeMux
+	mux      *runtime.ServeMux
 	basePath string
 }
 
 func NewGateway(ctx context.Context, grpcServerEndpoint string, basePath string) (*Gateway, error) {
-	mux := runtime.NewServeMux()
+	// Configure gateway to forward custom headers to gRPC metadata
+	mux := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
+			// Forward all headers to gRPC metadata by default
+			// This is important for testing mode where we use custom headers
+			// like x-user-id, x-username, namespace, etc.
+			return key, true
+		}),
+	)
+
 	opts := []grpc.DialOption{grpc.WithTransportCredentials(insecure.NewCredentials())}
-	err := pb.RegisterServiceHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
+	err := pb.RegisterTournamentServiceHandlerFromEndpoint(ctx, mux, grpcServerEndpoint, opts)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Gateway{
-		mux: mux,
+		mux:      mux,
 		basePath: basePath,
 	}, nil
 }

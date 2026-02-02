@@ -5,6 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tournament</title>
     <link rel="stylesheet" href="/static/css/pico.min.css">
+    <!-- Bracket visualization library -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/brackets-viewer@1.9.0/dist/brackets-viewer.min.css" />
+    <link rel="stylesheet" href="/static/css/bracket-theme.css">
+    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brackets-viewer@1.9.0/dist/brackets-viewer.min.js"></script>
 </head>
 <body>
     <main class="container">
@@ -49,10 +53,36 @@
                     <p>No participants</p>
                 </div>
             </section>
+
+            <!-- Bracket Section -->
+            <section id="bracket-section" style="display: none;">
+                <h2>Tournament Bracket</h2>
+                
+                <!-- Loading state -->
+                <div id="bracket-loading" style="display: none;">
+                    <p aria-busy="true">Loading bracket...</p>
+                </div>
+                
+                <!-- Error state (non-critical) -->
+                <div id="bracket-error" style="display: none; color: #757575;">
+                    <!-- Error message inserted here -->
+                </div>
+                
+                <!-- Bracket container - brackets-viewer.js renders here -->
+                <div id="bracket-container" style="display: none; overflow-x: auto;">
+                    <!-- Bracket rendered by brackets-viewer.js -->
+                </div>
+                
+                <!-- Large tournament mobile warning -->
+                <div id="bracket-mobile-warning" style="display: none;">
+                    <p><small>💡 Desktop recommended for best viewing experience with 32+ participants</small></p>
+                </div>
+            </section>
         </div>
     </main>
 
     <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/bracket-adapter.js"></script>
     <script src="/static/js/tournament-detail.js"></script>
 </body>
 </html>

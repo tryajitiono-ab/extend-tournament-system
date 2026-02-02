@@ -14,9 +14,9 @@
 ## Current Position
 
 **Phase:** Phase 4 - Core UI & API Integration  
-**Plan:** —  
-**Status:** Ready for planning  
-**Last activity:** 2026-02-01 — v1.1 roadmap consolidated from 4 phases to 2 phases
+**Plan:** 04-01 ✓ Complete  
+**Status:** Ready for Plan 04-02  
+**Last activity:** 2026-02-02 — Plan 04-01 executed (static file infrastructure)
 
 ## Performance Metrics
 
@@ -190,6 +190,16 @@
 - Pagination support for participant listing to handle large tournaments
 - Field behavior annotations removed due to build environment limitations (Rule 3 deviation)
 
+**Implementation Details from 04-core-ui-api-integration-01:**
+- Web directory structure created: web/static/css/, web/static/js/, web/templates/
+- Pico CSS v2.0.6 integrated (81KB minified) for minimal responsive styling
+- Go embed.FS infrastructure for bundling static files in binary
+- Static file serving route `/static/*` with proper MIME types (text/css verified)
+- Tournaments page route `/tournaments` serving HTML templates with Go html/template
+- Base HTML template with mobile-responsive viewport and semantic structure
+- Static routes placed before gRPC-Gateway catch-all for proper routing order
+- MongoDB connection issue resolved: directConnection=true for replica set bypass
+
 ### Technical Context
 
 **Existing Foundation:**
@@ -207,7 +217,9 @@
 ### Active Todos
 
 **Immediate (v1.1 - Current Milestone):**
-- Phase 4: Static file serving, tournament list/detail pages, API client, loading states, polish
+- Phase 4 Plan 01: ✓ Complete (static file infrastructure)
+- Phase 4 Plan 02: Tournament list page with API integration
+- Phase 4 Plan 03: Tournament detail page with participant list
 - Phase 5: Bracket visualization with SVG rendering and mobile responsiveness
 
 **Future (v1.2+):**
@@ -226,15 +238,15 @@
 
 ### Blockers
 
-None. v1.0 API complete and stable. v1.1 roadmap consolidated to 2 phases with 25/25 requirements mapped.
+None. v1.0 API complete and stable. Phase 4 Plan 01 complete (static file infrastructure working).
 
 ## Session Continuity
 
-**Last Session:** v1.1 roadmap consolidation - 4 phases reduced to 2 phases (user feedback: "too many phases, this should be one-shot-able")  
-**Next Session:** Phase 4 planning - Core UI with API integration  
-**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, research-v1.1/SUMMARY.md, MILESTONE-v1.0-COMPLETE.md, PROJECT.md
+**Last Session:** Phase 4 Plan 04-01 execution - Static file infrastructure (web directory, Pico CSS, embed.FS, routes)  
+**Next Session:** Phase 4 Plan 04-02 execution - Tournament list page with API integration  
+**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, PROJECT.md
 
 ---
 *Milestone v1.0 completed: 2026-02-01 - Tournament Management System production ready with 24/24 requirements delivered*
-*Milestone v1.1 roadmap created: 2026-02-01 - Tournament Viewing UI with 25/25 requirements mapped to 4 phases*
-*Milestone v1.1 roadmap revised: 2026-02-01 - Consolidated to 2 phases based on user feedback*
+*Milestone v1.1 roadmap created: 2026-02-01 - Tournament Viewing UI with 25/25 requirements mapped to 2 phases*
+*Phase 4 Plan 01 completed: 2026-02-02 - Static file infrastructure with 4/25 requirements satisfied (INFRA-01 through INFRA-04)*

@@ -10,7 +10,6 @@ import (
 	"embed"
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"io/fs"
 	"log"
 	"log/slog"
@@ -368,20 +367,12 @@ func newGRPCGatewayHTTPServer(
 	// Serve tournaments page
 	mux.HandleFunc("/tournaments", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		tmplContent, err := templatesFS.ReadFile("web/templates/base.html")
+		tmplContent, err := templatesFS.ReadFile("web/templates/tournaments.html")
 		if err != nil {
 			http.Error(w, "Template not found", http.StatusInternalServerError)
 			return
 		}
-		tmpl, err := template.New("base").Parse(string(tmplContent))
-		if err != nil {
-			http.Error(w, "Template parse error", http.StatusInternalServerError)
-			return
-		}
-		data := map[string]interface{}{
-			"Content": "<h1>Tournaments</h1><p>Loading...</p>",
-		}
-		tmpl.Execute(w, data)
+		w.Write(tmplContent)
 	})
 
 	// Serve tournament detail page

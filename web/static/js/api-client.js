@@ -52,7 +52,7 @@ async function fetchTournament(namespace, tournamentId) {
  * @returns {Promise<Array>} Array of participant objects
  */
 async function fetchParticipants(namespace, tournamentId) {
-    const url = `${API_BASE}/${namespace}/tournaments/${tournamentId}/participants`;
+    const url = `${API_BASE}/v1/public/namespace/${namespace}/tournaments/${tournamentId}/participants`;
     const response = await fetch(url);
     
     if (!response.ok) {

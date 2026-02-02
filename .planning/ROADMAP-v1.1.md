@@ -31,7 +31,12 @@ This roadmap delivers a view-only web UI for the existing tournament management 
 7. UI works in modern browsers (Chrome, Firefox, Safari, Edge - last 2 versions)
 8. Empty state messages display when no tournaments exist
 
-**Plans:** 3-4 plans
+**Plans:** 3 plans
+
+Plans:
+- [ ] 04-01-PLAN.md — Static file infrastructure with embed.FS and Pico CSS
+- [ ] 04-02-PLAN.md — Tournament list page with API integration
+- [ ] 04-03-PLAN.md — Tournament detail page with participant list
 
 **Rationale:** This is straightforward static file serving + API consumption. Infrastructure, list UI, detail UI, API client, loading states, and polish can be implemented together since we're adding HTML/CSS/JS files to an existing working service. No complex backend changes, no framework complexity, standard patterns throughout.
 

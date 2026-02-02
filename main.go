@@ -384,6 +384,17 @@ func newGRPCGatewayHTTPServer(
 		tmpl.Execute(w, data)
 	})
 
+	// Serve tournament detail page
+	mux.HandleFunc("/tournament", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		tmplContent, err := templatesFS.ReadFile("web/templates/tournament-detail.html")
+		if err != nil {
+			http.Error(w, "Template not found", http.StatusInternalServerError)
+			return
+		}
+		w.Write(tmplContent)
+	})
+
 	// Add the gRPC-Gateway handler
 	mux.Handle("/", handler)
 

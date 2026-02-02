@@ -34,10 +34,11 @@ This roadmap delivers a view-only web UI for the existing tournament management 
 **Status:** Complete ✓ - Core viewing functionality delivered (16/21 requirements implemented, 5 deferred)
 *Completed: 2026-02-02*
 
-**Plans:** 3 plans
+**Plans:** 4 plans
 - [x] 04-01-PLAN.md — Static file infrastructure with embed.FS and Pico CSS
 - [x] 04-02-PLAN.md — Tournament list page with API integration
 - [x] 04-03-PLAN.md — Tournament detail page with participant list
+- [x] 04-04-PLAN.md — Fix gRPC-Gateway registration (gap closure)
 
 **Deferred Requirements (approved):**
 - LIST-03: Color-coded status badges → v1.2 (unimportant)
@@ -86,7 +87,7 @@ This roadmap delivers a view-only web UI for the existing tournament management 
 
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
-| 4 - Core UI & API | Complete | 2026-02-02 | 2026-02-02 | Core viewing functionality (3 plans, 16/21 requirements, 5 deferred) |
+| 4 - Core UI & API | Complete | 2026-02-02 | 2026-02-02 | Core viewing functionality (4 plans, 16/21 requirements, 5 deferred) |
 | 5 - Bracket Visualization | Not started | — | — | SVG rendering + match status + mobile layout |
 
 ## Requirement Coverage

@@ -113,32 +113,32 @@ Which phases cover which requirements. Updated during roadmap revisions.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 4 | Pending |
-| INFRA-02 | Phase 4 | Pending |
-| INFRA-03 | Phase 4 | Pending |
-| INFRA-04 | Phase 4 | Pending |
-| LIST-01 | Phase 4 | Pending |
-| LIST-02 | Phase 4 | Pending |
-| LIST-03 | Phase 4 | Pending |
-| LIST-04 | Phase 4 | Pending |
-| DETAIL-01 | Phase 4 | Pending |
-| DETAIL-02 | Phase 4 | Pending |
+| INFRA-01 | Phase 4 | Complete |
+| INFRA-02 | Phase 4 | Complete |
+| INFRA-03 | Phase 4 | Complete |
+| INFRA-04 | Phase 4 | Complete |
+| LIST-01 | Phase 4 | Complete |
+| LIST-02 | Phase 4 | Complete |
+| LIST-03 | Phase 4 | Complete |
+| LIST-04 | Phase 4 | Complete |
+| DETAIL-01 | Phase 4 | Complete |
+| DETAIL-02 | Phase 4 | Complete |
 | DETAIL-03 | Phase 5 | Pending |
 | DETAIL-04 | Phase 5 | Pending |
 | DETAIL-05 | Phase 5 | Pending |
 | DETAIL-06 | Phase 5 | Pending |
 | DETAIL-07 | Phase 5 | Pending |
-| API-01 | Phase 4 | Pending |
-| API-02 | Phase 4 | Pending |
-| API-03 | Phase 4 | Pending |
-| API-04 | Phase 4 | Pending |
-| API-05 | Phase 4 | Pending |
-| API-06 | Phase 4 | Pending |
-| API-07 | Phase 4 | Pending |
-| POLISH-01 | Phase 4 | Pending |
-| POLISH-02 | Phase 4 | Pending |
-| POLISH-03 | Phase 4 | Pending |
-| POLISH-04 | Phase 4 | Pending |
+| API-01 | Phase 4 | Complete |
+| API-02 | Phase 4 | Complete |
+| API-03 | Phase 4 | Complete |
+| API-04 | Phase 4 | Complete |
+| API-05 | Phase 4 | Complete |
+| API-06 | Phase 4 | Complete |
+| API-07 | Phase 4 | Complete |
+| POLISH-01 | Phase 4 | Complete |
+| POLISH-02 | Phase 4 | Complete |
+| POLISH-03 | Phase 4 | Complete |
+| POLISH-04 | Phase 4 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 25 total
@@ -151,4 +151,4 @@ Which phases cover which requirements. Updated during roadmap revisions.
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 after roadmap consolidation (4 phases → 2 phases)*
+*Last updated: 2026-02-02 after Phase 4 completion (20/25 requirements complete)*

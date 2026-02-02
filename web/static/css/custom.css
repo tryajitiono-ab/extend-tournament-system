@@ -1,0 +1,43 @@
+/* Custom styles for Tournament Management UI */
+
+/* Tournament grid layout - responsive columns */
+#tournament-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+/* Ensure tournament cards don't overflow */
+#tournament-list article {
+    margin: 0;
+}
+
+/* Mobile: 1 column */
+@media (max-width: 576px) {
+    #tournament-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Tablet: 2 columns */
+@media (min-width: 577px) and (max-width: 992px) {
+    #tournament-list {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+/* Desktop: 3 columns max */
+@media (min-width: 993px) {
+    #tournament-list {
+        grid-template-columns: repeat(3, 1fr);
+        max-width: 1400px;
+    }
+}
+
+/* Large desktop: cap at 4 columns */
+@media (min-width: 1400px) {
+    #tournament-list {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}

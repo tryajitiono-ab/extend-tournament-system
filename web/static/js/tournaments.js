@@ -56,7 +56,7 @@ function renderTournaments(tournaments) {
     hideEmpty();
 
     tournamentListEl.innerHTML = tournaments.map(tournament => {
-        const detailUrl = `/tournament?namespace=${encodeURIComponent(tournament.namespace)}&id=${encodeURIComponent(tournament.tournament_id)}`;
+        const detailUrl = `/tournament?namespace=test-ns&id=${encodeURIComponent(tournament.tournamentId)}`;
         
         return `
             <article>
@@ -65,7 +65,7 @@ function renderTournaments(tournaments) {
                 </header>
                 <p>${escapeHtml(tournament.description || '')}</p>
                 <footer>
-                    <small>${tournament.status} · ${tournament.current_participants || 0} participants</small>
+                    <small>${tournament.status} · ${tournament.currentParticipants || 0}/${tournament.maxParticipants} participants</small>
                 </footer>
             </article>
         `;

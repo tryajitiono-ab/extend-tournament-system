@@ -77,6 +77,7 @@ async function loadParticipants() {
         renderParticipants(participants);
     } catch (error) {
         hideParticipantLoading();
+        showParticipantEmpty();
         console.error('Failed to load participants:', error);
         // Don't show error banner - just hide loading state
         // Participant error is less critical than tournament error
@@ -93,8 +94,8 @@ function renderTournament(tournament) {
 
     tournamentNameEl.textContent = tournament.name || 'Untitled Tournament';
     
-    const participantCount = tournament.current_participants || 0;
-    const maxParticipants = tournament.max_participants || 0;
+    const participantCount = tournament.currentParticipants || 0;
+    const maxParticipants = tournament.maxParticipants || 0;
     tournamentMetaEl.textContent = `${tournament.status} · ${participantCount}/${maxParticipants} participants`;
     
     tournamentDescriptionEl.textContent = tournament.description || '';

@@ -33,7 +33,7 @@
 - Purpose: Data persistence abstraction
 - Location: `pkg/storage/`
 - Contains: Storage interfaces and implementations
-- Depends on: AccelByte CloudSave SDK
+- Depends on: MongoDB Go Driver
 - Used by: Service layer
 
 **Common Layer:**
@@ -60,13 +60,13 @@
 4. Logging interceptor records request metadata
 5. Tracing interceptor creates/continues trace span
 6. Service implementation processes business logic
-7. Storage layer persists/retrieves data via CloudSave
+7. Storage layer persists/retrieves data via MongoDB
 8. Response flows back through interceptors to gateway
 9. Gateway translates gRPC response to HTTP response
 
 **State Management:**
 - Stateless service architecture
-- External state managed via AccelByte CloudSave
+- External state managed via MongoDB
 - Authentication state managed via AccelByte IAM
 
 ## Key Abstractions
@@ -78,8 +78,8 @@
 
 **Storage Interface:**
 - Purpose: Data persistence abstraction
-- Examples: `pkg/storage/storage.go`
-- Pattern: Interface-based storage with CloudSave implementation
+- Examples: `pkg/storage/tournament.go`, `pkg/storage/participant.go`, `pkg/storage/match.go`
+- Pattern: Interface-based storage with MongoDB implementation
 
 **Auth Interceptor:**
 - Purpose: Request authentication and authorization

@@ -30,10 +30,10 @@ re_verification:
 | 3   | HTTP annotations enable REST API generation for all tournament operations | ✓ VERIFIED | google.api.http annotations for all CRUD operations in tournament.proto |
 | 4   | Permission annotations integrate with AccelByte IAM for authorization | ✓ VERIFIED | permission.action annotations with CREATE, READ, UPDATE, CANCEL, START |
 | 5   | Service token authentication enables game server access to tournament operations | ✓ VERIFIED | securityDefinitions for ServiceToken added, X-Service-Token header support, validateServiceToken method |
-| 6   | Tournament storage persists and retrieves tournament data using CloudSave | ✓ VERIFIED | MongoTournamentStorage implements full CRUD operations (adapted from CloudSave plan) |
+| 6   | Tournament storage persists and retrieves tournament data using MongoDB | ✓ VERIFIED | MongoTournamentStorage implements full CRUD operations |
 | 7   | Authentication interceptors validate AccelByte IAM tokens for tournament operations | ✓ VERIFIED | TournamentAuthInterceptor with oauthService integration and token validation |
 | 8   | Permission checking enforces admin vs user access controls | ✓ VERIFIED | CheckTournamentPermission with namespace-based permission validation |
-| 9   | Tournament storage persists and retrieves tournament data using CloudSave | ✓ VERIFIED | Complete CRUD implementation in tournament.go with proper error handling |
+| 9   | Tournament storage persists and retrieves tournament data using MongoDB | ✓ VERIFIED | Complete CRUD implementation in tournament.go with proper error handling |
 | 10  | Authentication interceptors validate AccelByte IAM tokens for tournament operations | ✓ VERIFIED | Token validation with OAuth20Service integration and permission checking |
 | 11  | Permission checking enforces admin vs user access controls | ✓ VERIFIED | GetTournamentPermission maps operations to required permission levels |
 | 12  | Tournament service implements core CRUD operations with proper validation | ✓ VERIFIED | All CRUD operations implemented with business logic validation |
@@ -65,7 +65,7 @@ re_verification:
 | `pkg/proto/tournament.proto` | AccelByte IAM | permission.annotations | ✓ VERIFIED | CREATE, READ, UPDATE, CANCEL, START actions defined |
 | `pkg/proto/tournament.proto` | REST API | HTTP annotations | ✓ VERIFIED | All operations have google.api.http annotations |
 | `pkg/proto/tournament.proto` | Game server auth | securityDefinitions | ✓ VERIFIED | ServiceToken security definition with X-Service-Token header |
-| `pkg/storage/tournament.go` | MongoDB | AdminGameRecordService | ✓ VERIFIED | MongoTournamentStorage implements full CRUD |
+| `pkg/storage/tournament.go` | MongoDB | mongo.Client | ✓ VERIFIED | MongoTournamentStorage implements full CRUD |
 | `pkg/common/auth_interceptors.go` | AccelByte IAM | Token validation | ✓ VERIFIED | oauthService integration with permission checking |
 | `pkg/common/auth_interceptors.go` | Service tokens | X-Service-Token header | ✓ VERIFIED | validateServiceToken method with proper header extraction |
 | `pkg/service/tournament.go` | Storage layer | TournamentStorage | ✓ VERIFIED | Proper dependency injection and method calls |

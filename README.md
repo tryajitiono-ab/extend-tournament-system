@@ -19,10 +19,10 @@ web service created using a stack that includes a `gRPC Server` and the
 ## Overview
 
 This repository provides a project template for an `Extend Service Extension` 
-app written in `Go`. It includes an example of a custom guild service which has 
-two endpoints to create and get guild progress data. Additionally, it comes 
-with built-in instrumentation for observability, ensuring that metrics, traces, 
-and logs are available upon deployment.
+app written in `Go`. It includes an example of a tournament management service 
+with endpoints for creating tournaments, managing participants, and handling matches. 
+Additionally, it comes with built-in instrumentation for observability, ensuring 
+that metrics, traces, and logs are available upon deployment.
 
 You can clone this repository to begin developing your own 
 `Extend Service Extension` app. Simply modify this project by defining your 
@@ -154,11 +154,11 @@ Customizing your Extend Service Extension app involves modifying the `service.pr
       - For AGS Private Cloud customers:
          - `ADMIN:ROLE [READ]` to validate access token and permissions
          - `ADMIN:NAMESPACE:{namespace}:NAMESPACE [READ]` to validate access namespace
-         - `ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]` to create, read, update, and delete cloudsave records
       - For AGS Shared Cloud customers:
          - IAM -> Roles (Read)
          - Basic -> Namespace (Read)
-         - Cloud Save -> Game Records (Create, Read, Update, Delete)
+
+   > :exclamation: **Note**: This service uses MongoDB for data persistence. No CloudSave permissions are required.
 ## Setup
 
 To be able to run this app, you will need to follow these setup steps.
@@ -177,7 +177,7 @@ To be able to run this app, you will need to follow these setup steps.
    AB_CLIENT_SECRET='xxxxxxxxxx'             # Client Secret from the Prerequisites section
    AB_NAMESPACE='xxxxxxxxxx'                 # Namespace ID from the Prerequisites section
    PLUGIN_GRPC_SERVER_AUTH_ENABLED=true      # Enable or disable access token and permission validation
-   BASE_PATH='/guild'                        # The base path used for the app
+   BASE_PATH='/tournament'                   # The base path used for the app
    ```
 
    > :exclamation: **In this app, PLUGIN_GRPC_SERVER_AUTH_ENABLED is `true` by default**: If it is set to `false`, the endpoint `permission.action` and `permission.resource`  validation will be disabled and the endpoint can be accessed without a valid access token. This option is provided for development purpose only.
@@ -225,14 +225,12 @@ This app can be tested locally through the Swagger UI.
 
    Inside the postman collection, use `get-client-access-token` request to get client token or use `get-user-access-token` request to get user access token.
 
-   > :info: When using client access token, make sure the IAM client has following permission: 
-   `ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]`.
+   > :info: When using client access token, make sure the IAM client has the required permissions listed in the Prerequisites section.
    
-   > :info: When using user access token, make sure the user has a role which contains following permission:
-   `ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]`.
+   > :info: When using user access token, make sure the user has a role which contains the required permissions listed in the Prerequisites section.
 
 3. The REST API service can then be tested by opening Swagger UI at 
-   `http://localhost:8000/guild/apidocs/`. Use this to create an API request 
+   `http://localhost:8000/tournament/apidocs/`. Use this to create an API request 
    to try the endpoints.
    
    > :info: Depending on the envar you set for `BASE_PATH`, the service will 

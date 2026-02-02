@@ -9,7 +9,7 @@ import (
 	"fmt"
 	"log/slog"
 
-	extendcustomguildservice "extend-tournament-service/pkg/common"
+	extendtournamentservice "extend-tournament-service/pkg/common"
 	serviceextension "extend-tournament-service/pkg/pb"
 	"extend-tournament-service/pkg/storage"
 )
@@ -37,19 +37,19 @@ func NewParticipantService(
 // RegisterForTournament registers a user for a tournament
 func (p *ParticipantService) RegisterForTournament(ctx context.Context, req *serviceextension.RegisterForTournamentRequest) (*serviceextension.RegisterForTournamentResponse, error) {
 	// Extract user context
-	namespace, err := extendcustomguildservice.GetContextNamespace(ctx)
+	namespace, err := extendtournamentservice.GetContextNamespace(ctx)
 	if err != nil {
 		p.logger.Error("failed to get namespace from context", "error", err)
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	userID, err := extendcustomguildservice.GetContextUserID(ctx)
+	userID, err := extendtournamentservice.GetContextUserID(ctx)
 	if err != nil {
 		p.logger.Error("failed to get user ID from context", "error", err)
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	username, err := extendcustomguildservice.GetContextUsername(ctx)
+	username, err := extendtournamentservice.GetContextUsername(ctx)
 	if err != nil {
 		p.logger.Warn("failed to get username from context", "error", err)
 		// Username is optional, continue without it
@@ -92,7 +92,7 @@ func (p *ParticipantService) RegisterForTournament(ctx context.Context, req *ser
 // GetTournamentParticipants retrieves participants for a tournament
 func (p *ParticipantService) GetTournamentParticipants(ctx context.Context, req *serviceextension.GetTournamentParticipantsRequest) (*serviceextension.GetTournamentParticipantsResponse, error) {
 	// Extract user context
-	namespace, err := extendcustomguildservice.GetContextNamespace(ctx)
+	namespace, err := extendtournamentservice.GetContextNamespace(ctx)
 	if err != nil {
 		p.logger.Error("failed to get namespace from context", "error", err)
 		return nil, fmt.Errorf("unauthorized: %w", err)
@@ -132,14 +132,14 @@ func (p *ParticipantService) GetTournamentParticipants(ctx context.Context, req 
 // RemoveParticipant removes a participant from a tournament (admin only)
 func (p *ParticipantService) RemoveParticipant(ctx context.Context, req *serviceextension.RemoveParticipantRequest) (*serviceextension.RemoveParticipantResponse, error) {
 	// Extract user context and verify admin permissions
-	namespace, err := extendcustomguildservice.GetContextNamespace(ctx)
+	namespace, err := extendtournamentservice.GetContextNamespace(ctx)
 	if err != nil {
 		p.logger.Error("failed to get namespace from context", "error", err)
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
 	// Check admin permissions
-	isAdmin, err := extendcustomguildservice.IsAdminUser(ctx)
+	isAdmin, err := extendtournamentservice.IsAdminUser(ctx)
 	if err != nil {
 		p.logger.Error("failed to check admin permissions", "error", err)
 		return nil, fmt.Errorf("authorization failed: %w", err)
@@ -161,7 +161,7 @@ func (p *ParticipantService) RemoveParticipant(ctx context.Context, req *service
 		return nil, fmt.Errorf("namespace mismatch")
 	}
 
-	adminUserID, _ := extendcustomguildservice.GetContextUserID(ctx)
+	adminUserID, _ := extendtournamentservice.GetContextUserID(ctx)
 
 	p.logger.Info("admin removing participant from tournament",
 		"admin_user_id", adminUserID,

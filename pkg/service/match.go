@@ -13,7 +13,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	extendcustomguildservice "extend-tournament-service/pkg/common"
+	extendtournamentservice "extend-tournament-service/pkg/common"
 	serviceextension "extend-tournament-service/pkg/pb"
 	"extend-tournament-service/pkg/storage"
 )
@@ -33,7 +33,7 @@ const (
 type MatchService struct {
 	matchStorage      storage.MatchStorage
 	tournamentStorage storage.TournamentStorage
-	authInterceptor   *extendcustomguildservice.TournamentAuthInterceptor
+	authInterceptor   *extendtournamentservice.TournamentAuthInterceptor
 	logger            *slog.Logger
 }
 
@@ -41,7 +41,7 @@ type MatchService struct {
 func NewMatchService(
 	matchStorage storage.MatchStorage,
 	tournamentStorage storage.TournamentStorage,
-	authInterceptor *extendcustomguildservice.TournamentAuthInterceptor,
+	authInterceptor *extendtournamentservice.TournamentAuthInterceptor,
 	logger *slog.Logger,
 ) *MatchService {
 	return &MatchService{

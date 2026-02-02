@@ -10,7 +10,7 @@ user_setup: []
 
 must_haves:
   truths:
-    - "Tournament storage persists and retrieves tournament data using CloudSave"
+    - "Tournament storage persists and retrieves tournament data using MongoDB"
     - "Authentication interceptors validate AccelByte IAM tokens for tournament operations"
     - "Permission checking enforces admin vs user access controls"
     - "Storage layer handles tournament lifecycle transitions correctly"
@@ -23,9 +23,9 @@ must_haves:
       contains: "TournamentAuthInterceptor", "CheckTournamentPermission"
   key_links:
     - from: "pkg/storage/tournament.go"
-      to: "AccelByte CloudSave"
-      via: "AdminGameRecordService"
-      pattern: "AdminGameRecordService"
+      to: "MongoDB"
+      via: "MongoDB Go Driver"
+      pattern: "mongo\\.Client"
     - from: "pkg/common/auth_interceptors.go"
       to: "AccelByte IAM"
       via: "Token validation"
@@ -39,7 +39,7 @@ must_haves:
 <objective>
 Implement tournament storage layer and authentication interceptors with AccelByte IAM integration
 
-Purpose: Create data persistence layer using CloudSave and enforce permission-based access control for tournament operations
+Purpose: Create data persistence layer using MongoDB and enforce permission-based access control for tournament operations
 Output: Working storage for tournament data and authentication middleware ready for service integration
 </objective>
 
@@ -67,20 +67,20 @@ Output: Working storage for tournament data and authentication middleware ready 
 <task type="auto">
   <name>Task 1: Implement tournament storage layer</name>
   <files>pkg/storage/tournament.go</files>
-  <action>Create tournament storage following existing storage.go pattern:
-1. Define TournamentStorage struct with AdminGameRecordService dependency
+  <action>Create tournament storage following existing MongoDB patterns:
+1. Define TournamentStorage struct with MongoDB client dependency
 2. Implement CreateTournament method:
    - Generate UUID for tournament_id
    - Set initial status to DRAFT
    - Set created_at and updated_at timestamps
-   - Store using AdminGameRecordService with proper namespace
+   - Store using MongoDB with proper namespace
    - Return tournament with generated fields
 3. Implement GetTournament method:
-   - Retrieve tournament record by ID from CloudSave
+   - Retrieve tournament record by ID from MongoDB
    - Handle not found errors appropriately
-   - Convert CloudSave format to Tournament proto
+   - Convert MongoDB format to Tournament proto
 4. Implement ListTournaments method:
-   - Support filtering by status using CloudSave queries
+   - Support filtering by status using MongoDB queries
    - Support pagination using limit/offset
    - Convert results to Tournament proto list
 5. Implement UpdateTournament method:
@@ -88,10 +88,10 @@ Output: Working storage for tournament data and authentication middleware ready 
    - Validate state transitions
    - Update updated_at timestamp
    - Return updated tournament
-6. Add error handling for CloudSave operations with proper gRPC status codes
-7. Follow the existing CloudSaveStorage pattern from storage.go</action>
+6. Add error handling for MongoDB operations with proper gRPC status codes
+7. Follow the existing MongoDB storage patterns from other storage files</action>
   <verify>go build ./pkg/storage/... compiles without errors</verify>
-  <done>Tournament storage layer implemented with CRUD operations using AccelByte CloudSave</done>
+  <done>Tournament storage layer implemented with CRUD operations using MongoDB</done>
 </task>
 
 <task type="auto">
@@ -125,8 +125,8 @@ Output: Working storage for tournament data and authentication middleware ready 
   <name>Task 3: Integrate storage and auth with existing infrastructure</name>
   <files>pkg/storage/tournament.go, pkg/common/auth_interceptors.go</files>
   <action>Integrate new components with existing infrastructure:
-1. Update tournament.go to use existing CloudSave patterns:
-   - Import and use same CloudSave client as storage.go
+1. Update tournament.go to use existing MongoDB patterns:
+   - Import and use MongoDB client consistently
    - Follow same error handling patterns
    - Use same logging format with slog
 2. Update auth_interceptors.go to use existing auth patterns:
@@ -150,13 +150,13 @@ go build ./pkg/common/...
 go build .
 ```
 
-Check that CloudSave storage methods follow existing patterns
+Check that MongoDB storage methods follow existing patterns
 Verify authentication interceptors integrate with existing auth flow
 Test that namespace handling works correctly
 </verification>
 
 <success_criteria>
-- Tournament storage implemented using AccelByte CloudSave
+- Tournament storage implemented using MongoDB
 - CRUD operations for tournaments working with proper error handling
 - Authentication interceptors validate AccelByte IAM tokens
 - Permission checking enforces admin vs user access

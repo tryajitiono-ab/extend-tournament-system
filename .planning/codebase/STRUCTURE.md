@@ -5,7 +5,7 @@
 ## Directory Layout
 
 ```
-extend-custom-guild-service/
+extend-tournament-service/
 ├── main.go                    # Application entry point
 ├── go.mod                     # Go module definition
 ├── go.sum                     # Dependency checksums
@@ -53,8 +53,8 @@ extend-custom-guild-service/
 
 **pkg/storage/:
 - Purpose: Data persistence abstraction and implementations
-- Contains: Storage interfaces, CloudSave implementation
-- Key files: `storage.go`
+- Contains: Storage interfaces, MongoDB implementation
+- Key files: `tournament.go`, `participant.go`, `match.go`
 
 **gateway/:
 - Purpose: gRPC-Gateway API documentation

@@ -68,7 +68,7 @@ Output: Working tournament service ready for API access through Swagger UI and R
   <action>Update main.go to register tournament service:
 1. Import tournament service package
 2. Create tournamentServiceServer instance following myServiceServer pattern:
-   - Pass tokenRepo, configRepo, refreshRepo, cloudSaveStorage
+   - Pass tokenRepo, configRepo, refreshRepo, MongoDB storage
    - Use same dependency injection approach
 3. Register tournament service with gRPC server:
    - Add: pb.RegisterTournamentServiceServer(s, tournamentServiceServer)
@@ -113,7 +113,7 @@ Output: Working tournament service ready for API access through Swagger UI and R
 Build and test the complete service:
 ```bash
 go build .
-./extend-custom-guild-service &
+./extend-tournament-service &
 # Test that server starts and tournament endpoints are available
 curl http://localhost:8000/v1/tournaments
 ```

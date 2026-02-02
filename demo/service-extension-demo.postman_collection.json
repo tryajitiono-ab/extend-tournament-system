@@ -1,8 +1,8 @@
 {
 	"info": {
 		"_postman_id": "03d4e82f-3150-4ed9-b036-874d1bd0844f",
-		"name": "Extend Service Extension Demo",
-		"description": "This `collection` requires an `environment` with the following variables.\n\n- `AB_BASE_URL`\n    \n- `AB_NAMESPACE`\n    \n- `AB_CLIENT_ID`\n    \n- `AB_CLIENT_SECRET`\n    \n- `EXTEND_APP_SERVICE_URL`\n    \n\nYou will need following permissions for the IAM Client.  \nFor AGS Private Cloud customers:\n\n- `ADMIN:ROLE [READ]`\n    \n- `ADMIN:NAMESPACE:{namespace}:NAMESPACE [READ]`\n    \n- `ADMIN:NAMESPACE:{namespace}:CLOUDSAVE:RECORD [CREATE,READ,UPDATE,DELETE]`\n    \n\nFor AGS Shared Cloud customers:\n\n- IAM > Roles (Read)\n    \n- Basic > Namespace (Read)\n    \n- Cloud Save > Game Records (Create, Read, Update, and Delete)  \n    \n\nMake sure you have deployed Extend Service Extension app. Get `EXTEND_APP_SERVICE_URL` from extend app page in admin portal. For local deployment, use local url instead.\n\nPlease read [getting started with Extend Service Extension](https://docs.accelbyte.io/gaming-services/services/extend/service-extension/getting-started-service-extension/) for more information.",
+		"name": "Extend Service Extension Demo - Tournament Service",
+		"description": "This `collection` requires an `environment` with the following variables.\n\n- `AB_BASE_URL`\n    \n- `AB_NAMESPACE`\n    \n- `AB_CLIENT_ID`\n    \n- `AB_CLIENT_SECRET`\n    \n- `EXTEND_APP_SERVICE_URL`\n    \n\nYou will need following permissions for the IAM Client.  \nFor AGS Private Cloud customers:\n\n- `ADMIN:ROLE [READ]`\n    \n- `ADMIN:NAMESPACE:{namespace}:NAMESPACE [READ]`\n    \n\nFor AGS Shared Cloud customers:\n\n- IAM > Roles (Read)\n    \n- Basic > Namespace (Read)\n    \n\n**Note:** This service uses MongoDB for data persistence. No CloudSave permissions are required.\n    \n\nMake sure you have deployed Extend Service Extension app. Get `EXTEND_APP_SERVICE_URL` from extend app page in admin portal. For local deployment, use local url instead.\n\nPlease read [getting started with Extend Service Extension](https://docs.accelbyte.io/gaming-services/services/extend/service-extension/getting-started-service-extension/) for more information.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "16846723"
 	},
@@ -72,7 +72,7 @@
 			"response": []
 		},
 		{
-			"name": "20-update-guild-progress",
+			"name": "20-create-tournament",
 			"event": [
 				{
 					"listen": "test",
@@ -80,17 +80,14 @@
 						"exec": [
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Store tournament ID\", function () {\r",
+							"    var responseJson = pm.response.json();\r",
+							"    if (responseJson.tournament !== undefined && responseJson.tournament.tournamentId !== undefined) {\r",
+							"        pm.collectionVariables.set('TEST_TOURNAMENT_ID', responseJson.tournament.tournamentId)\r",
+							"    }\r",
 							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -112,7 +109,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\r\n  \"guildProgress\": {\r\n    \"guildId\": \"{{TEST_GUILD_ID}}\",\r\n    \"namespace\": \"{{AB_NAMESPACE}}\",\r\n    \"objectives\": {\r\n      \"additionalProp1\": 0,\r\n      \"additionalProp2\": 10,\r\n      \"additionalProp3\": 20\r\n    }\r\n  }\r\n}\r\n",
+					"raw": "{\r\n  \"name\": \"Demo Tournament\",\r\n  \"description\": \"A demo tournament for testing\",\r\n  \"maxParticipants\": 16,\r\n  \"namespace\": \"{{AB_NAMESPACE}}\"\r\n}\r\n",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -120,7 +117,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{EXTEND_APP_SERVICE_URL}}/v1/admin/namespace/{{AB_NAMESPACE}}/progress",
+					"raw": "{{EXTEND_APP_SERVICE_URL}}/v1/admin/namespace/{{AB_NAMESPACE}}/tournaments",
 					"host": [
 						"{{EXTEND_APP_SERVICE_URL}}"
 					],
@@ -129,14 +126,14 @@
 						"admin",
 						"namespace",
 						"{{AB_NAMESPACE}}",
-						"progress"
+						"tournaments"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "30-read-guild-progress",
+			"name": "30-list-tournaments",
 			"event": [
 				{
 					"listen": "test",
@@ -145,16 +142,6 @@
 							"pm.test(\"Status code is 200\", function () {\r",
 							"    pm.response.to.have.status(200);\r",
 							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -175,17 +162,72 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{EXTEND_APP_SERVICE_URL}}/v1/admin/namespace/{{AB_NAMESPACE}}/progress/{{TEST_GUILD_ID}}",
+					"raw": "{{EXTEND_APP_SERVICE_URL}}/v1/public/namespace/{{AB_NAMESPACE}}/tournaments?limit=10&offset=0",
 					"host": [
 						"{{EXTEND_APP_SERVICE_URL}}"
 					],
 					"path": [
 						"v1",
-						"admin",
+						"public",
 						"namespace",
 						"{{AB_NAMESPACE}}",
-						"progress",
-						"{{TEST_GUILD_ID}}"
+						"tournaments"
+					],
+					"query": [
+						{
+							"key": "limit",
+							"value": "10"
+						},
+						{
+							"key": "offset",
+							"value": "0"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "40-get-tournament",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{CLIENT_ACCESS_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{EXTEND_APP_SERVICE_URL}}/v1/public/namespace/{{AB_NAMESPACE}}/tournaments/{{TEST_TOURNAMENT_ID}}",
+					"host": [
+						"{{EXTEND_APP_SERVICE_URL}}"
+					],
+					"path": [
+						"v1",
+						"public",
+						"namespace",
+						"{{AB_NAMESPACE}}",
+						"tournaments",
+						"{{TEST_TOURNAMENT_ID}}"
 					]
 				}
 			},
@@ -220,8 +262,8 @@
 			"value": ""
 		},
 		{
-			"key": "TEST_GUILD_ID",
-			"value": "test-12345-test",
+			"key": "TEST_TOURNAMENT_ID",
+			"value": "",
 			"type": "string"
 		}
 	]

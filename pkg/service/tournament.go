@@ -16,7 +16,7 @@ import (
 	grpcStatus "google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	extendcustomguildservice "extend-tournament-service/pkg/common"
+	extendtournamentservice "extend-tournament-service/pkg/common"
 	serviceextension "extend-tournament-service/pkg/pb"
 	"extend-tournament-service/pkg/storage"
 )
@@ -30,7 +30,7 @@ type TournamentServiceServer struct {
 	tournamentStorage  storage.TournamentStorage
 	participantStorage *storage.ParticipantStorage
 
-	authInterceptor *extendcustomguildservice.TournamentAuthInterceptor
+	authInterceptor *extendtournamentservice.TournamentAuthInterceptor
 	logger          *slog.Logger
 }
 
@@ -373,7 +373,7 @@ func NewTournamentServiceServer(
 	refreshRepo repository.RefreshTokenRepository,
 	tournamentStorage storage.TournamentStorage,
 	participantStorage *storage.ParticipantStorage,
-	authInterceptor *extendcustomguildservice.TournamentAuthInterceptor,
+	authInterceptor *extendtournamentservice.TournamentAuthInterceptor,
 	logger *slog.Logger,
 ) *TournamentServiceServer {
 	return &TournamentServiceServer{

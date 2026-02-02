@@ -78,7 +78,7 @@ type TournamentServiceServer struct {
 	tokenRepo          repository.TokenRepository
 	tournamentStorage  storage.TournamentStorage
 	matchStorage       storage.MatchStorage     // NEW
-	authInterceptor    *extendcustomguildservice.TournamentAuthInterceptor
+	authInterceptor    *extendtournamentservice.TournamentAuthInterceptor
 	logger             *slog.Logger
 }
 ```

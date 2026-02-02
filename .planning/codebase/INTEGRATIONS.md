@@ -13,22 +13,22 @@
 
 **Sub-services:**
 - AccelByte IAM (Identity & Access Management) - User authentication
-- AccelByte CloudSave - Data persistence for guild progress
 - AccelByte Permission System - Resource-based authorization
 
 ## Data Storage
 
 **Databases:**
-- AccelByte CloudSave - Primary data storage
-  - Connection: Via AccelByte SDK
-  - Client: cloudsave.AdminGameRecordService
-  - Pattern: Key-value storage for guild progress
+- MongoDB - Primary data storage
+  - Connection: Via MongoDB Go Driver
+  - Client: mongo.Client
+  - Pattern: Document storage for tournaments, participants, and matches
+  - Collections: tournaments, participants, matches
 
 **File Storage:**
 - Local filesystem only - Swagger UI and static assets
 
 **Caching:**
-- None detected - All data retrieved from CloudSave API
+- None detected - All data retrieved from MongoDB
 
 ## Authentication & Identity
 

@@ -47,8 +47,8 @@
 3. Local imports (grouped with module prefix)
 
 **Path Aliases:**
-- Module prefix: `extend-custom-guild-service/pkg/`
-- Protocol buffer alias: `pb "extend-custom-guild-service/pkg/pb"`
+- Module prefix: `extend-tournament-service/pkg/`
+- Protocol buffer alias: `pb "extend-tournament-service/pkg/pb"`
 - SDK imports: `github.com/AccelByte/accelbyte-go-sdk/...`
 
 ## Error Handling

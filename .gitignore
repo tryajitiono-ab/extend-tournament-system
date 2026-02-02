@@ -233,7 +233,7 @@ $RECYCLE.BIN/
 
 # End of https://www.toptal.com/developers/gitignore/api/linux,windows,macos,go,visualstudiocode,jetbrains
 
-extend-custom-guild-service
+extend-tournament-service
 
 .env*
 !.env.template

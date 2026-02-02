@@ -10,7 +10,7 @@ The tournament management system landscape is well-established with clear expect
 
 The technology stack research points strongly toward Go with gRPC for internal services and Gin for external APIs, deployed on AccelByte Extend with MongoDB for flexible tournament data storage. This architecture aligns perfectly with microservices patterns and the platform's requirements. The existing codebase analysis reveals a solid gRPC service foundation but highlights critical technical debt around monolithic initialization and missing production features like graceful shutdown and health checks.
 
-For an AccelByte Extend application targeting gaming communities, the key advantage is seamless game integration. The research shows a clear opportunity to bridge the gap between generic tournament tools (like Challonge) and fully-custom esports solutions (like Battlefy) by focusing on automated workflows through AccelByte's IAM and CloudSave capabilities. The feature dependencies reveal a clear MVP path that prioritizes core tournament mechanics while leaving room for differentiation through game-specific capabilities.
+For an AccelByte Extend application targeting gaming communities, the key advantage is seamless game integration. The research shows a clear opportunity to bridge the gap between generic tournament tools (like Challonge) and fully-custom esports solutions (like Battlefy) by focusing on automated workflows through AccelByte's IAM capabilities and MongoDB for flexible data storage. The feature dependencies reveal a clear MVP path that prioritizes core tournament mechanics while leaving room for differentiation through game-specific capabilities.
 
 ## Key Findings
 
@@ -30,7 +30,7 @@ For an AccelByte Extend application targeting gaming communities, the key advant
 **From ARCHITECTURE.md:**
 - **Pattern:** gRPC Service Extension with REST Gateway
 - **Layers:** Application → Service → Storage → Common → Protocol
-- **Data Flow:** HTTP → Gateway → gRPC → Interceptors → Service → CloudSave
+- **Data Flow:** HTTP → Gateway → gRPC → Interceptors → Service → MongoDB
 - **Key Abstractions:** Service interfaces, Storage interfaces, Auth interceptors
 - **Cross-cutting:** Structured logging, OpenTelemetry tracing, Prometheus metrics
 
@@ -77,7 +77,7 @@ Based on combined research, suggested phase structure:
 
 **Must Address Pitfalls:**
 - Refactor storage layer to eliminate JSON round-trip
-- Implement proper error handling for CloudSave operations
+- Implement proper error handling for MongoDB operations
 - Add integration tests for authentication flow
 - Secure client credentials handling
 
@@ -114,7 +114,7 @@ Based on combined research, suggested phase structure:
 ## Gaps to Address
 
 **Technical Gaps:**
-- **AccelByte Extend API Capabilities:** Need detailed research on CloudSave limitations and IAM permission models
+- **MongoDB Integration:** Need to ensure proper indexing and query performance for tournament data
 - **Performance Requirements:** Research expected tournament sizes and concurrent user patterns
 - **Security Model:** Detailed analysis of gaming community security requirements
 

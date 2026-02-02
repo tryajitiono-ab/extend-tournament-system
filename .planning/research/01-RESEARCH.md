@@ -20,7 +20,7 @@ The established libraries/tools for this domain:
 | Go | 1.24.0 | Backend service implementation | Current stable version with full gRPC support |
 | gRPC | v1.72.0 | Core communication protocol | Industry standard for high-performance RPC |
 | gRPC-Gateway | v2.26.3 | HTTP/REST API gateway | Official protobuf-to-REST translation |
-| AccelByte Go SDK | v0.85.0 | Gaming platform integration | Official SDK for IAM and CloudSave |
+| AccelByte Go SDK | v0.85.0 | Gaming platform integration | Official SDK for IAM authentication |
 
 ### Supporting
 | Library | Version | Purpose | When to Use |

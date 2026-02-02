@@ -60,8 +60,8 @@
 
 **JSON Marshaling Round-trip:**
 - Problem: Storage layer marshals to JSON then unmarshals for protobuf conversion
-- Files: `[pkg/storage/storage.go:74-89]`
-- Cause: Inefficient data transformation between CloudSave and protobuf
+- Files: `[pkg/storage/tournament.go, pkg/storage/participant.go, pkg/storage/match.go]`
+- Cause: Inefficient data transformation between MongoDB and protobuf
 - Improvement path: Direct protobuf-to-model conversion without JSON intermediate
 
 **Synchronous File Operations:**
@@ -85,8 +85,8 @@
 - Test coverage: No tests for auth interceptor edge cases
 
 **Storage Interface:**
-- Files: `[pkg/storage/storage.go]`
-- Why fragile: No retry logic or connection error handling for CloudSave operations
+- Files: `[pkg/storage/tournament.go, pkg/storage/participant.go, pkg/storage/match.go]`
+- Why fragile: No retry logic or connection error handling for MongoDB operations
 - Safe modification: Add circuit breaker pattern and retry mechanisms
 - Test coverage: No integration tests for storage failure scenarios
 

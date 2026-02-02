@@ -72,7 +72,12 @@ This roadmap delivers a view-only web UI for the existing tournament management 
 4. User can identify winners highlighted in completed matches
 5. User can view bracket on mobile with horizontal scroll or vertical layout
 
-**Plans:** 3-4 plans
+**Plans:** 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md — Bracket data transformation layer (API client + adapter)
+- [ ] 05-02-PLAN.md — Bracket rendering with brackets-viewer.js integration
+- [ ] 05-03-PLAN.md — Mobile responsiveness and visual polish
 
 **Rationale:** Bracket visualization is the only complex UI component requiring SVG rendering and layout calculations. Separated from Phase 4 because brackets need the working API client, and the complexity justifies isolated development. Dynamic position calculations and mobile responsiveness need focused attention.
 
@@ -88,7 +93,7 @@ This roadmap delivers a view-only web UI for the existing tournament management 
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
 | 4 - Core UI & API | Complete | 2026-02-02 | 2026-02-02 | Core viewing functionality (4 plans, 16/21 requirements, 5 deferred) |
-| 5 - Bracket Visualization | Not started | — | — | SVG rendering + match status + mobile layout |
+| 5 - Bracket Visualization | Planned | 2026-02-02 | — | Bracket tree + match status + mobile responsiveness (3 plans) |
 
 ## Requirement Coverage
 

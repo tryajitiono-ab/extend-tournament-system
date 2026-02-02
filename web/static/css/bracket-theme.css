@@ -49,11 +49,85 @@
   border-color: #50b649;
 }
 
-/* Mobile responsiveness - reduce spacing on narrow screens */
+/* 
+ * Mobile Responsiveness Enhancements
+ * Brackets are inherently wide - horizontal scroll is expected and acceptable
+ */
+
+/* Tablet and below - compact spacing */
+@media (max-width: 992px) {
+  .brackets-viewer {
+    --round-margin: 30px;
+    --match-width: 150px;
+    --text-size: 12px;
+  }
+}
+
+/* Mobile - minimal spacing */
 @media (max-width: 768px) {
   .brackets-viewer {
     --round-margin: 20px;
     --match-width: 140px;
-    --text-size: 12px;
+    --text-size: 11px;
+  }
+}
+
+/* Very small mobile - ultra-compact */
+@media (max-width: 480px) {
+  .brackets-viewer {
+    --round-margin: 16px;
+    --match-width: 120px;
+    --text-size: 10px;
+  }
+}
+
+/* Horizontal scroll container styling */
+#bracket-container {
+  /* Ensure horizontal scrollbar is visible and prominent */
+  overflow-x: auto;
+  overflow-y: hidden;
+  
+  /* Smooth scrolling on touch devices */
+  -webkit-overflow-scrolling: touch;
+  
+  /* Padding for scroll indication */
+  padding-bottom: 12px;
+  
+  /* Subtle shadow to indicate scrollable content */
+  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0) 10px),
+              linear-gradient(-90deg, #fff 0%, rgba(255,255,255,0) 10px);
+  background-attachment: local, local;
+  background-repeat: no-repeat;
+  background-size: 10px 100%, 10px 100%;
+  background-position: 0 0, 100% 0;
+}
+
+/* Mobile warning styling */
+#bracket-mobile-warning {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background-color: #e3f2fd;
+  border-left: 4px solid #2196f3;
+  border-radius: 4px;
+}
+
+#bracket-mobile-warning p {
+  margin: 0;
+  color: #1976d2;
+}
+
+/* Improve touch targets on mobile */
+@media (max-width: 768px) {
+  .brackets-viewer .match {
+    /* Ensure matches are easily tappable */
+    min-height: 44px;
+  }
+}
+
+/* Reduce connector complexity on very small screens */
+@media (max-width: 480px) {
+  .brackets-viewer {
+    /* Thinner connectors for cleaner look on small screens */
+    --connector-thickness: 1px;
   }
 }

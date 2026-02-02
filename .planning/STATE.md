@@ -14,9 +14,9 @@
 ## Current Position
 
 **Phase:** Phase 4 - Core UI & API Integration ✓ Complete  
-**Plan:** All 3 plans complete  
+**Plan:** All 4 plans complete (including gap closure 04-04)  
 **Status:** Ready for Phase 5 (Bracket Visualization)  
-**Last activity:** 2026-02-02 — Phase 4 complete (critical participant API bug fixed, 5 requirements deferred)
+**Last activity:** 2026-02-02 — Phase 4 complete with gRPC-Gateway fix (HTTP 500 error resolved, UAT unblocked)
 
 ## Performance Metrics
 
@@ -236,6 +236,24 @@
 - Empty state handling ("No participants" message)
 - Participant display with username/user_id fallback logic
 
+**Implementation Details from 04-core-ui-api-integration-04:**
+- Fixed gRPC-Gateway HTTP 500 error by switching from network-based to direct server registration
+- Added NewGatewayWithServer() function using RegisterTournamentServiceHandlerServer
+- Updated main.go to use direct in-process server registration instead of network endpoint
+- Custom error handler with structured logging (slog) for better debugging
+- Debug logging added for incoming gateway requests
+- Resolves HTTP/2 PROTOCOL_ERROR that blocked all tournament API endpoints
+- Unblocks UAT Test #2 and all 12 skipped tests (Tests #3-15)
+- Direct server registration is standard pattern for in-process gRPC-Gateway deployment
+- Both old and new gateway functions available for backward compatibility
+
+**gRPC-Gateway Architecture Decision (04-04):**
+- Direct server registration pattern for combined binary deployment
+- RegisterTournamentServiceHandlerServer (in-process) instead of RegisterTournamentServiceHandlerFromEndpoint (network)
+- Network-based registration only needed for separate gateway/server processes
+- Error handler enhanced with structured logging for troubleshooting
+- Fix enables all tournament API endpoints to work correctly
+
 ### Technical Context
 
 **Existing Foundation:**
@@ -253,9 +271,11 @@
 ### Active Todos
 
 **Immediate (v1.1 - Current Milestone):**
-- Phase 4: ✓ Complete (static infrastructure, list page, detail page, API client)
-  - Critical bug fixed: participant API URL (commit c30fb05)
+- Phase 4: ✓ Complete (static infrastructure, list page, detail page, API client, gateway fix)
+  - Critical gateway bug fixed: HTTP 500 error resolved (commit 8a8e503)
+  - Participant API URL bug fixed earlier (commit c30fb05)
   - 16/21 requirements implemented, 5 deferred with user approval
+  - All UAT tests now unblocked for execution
 - Phase 5: Bracket visualization with SVG rendering and mobile responsiveness
 
 **Deferred to v1.2:**
@@ -280,17 +300,19 @@
 
 ### Blockers
 
-None. v1.0 API complete. Phase 4 complete (critical bug fixed). Ready for Phase 5.
+None. v1.0 API complete. Phase 4 complete (gateway fix unblocked all API endpoints). Ready for Phase 5.
 
 ## Session Continuity
 
-**Last Session:** Phase 4 execution complete - Critical participant API bug fixed (commit c30fb05)  
+**Last Session:** Phase 4 plan 04-04 complete - gRPC-Gateway HTTP 500 error fixed (commit 8a8e503)  
 **Next Session:** Phase 5 planning - Bracket visualization  
-**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, VERIFICATION.md, PROJECT.md
+**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, 04-04-SUMMARY.md, VERIFICATION.md, PROJECT.md
 
 ---
 *Milestone v1.0 completed: 2026-02-01 - Tournament Management System production ready with 24/24 requirements delivered*
 *Milestone v1.1 roadmap created: 2026-02-01 - Tournament Viewing UI with 25/25 requirements mapped to 2 phases*
 *Phase 4 Plan 01 completed: 2026-02-02 - Static file infrastructure with 4/25 requirements satisfied (INFRA-01 through INFRA-04)*
 *Phase 4 Plan 02 completed: 2026-02-02 - Tournament list page with 10/25 requirements satisfied (LIST-01 through LIST-04, API-01, API-05 through API-07, POLISH-01 through POLISH-02)*
-*Phase 4 Plan 03 completed: 2026-02-02 - Tournament detail page with 8/25 requirements satisfied (DETAIL-01, DETAIL-02, API-02, API-04, API-05, API-06, API-07, POLISH-02)**Phase 4 completed: 2026-02-02 - Core UI & API Integration complete (16/21 requirements implemented, 5 deferred, critical participant bug fixed)*
+*Phase 4 Plan 03 completed: 2026-02-02 - Tournament detail page with 8/25 requirements satisfied (DETAIL-01, DETAIL-02, API-02, API-04, API-05, API-06, API-07, POLISH-02)*
+*Phase 4 Plan 04 completed: 2026-02-02 - gRPC-Gateway fix (HTTP 500 error resolved, direct server registration, UAT unblocked)*
+*Phase 4 completed: 2026-02-02 - Core UI & API Integration complete (16/21 requirements implemented, 5 deferred, all API endpoints working)*

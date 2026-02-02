@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournaments</title>
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <hgroup>
+            <h1>Tournaments</h1>
+            <p><button id="refresh-btn">Refresh</button></p>
+        </hgroup>
+
+        <!-- Error banner (hidden by default) -->
+        <div id="error-banner" style="display: none;" role="alert">
+            <strong>Failed to load.</strong>
+            <button id="retry-btn">Retry</button>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loading-state">
+            <p aria-busy="true">Loading tournaments...</p>
+        </div>
+
+        <!-- Tournament list container -->
+        <div id="tournament-list" class="grid">
+            <!-- Cards will be inserted here by JavaScript -->
+        </div>
+
+        <!-- Empty state (hidden by default) -->
+        <div id="empty-state" style="display: none;">
+            <p>No tournaments</p>
+        </div>
+    </main>
+
+    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/tournaments.js"></script>
+</body>
+</html>

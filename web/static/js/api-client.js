@@ -1,5 +1,7 @@
 // API Client for Tournament Service REST API
-const API_BASE = '';  // Same origin, no base path needed
+// BASE_PATH environment variable prepends a path prefix to all API routes
+// For dev container setup, this is typically /tournament
+const API_BASE = '/tournament';  // Must match BASE_PATH environment variable
 
 /**
  * Fetch all tournaments from REST API

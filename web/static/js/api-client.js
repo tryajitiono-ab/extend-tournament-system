@@ -94,3 +94,25 @@ async function fetchParticipants(namespace, tournamentId) {
     const data = await response.json();
     return data.participants || [];
 }
+
+/**
+ * Fetch all matches for a tournament
+ * @param {string} namespace - Namespace ID
+ * @param {string} tournamentId - Tournament ID
+ * @returns {Promise<Object>} Object with matches, totalRounds, currentRound
+ */
+async function fetchMatches(namespace, tournamentId) {
+    const url = `${API_BASE}/v1/public/namespace/${namespace}/tournaments/${tournamentId}/matches`;
+    const response = await fetchWithTimeout(url);
+    
+    if (!response.ok) {
+        throw new Error(`Failed to fetch matches: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return {
+        matches: data.matches || [],
+        totalRounds: data.total_rounds || 0,
+        currentRound: data.current_round || 0,
+    };
+}

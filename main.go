@@ -7,8 +7,11 @@ package main
 import (
 	"bytes"
 	"context"
+	"embed"
 	"encoding/json"
 	"fmt"
+	"html/template"
+	"io/fs"
 	"log"
 	"log/slog"
 	"net"
@@ -49,6 +52,12 @@ import (
 	grpc_health_v1 "google.golang.org/grpc/health/grpc_health_v1"
 	"google.golang.org/grpc/reflection"
 )
+
+//go:embed web/static
+var staticFS embed.FS
+
+//go:embed web/templates
+var templatesFS embed.FS
 
 const (
 	metricsEndpoint     = "/metrics"
@@ -351,6 +360,29 @@ func newGRPCGatewayHTTPServer(
 ) *http.Server {
 	// Create a new ServeMux
 	mux := http.NewServeMux()
+
+	// Serve static files
+	staticFiles, _ := fs.Sub(staticFS, "web/static")
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
+
+	// Serve tournaments page
+	mux.HandleFunc("/tournaments", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		tmplContent, err := templatesFS.ReadFile("web/templates/base.html")
+		if err != nil {
+			http.Error(w, "Template not found", http.StatusInternalServerError)
+			return
+		}
+		tmpl, err := template.New("base").Parse(string(tmplContent))
+		if err != nil {
+			http.Error(w, "Template parse error", http.StatusInternalServerError)
+			return
+		}
+		data := map[string]interface{}{
+			"Content": "<h1>Tournaments</h1><p>Loading...</p>",
+		}
+		tmpl.Execute(w, data)
+	})
 
 	// Add the gRPC-Gateway handler
 	mux.Handle("/", handler)

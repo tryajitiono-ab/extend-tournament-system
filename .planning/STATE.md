@@ -13,10 +13,10 @@
 
 ## Current Position
 
-**Phase:** Phase 4 - Core UI & API Integration  
-**Plan:** 04-02 ✓ Complete  
-**Status:** Ready for Plan 04-04 (API integration polish)  
-**Last activity:** 2026-02-02 — Plan 04-02 executed (tournament list page with API integration)
+**Phase:** Phase 4 - Core UI & API Integration ✓ Complete  
+**Plan:** All 3 plans complete  
+**Status:** Ready for Phase 5 (Bracket Visualization)  
+**Last activity:** 2026-02-02 — Phase 4 complete (critical participant API bug fixed, 5 requirements deferred)
 
 ## Performance Metrics
 
@@ -253,12 +253,16 @@
 ### Active Todos
 
 **Immediate (v1.1 - Current Milestone):**
-- Phase 4 Plan 01: ✓ Complete (static file infrastructure)
-- Phase 4 Plan 02: ✓ Complete (tournament list page with API integration)
-- Phase 4 Plan 03: ✓ Complete (tournament detail page with participant list)
-- Phase 4 Plan 04: API integration polish and error handling
-- Phase 4 Plan 05: UI polish (loading spinners, error styling, empty states)
+- Phase 4: ✓ Complete (static infrastructure, list page, detail page, API client)
+  - Critical bug fixed: participant API URL (commit c30fb05)
+  - 16/21 requirements implemented, 5 deferred with user approval
 - Phase 5: Bracket visualization with SVG rendering and mobile responsiveness
+
+**Deferred to v1.2:**
+- Color-coded status badges (LIST-03)
+- Relative timestamp display (POLISH-03)
+- Cache headers (INFRA-03)
+- Formal browser compatibility testing (POLISH-04)
 
 **Future (v1.2+):**
 - Enhanced list features (search, filter, live indicators)
@@ -276,17 +280,17 @@
 
 ### Blockers
 
-None blocking progress. v1.0 API complete and stable. Phase 4 Plans 01, 02, and 03 complete. API client module fully implemented with all core functions.
+None. v1.0 API complete. Phase 4 complete (critical bug fixed). Ready for Phase 5.
 
 ## Session Continuity
 
-**Last Session:** Phase 4 Plan 04-02 execution - Tournament list page with API integration (template, API client, UI logic, route handler)  
-**Next Session:** Phase 4 Plan 04-04 or 04-05 execution - API integration polish or UI polish  
-**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, PROJECT.md
+**Last Session:** Phase 4 execution complete - Critical participant API bug fixed (commit c30fb05)  
+**Next Session:** Phase 5 planning - Bracket visualization  
+**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, VERIFICATION.md, PROJECT.md
 
 ---
 *Milestone v1.0 completed: 2026-02-01 - Tournament Management System production ready with 24/24 requirements delivered*
 *Milestone v1.1 roadmap created: 2026-02-01 - Tournament Viewing UI with 25/25 requirements mapped to 2 phases*
 *Phase 4 Plan 01 completed: 2026-02-02 - Static file infrastructure with 4/25 requirements satisfied (INFRA-01 through INFRA-04)*
 *Phase 4 Plan 02 completed: 2026-02-02 - Tournament list page with 10/25 requirements satisfied (LIST-01 through LIST-04, API-01, API-05 through API-07, POLISH-01 through POLISH-02)*
-*Phase 4 Plan 03 completed: 2026-02-02 - Tournament detail page with 8/25 requirements satisfied (DETAIL-01, DETAIL-02, API-02, API-04, API-05, API-06, API-07, POLISH-02)*
+*Phase 4 Plan 03 completed: 2026-02-02 - Tournament detail page with 8/25 requirements satisfied (DETAIL-01, DETAIL-02, API-02, API-04, API-05, API-06, API-07, POLISH-02)**Phase 4 completed: 2026-02-02 - Core UI & API Integration complete (16/21 requirements implemented, 5 deferred, critical participant bug fixed)*

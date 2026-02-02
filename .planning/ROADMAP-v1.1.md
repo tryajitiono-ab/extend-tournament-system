@@ -31,12 +31,20 @@ This roadmap delivers a view-only web UI for the existing tournament management 
 7. UI works in modern browsers (Chrome, Firefox, Safari, Edge - last 2 versions)
 8. Empty state messages display when no tournaments exist
 
-**Plans:** 3 plans
+**Status:** Complete ✓ - Core viewing functionality delivered (16/21 requirements implemented, 5 deferred)
+*Completed: 2026-02-02*
 
-Plans:
-- [ ] 04-01-PLAN.md — Static file infrastructure with embed.FS and Pico CSS
-- [ ] 04-02-PLAN.md — Tournament list page with API integration
-- [ ] 04-03-PLAN.md — Tournament detail page with participant list
+**Plans:** 3 plans
+- [x] 04-01-PLAN.md — Static file infrastructure with embed.FS and Pico CSS
+- [x] 04-02-PLAN.md — Tournament list page with API integration
+- [x] 04-03-PLAN.md — Tournament detail page with participant list
+
+**Deferred Requirements (approved):**
+- LIST-03: Color-coded status badges → v1.2 (unimportant)
+- API-03: Match data fetching → Phase 5 (bracket visualization scope)
+- POLISH-03: Relative timestamps → v1.2 (future improvement)
+- INFRA-03: Cache headers → later performance optimization
+- POLISH-04: Browser testing → trust modern standards
 
 **Rationale:** This is straightforward static file serving + API consumption. Infrastructure, list UI, detail UI, API client, loading states, and polish can be implemented together since we're adding HTML/CSS/JS files to an existing working service. No complex backend changes, no framework complexity, standard patterns throughout.
 
@@ -78,7 +86,7 @@ Plans:
 
 | Phase | Status | Start Date | Complete Date | Notes |
 |-------|--------|------------|---------------|-------|
-| 4 - Core UI & API | Not started | — | — | Infrastructure + List + Detail + API + Polish |
+| 4 - Core UI & API | Complete | 2026-02-02 | 2026-02-02 | Core viewing functionality (3 plans, 16/21 requirements, 5 deferred) |
 | 5 - Bracket Visualization | Not started | — | — | SVG rendering + match status + mobile layout |
 
 ## Requirement Coverage

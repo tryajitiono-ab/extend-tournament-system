@@ -10,22 +10,22 @@ Requirements for tournament viewing UI milestone. Each maps to roadmap phases.
 
 ### Static Infrastructure
 
-- [ ] **INFRA-01**: Go service serves static HTML/CSS/JS files from embedded filesystem
-- [ ] **INFRA-02**: Static routes configured (/tournaments, /static/*) alongside existing API routes
-- [ ] **INFRA-03**: Proper MIME types and cache headers for static files
-- [ ] **INFRA-04**: Mobile-responsive CSS framework integrated (Pico CSS)
+- [x] **INFRA-01**: Go service serves static HTML/CSS/JS files from embedded filesystem
+- [x] **INFRA-02**: Static routes configured (/tournaments, /static/*) alongside existing API routes
+- [~] **INFRA-03**: Proper MIME types and cache headers for static files (MIME types ✓, cache headers deferred)
+- [x] **INFRA-04**: Mobile-responsive CSS framework integrated (Pico CSS)
 
 ### Tournament List Page
 
-- [ ] **LIST-01**: User can view grid/list of all tournaments
-- [ ] **LIST-02**: Each tournament displays name, description, status, participant count
-- [ ] **LIST-03**: Tournament status badges (DRAFT/ACTIVE/STARTED/COMPLETED/CANCELLED) display with color coding
-- [ ] **LIST-04**: User can click tournament card to view details
+- [x] **LIST-01**: User can view grid/list of all tournaments
+- [x] **LIST-02**: Each tournament displays name, description, status, participant count
+- [~] **LIST-03**: Tournament status badges (DRAFT/ACTIVE/STARTED/COMPLETED/CANCELLED) display with color coding (text ✓, colors deferred)
+- [x] **LIST-04**: User can click tournament card to view details
 
 ### Tournament Detail Page
 
-- [ ] **DETAIL-01**: User can view tournament information (name, description, status, participant count)
-- [ ] **DETAIL-02**: User can view list of registered participants
+- [x] **DETAIL-01**: User can view tournament information (name, description, status, participant count)
+- [x] **DETAIL-02**: User can view list of registered participants
 - [ ] **DETAIL-03**: User can view traditional bracket tree visualization for single-elimination tournaments
 - [ ] **DETAIL-04**: Bracket displays match status indicators (SCHEDULED/IN_PROGRESS/COMPLETED)
 - [ ] **DETAIL-05**: Bracket displays round labels (Round 1, Quarter-Finals, Semi-Finals, Finals)
@@ -34,20 +34,20 @@ Requirements for tournament viewing UI milestone. Each maps to roadmap phases.
 
 ### API Integration
 
-- [ ] **API-01**: JavaScript API client fetches tournament list from REST endpoint
-- [ ] **API-02**: JavaScript API client fetches tournament details from REST endpoint
-- [ ] **API-03**: JavaScript API client fetches match data from REST endpoint
-- [ ] **API-04**: JavaScript API client fetches participant data from REST endpoint
-- [ ] **API-05**: Data transformation layer separates API responses from UI rendering
-- [ ] **API-06**: Loading states display during API calls (skeleton screens/spinners)
-- [ ] **API-07**: Error messages display when API calls fail
+- [x] **API-01**: JavaScript API client fetches tournament list from REST endpoint
+- [x] **API-02**: JavaScript API client fetches tournament details from REST endpoint
+- [~] **API-03**: JavaScript API client fetches match data from REST endpoint (deferred to Phase 5)
+- [x] **API-04**: JavaScript API client fetches participant data from REST endpoint
+- [x] **API-05**: Data transformation layer separates API responses from UI rendering
+- [x] **API-06**: Loading states display during API calls (skeleton screens/spinners)
+- [x] **API-07**: Error messages display when API calls fail
 
 ### Production Quality
 
-- [ ] **POLISH-01**: User can manually refresh tournament data
-- [ ] **POLISH-02**: Empty state messages display when no tournaments exist
-- [ ] **POLISH-03**: Date/time fields format as relative timestamps ("2 hours ago")
-- [ ] **POLISH-04**: UI works in modern browsers (Chrome, Firefox, Safari, Edge - last 2 versions)
+- [x] **POLISH-01**: User can manually refresh tournament data
+- [x] **POLISH-02**: Empty state messages display when no tournaments exist
+- [~] **POLISH-03**: Date/time fields format as relative timestamps ("2 hours ago") (deferred to v1.2)
+- [~] **POLISH-04**: UI works in modern browsers (Chrome, Firefox, Safari, Edge - last 2 versions) (tested informally)
 
 ## v1.2+ Requirements
 

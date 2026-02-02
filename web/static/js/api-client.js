@@ -32,7 +32,7 @@ async function fetchTournaments(namespace = 'test-ns') {
  */
 async function fetchTournament(namespace, tournamentId) {
     const response = await fetch(
-        `${API_BASE}/v1/public/namespaces/${namespace}/tournaments/${tournamentId}`,
+        `${API_BASE}/v1/public/namespace/${namespace}/tournaments/${tournamentId}`,
         {
             method: 'GET',
             headers: {

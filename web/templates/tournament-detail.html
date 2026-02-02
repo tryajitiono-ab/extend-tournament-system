@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tournament</title>
+    <link rel="stylesheet" href="/static/css/pico.min.css">
+</head>
+<body>
+    <main class="container">
+        <!-- Back link -->
+        <p><a href="/tournaments">← Back to Tournaments</a></p>
+
+        <!-- Error banner (hidden by default) -->
+        <div id="error-banner" style="display: none;" role="alert">
+            <strong>Failed to load tournament.</strong>
+            <button id="retry-btn">Retry</button>
+        </div>
+
+        <!-- Loading state -->
+        <div id="loading-state">
+            <p aria-busy="true">Loading tournament...</p>
+        </div>
+
+        <!-- Tournament info container -->
+        <div id="tournament-info" style="display: none;">
+            <hgroup>
+                <h1 id="tournament-name"></h1>
+                <p id="tournament-meta"></p>
+            </hgroup>
+            
+            <p id="tournament-description"></p>
+
+            <section>
+                <h2>Participants</h2>
+                
+                <!-- Participant loading state -->
+                <div id="participant-loading" style="display: none;">
+                    <p aria-busy="true">Loading participants...</p>
+                </div>
+
+                <!-- Participant list -->
+                <ul id="participant-list">
+                    <!-- Participant items will be inserted here -->
+                </ul>
+
+                <!-- Empty participants state -->
+                <div id="participant-empty" style="display: none;">
+                    <p>No participants</p>
+                </div>
+            </section>
+        </div>
+    </main>
+
+    <script src="/static/js/api-client.js"></script>
+    <script src="/static/js/tournament-detail.js"></script>
+</body>
+</html>

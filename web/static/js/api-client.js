@@ -3,10 +3,11 @@ const API_BASE = '';  // Same origin, no base path needed
 
 /**
  * Fetch all tournaments from REST API
+ * @param {string} namespace - Namespace to fetch tournaments from (defaults to 'test-ns')
  * @returns {Promise<Array>} Array of tournament objects
  */
-async function fetchTournaments() {
-    const response = await fetch(`${API_BASE}/v1/public/tournaments`, {
+async function fetchTournaments(namespace = 'test-ns') {
+    const response = await fetch(`${API_BASE}/v1/public/namespace/${namespace}/tournaments`, {
         method: 'GET',
         headers: {
             'Accept': 'application/json',

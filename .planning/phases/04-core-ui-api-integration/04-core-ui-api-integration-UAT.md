@@ -1,9 +1,9 @@
 ---
-status: complete
+status: diagnosed
 phase: 04-core-ui-api-integration
 source: 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md
 started: 2026-02-02T12:00:00Z
-updated: 2026-02-02T12:30:00Z
+updated: 2026-02-02T13:00:00Z
 ---
 
 ## Current Test
@@ -101,7 +101,14 @@ skipped: 12
   reason: "User reported: API endpoint returns HTTP 500 Internal Server Error. Browser shows 'Failed to load' error banner. Cannot test tournament display because API is broken."
   severity: blocker
   test: 2
-  root_cause: ""
-  artifacts: []
-  missing: []
-  debug_session: ""
+  root_cause: "gRPC-Gateway using RegisterTournamentServiceHandlerFromEndpoint which creates network gRPC client connection causing HTTP/2 PROTOCOL_ERROR. Should use RegisterTournamentServiceHandlerServer for direct in-process server invocation."
+  artifacts:
+    - path: "pkg/common/gateway.go"
+      issue: "NewGateway uses RegisterTournamentServiceHandlerFromEndpoint (network-based)"
+    - path: "main.go"
+      issue: "Gateway initialization calls NewGateway instead of direct server registration"
+  missing:
+    - "Add NewGatewayWithServer function using RegisterTournamentServiceHandlerServer"
+    - "Update main.go to use NewGatewayWithServer(ctx, tournamentServer, basePath)"
+    - "Add error handler to gateway for better debugging"
+  debug_session: "ses_3e37e99ddffevKyIc4nLR5wRoF"

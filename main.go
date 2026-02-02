@@ -270,8 +270,9 @@ func main() {
 	// Enable gRPC Health Check
 	grpc_health_v1.RegisterHealthServer(s, health.NewServer())
 
-	// Create a new HTTP server for the gRPC-Gateway
-	grpcGateway, err := common.NewGateway(ctx, fmt.Sprintf("localhost:%d", grpcServerPort), basePath)
+	// Create a new HTTP server for the gRPC-Gateway using direct server registration
+	// This avoids the need for a network connection and prevents gRPC protocol errors
+	grpcGateway, err := common.NewGatewayWithServer(ctx, tournamentServer, basePath)
 	if err != nil {
 		logger.Error("failed to create gRPC-Gateway", "error", err)
 		os.Exit(1)

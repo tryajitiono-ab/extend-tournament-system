@@ -9,36 +9,44 @@
 
 **Core Value:** Players can compete in organized tournaments with automated bracket management and real-time result tracking.
 
-**Current Milestone:** v1.1 - Tournament Viewing UI (defining requirements)
+**Current Milestone:** v1.1 - Tournament Viewing UI (roadmap defined)
 
 ## Current Position
 
-**Phase:** Not started (defining requirements)  
+**Phase:** Phase 4 - Core UI & API Integration  
 **Plan:** —  
-**Status:** Defining requirements for v1.1  
-**Last activity:** 2026-02-01 — Milestone v1.1 started
+**Status:** Ready for planning  
+**Last activity:** 2026-02-01 — v1.1 roadmap consolidated from 4 phases to 2 phases
 
 ## Performance Metrics
 
-**Requirements Coverage:** 24/24 mapped ✓  
-**Phases Defined:** 3 (Quick depth)  
-**Roadmap Status:** Complete and approved
+**Requirements Coverage:** 25/25 mapped ✓  
+**Phases Defined:** 2 (Quick depth - Phases 4-5)  
+**Roadmap Status:** Complete and ready for execution
 
 ## Accumulated Context
 
 ### Key Decisions Made
 
-**Phase Structure:**
+**v1.0 Phase Structure:**
 - 3 phases for quick delivery (matches config depth)
 - Phase 1: Foundation (Auth + Tournament Management)
 - Phase 2: Participation (Player Registration)
 - Phase 3: Competition (Match Management + Results)
 
+**v1.1 Phase Structure:**
+- 2 phases for UI delivery (Phases 4-5 continuing from v1.0)
+- Phase 4: Core UI & API Integration (infrastructure, list, detail, API, polish)
+- Phase 5: Bracket Visualization
+
 **Architecture Decisions:**
-- Single-elimination format for v1 (simpler implementation)
+- Single-elimination format for v1.0 (simpler implementation)
 - MongoDB for flexible tournament data storage
-- REST API only (no WebSocket for v1)
+- REST API only (no WebSocket for v1.0)
 - AccelByte IAM integration for authentication
+- Static file serving from Go for v1.1 UI (no separate frontend server)
+- Vanilla JavaScript with no build tools for v1.1 (constraint compliance)
+- Mobile-first responsive design for v1.1 (prevents retrofitting costs)
 
 **Tournament Data Model Decisions:**
 - Protobuf-first approach for type safety across gRPC and REST
@@ -198,29 +206,35 @@
 
 ### Active Todos
 
-**Immediate (v1.1):**
-- Add explicit tournament activation endpoint
-- Complete authentication security testing with external AccelByte IAM
-- Implement API rate limiting
-- Performance testing with load generation
-- Production deployment preparation
+**Immediate (v1.1 - Current Milestone):**
+- Phase 4: Static file serving, tournament list/detail pages, API client, loading states, polish
+- Phase 5: Bracket visualization with SVG rendering and mobile responsiveness
 
-**Upcoming (v1.2+):**
+**Future (v1.2+):**
+- Enhanced list features (search, filter, live indicators)
+- Enhanced detail features (match detail popups, zoom/pan)
+- User registration UI with authentication flow
+- Admin dashboard for tournament management UI
 - Monitoring dashboard and alerting
-- Admin dashboard for tournament management
 - Player profile and tournament history
-- Double-elimination tournament support (v2.0)
-- Real-time WebSocket updates (v2.0)
+
+**Long-term (v2.0+):**
+- Double-elimination tournament support
+- Real-time WebSocket updates
+- Swiss-system and round-robin formats
+- Advanced seeding algorithms (ELO-based)
 
 ### Blockers
 
-None. Milestone v1.0 complete and ready for production deployment after pre-production testing.
+None. v1.0 API complete and stable. v1.1 roadmap consolidated to 2 phases with 25/25 requirements mapped.
 
 ## Session Continuity
 
-**Last Session:** Milestone v1.0 completion - UAT testing complete and documentation finalized  
-**Next Session:** v1.1 planning - Production hardening and enhancements  
-**Context Files:** MILESTONE-v1.0-COMPLETE.md, ROADMAP.md, REQUIREMENTS.md, PROJECT.md, full-system-UAT.md, all phase SUMMARY.md files
+**Last Session:** v1.1 roadmap consolidation - 4 phases reduced to 2 phases (user feedback: "too many phases, this should be one-shot-able")  
+**Next Session:** Phase 4 planning - Core UI with API integration  
+**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, research-v1.1/SUMMARY.md, MILESTONE-v1.0-COMPLETE.md, PROJECT.md
 
 ---
 *Milestone v1.0 completed: 2026-02-01 - Tournament Management System production ready with 24/24 requirements delivered*
+*Milestone v1.1 roadmap created: 2026-02-01 - Tournament Viewing UI with 25/25 requirements mapped to 4 phases*
+*Milestone v1.1 roadmap revised: 2026-02-01 - Consolidated to 2 phases based on user feedback*

@@ -109,42 +109,46 @@ Explicitly excluded from v1.1. Documented to prevent scope creep.
 
 ## Traceability
 
-Which phases cover which requirements. Updated during roadmap creation.
+Which phases cover which requirements. Updated during roadmap revisions.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | TBD | Pending |
-| INFRA-02 | TBD | Pending |
-| INFRA-03 | TBD | Pending |
-| INFRA-04 | TBD | Pending |
-| LIST-01 | TBD | Pending |
-| LIST-02 | TBD | Pending |
-| LIST-03 | TBD | Pending |
-| LIST-04 | TBD | Pending |
-| DETAIL-01 | TBD | Pending |
-| DETAIL-02 | TBD | Pending |
-| DETAIL-03 | TBD | Pending |
-| DETAIL-04 | TBD | Pending |
-| DETAIL-05 | TBD | Pending |
-| DETAIL-06 | TBD | Pending |
-| DETAIL-07 | TBD | Pending |
-| API-01 | TBD | Pending |
-| API-02 | TBD | Pending |
-| API-03 | TBD | Pending |
-| API-04 | TBD | Pending |
-| API-05 | TBD | Pending |
-| API-06 | TBD | Pending |
-| API-07 | TBD | Pending |
-| POLISH-01 | TBD | Pending |
-| POLISH-02 | TBD | Pending |
-| POLISH-03 | TBD | Pending |
-| POLISH-04 | TBD | Pending |
+| INFRA-01 | Phase 4 | Pending |
+| INFRA-02 | Phase 4 | Pending |
+| INFRA-03 | Phase 4 | Pending |
+| INFRA-04 | Phase 4 | Pending |
+| LIST-01 | Phase 4 | Pending |
+| LIST-02 | Phase 4 | Pending |
+| LIST-03 | Phase 4 | Pending |
+| LIST-04 | Phase 4 | Pending |
+| DETAIL-01 | Phase 4 | Pending |
+| DETAIL-02 | Phase 4 | Pending |
+| DETAIL-03 | Phase 5 | Pending |
+| DETAIL-04 | Phase 5 | Pending |
+| DETAIL-05 | Phase 5 | Pending |
+| DETAIL-06 | Phase 5 | Pending |
+| DETAIL-07 | Phase 5 | Pending |
+| API-01 | Phase 4 | Pending |
+| API-02 | Phase 4 | Pending |
+| API-03 | Phase 4 | Pending |
+| API-04 | Phase 4 | Pending |
+| API-05 | Phase 4 | Pending |
+| API-06 | Phase 4 | Pending |
+| API-07 | Phase 4 | Pending |
+| POLISH-01 | Phase 4 | Pending |
+| POLISH-02 | Phase 4 | Pending |
+| POLISH-03 | Phase 4 | Pending |
+| POLISH-04 | Phase 4 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 25 total
-- Mapped to phases: 0 (pending roadmap creation)
-- Unmapped: 25 ⚠️
+- Mapped to phases: 25 ✓
+- Unmapped: 0
+
+**Phase Distribution:**
+- Phase 4 (Core UI & API Integration): 20 requirements
+- Phase 5 (Bracket Visualization): 5 requirements
 
 ---
 *Requirements defined: 2026-02-01*
-*Last updated: 2026-02-01 after research completion*
+*Last updated: 2026-02-01 after roadmap consolidation (4 phases → 2 phases)*

@@ -1,0 +1,59 @@
+/**
+ * Bracket Theme - Match Status Colors
+ * 
+ * Overrides brackets-viewer.js CSS variables to implement
+ * color-coded match status visualization:
+ * - Gray: Scheduled matches
+ * - Blue: In-progress matches  
+ * - Green: Completed matches
+ */
+
+.brackets-viewer {
+  /* Base colors */
+  --match-background: #fff;
+  --font-color: #212529;
+  
+  /* Scheduled matches - Gray (default border) */
+  --border-color: #9e9e9e;
+  
+  /* Completed matches - Green (winner indicator) */
+  --win-color: #50b649;
+  
+  /* Labels and hints */
+  --label-color: #757575;
+  --hint-color: #a7a7a7;
+  
+  /* Connector lines */
+  --connector-color: #9e9e9e;
+  
+  /* Spacing - balance readability with screen space */
+  --round-margin: 40px;
+  --match-width: 160px;
+  --text-size: 13px;
+}
+
+/* Scheduled matches - Gray border */
+.brackets-viewer .match[data-status="pending"] .opponents {
+  border-color: #9e9e9e;
+  background-color: #fff;
+}
+
+/* In-progress matches - Blue border and background tint */
+.brackets-viewer .match[data-status="running"] .opponents {
+  border-color: #2196f3;
+  background-color: #e3f2fd;
+}
+
+/* Completed matches - Green border */
+.brackets-viewer .match[data-status="completed"] .opponents {
+  border-color: #50b649;
+}
+
+/* Mobile responsiveness - reduce spacing on narrow screens */
+@media (max-width: 768px) {
+  .brackets-viewer {
+    --round-margin: 20px;
+    --match-width: 140px;
+    --text-size: 12px;
+  }
+}

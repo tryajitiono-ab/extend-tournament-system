@@ -14,9 +14,9 @@
 ## Current Position
 
 **Phase:** Phase 4 - Core UI & API Integration  
-**Plan:** 04-03 ✓ Complete  
-**Status:** Ready for Plan 04-02 or 04-04  
-**Last activity:** 2026-02-02 — Plan 04-03 executed (tournament detail page with participant list)
+**Plan:** 04-02 ✓ Complete  
+**Status:** Ready for Plan 04-04 (API integration polish)  
+**Last activity:** 2026-02-02 — Plan 04-02 executed (tournament list page with API integration)
 
 ## Performance Metrics
 
@@ -208,6 +208,21 @@
 - Static routes placed before gRPC-Gateway catch-all for proper routing order
 - MongoDB connection issue resolved: directConnection=true for replica set bypass
 
+**Implementation Details from 04-core-ui-api-integration-02:**
+- Tournament list HTML template with responsive grid layout (41 lines)
+- Complete API client module with fetchTournaments, fetchTournament, fetchParticipants (74 lines)
+- Tournament list UI logic with state management and rendering (112 lines)
+- XSS protection with escapeHtml() function for all user-generated content
+- Loading states with Pico CSS aria-busy spinner
+- Error banner with retry button for failed API calls
+- Empty state display when no tournaments exist
+- Refresh button to manually reload tournament data
+- Tournament cards display name (as link), description, status, participant count
+- Tournament names link to detail page with namespace and ID query parameters
+- Route handler `/tournaments` updated to serve tournaments.html template
+- Removed html/template import (no longer needed)
+- 10 requirements satisfied: LIST-01 through LIST-04, API-01, API-05 through API-07, POLISH-01 through POLISH-02
+
 **Implementation Details from 04-core-ui-api-integration-03:**
 - Tournament detail page template with semantic HTML structure (58 lines)
 - Tournament detail UI logic with comprehensive state management (169 lines)
@@ -217,7 +232,6 @@
 - Error handling: banner with retry for tournament errors, silent for participant errors
 - XSS protection with escapeHtml() function for user-generated content
 - Route handler `/tournament` added to main.go for detail page serving
-- API client stub created (fetchTournament, fetchParticipants functions)
 - Back navigation link to /tournaments for improved UX
 - Empty state handling ("No participants" message)
 - Participant display with username/user_id fallback logic
@@ -240,7 +254,7 @@
 
 **Immediate (v1.1 - Current Milestone):**
 - Phase 4 Plan 01: ✓ Complete (static file infrastructure)
-- Phase 4 Plan 02: Tournament list page with API integration (pending - creates full api-client.js)
+- Phase 4 Plan 02: ✓ Complete (tournament list page with API integration)
 - Phase 4 Plan 03: ✓ Complete (tournament detail page with participant list)
 - Phase 4 Plan 04: API integration polish and error handling
 - Phase 4 Plan 05: UI polish (loading spinners, error styling, empty states)
@@ -262,18 +276,17 @@
 
 ### Blockers
 
-**Dependency Note:** Plan 04-03 created a minimal api-client.js stub (fetchTournament, fetchParticipants). Full implementation should come from Plan 04-02, which will create comprehensive API client with all tournament operations.
-
-None blocking progress. v1.0 API complete and stable. Phase 4 Plans 01 and 03 complete.
+None blocking progress. v1.0 API complete and stable. Phase 4 Plans 01, 02, and 03 complete. API client module fully implemented with all core functions.
 
 ## Session Continuity
 
-**Last Session:** Phase 4 Plan 04-03 execution - Tournament detail page with participant list (template, UI logic, route handler, API stub)  
-**Next Session:** Phase 4 Plan 04-02 execution - Tournament list page with full API client (or 04-04 for API integration)  
-**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, 04-03-SUMMARY.md, PROJECT.md
+**Last Session:** Phase 4 Plan 04-02 execution - Tournament list page with API integration (template, API client, UI logic, route handler)  
+**Next Session:** Phase 4 Plan 04-04 or 04-05 execution - API integration polish or UI polish  
+**Context Files:** ROADMAP-v1.1.md, REQUIREMENTS-v1.1.md, 04-CONTEXT.md, 04-01-SUMMARY.md, 04-02-SUMMARY.md, 04-03-SUMMARY.md, PROJECT.md
 
 ---
 *Milestone v1.0 completed: 2026-02-01 - Tournament Management System production ready with 24/24 requirements delivered*
 *Milestone v1.1 roadmap created: 2026-02-01 - Tournament Viewing UI with 25/25 requirements mapped to 2 phases*
 *Phase 4 Plan 01 completed: 2026-02-02 - Static file infrastructure with 4/25 requirements satisfied (INFRA-01 through INFRA-04)*
+*Phase 4 Plan 02 completed: 2026-02-02 - Tournament list page with 10/25 requirements satisfied (LIST-01 through LIST-04, API-01, API-05 through API-07, POLISH-01 through POLISH-02)*
 *Phase 4 Plan 03 completed: 2026-02-02 - Tournament detail page with 8/25 requirements satisfied (DETAIL-01, DETAIL-02, API-02, API-04, API-05, API-06, API-07, POLISH-02)*

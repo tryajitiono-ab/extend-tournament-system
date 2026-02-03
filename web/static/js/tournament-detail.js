@@ -129,7 +129,7 @@ function renderParticipants(participants) {
     hideParticipantEmpty();
 
     participantListEl.innerHTML = participants.map(participant => {
-        const username = participant.username || participant.user_id || 'Unknown';
+        const username = participant.username || participant.userName || participant.userId || participant.user_id || 'Unknown';
         return `<li>${escapeHtml(username)}</li>`;
     }).join('');
 }
@@ -204,11 +204,17 @@ async function loadBracket() {
         }
         
         // Transform to brackets-model format
+        console.log('Match data:', matchData);
+        console.log('Participant data:', participantData);
+        console.log('Tournament:', tournament);
+        
         const bracketData = transformToBracketsModel(
             matchData.matches,
             participantData,
             tournament
         );
+        
+        console.log('Transformed bracket data:', bracketData);
         
         // Show mobile warning for large tournaments
         const participantCount = participantData.length;
@@ -231,13 +237,58 @@ async function loadBracket() {
  * @param {Object} data - Bracket data in brackets-model format
  */
 function renderBracket(data) {
+    console.log('=== RENDER BRACKET DEBUG ===');
+    console.log('Bracket data:', JSON.stringify(data, null, 2));
+    console.log('Stages count:', data.stages ? data.stages.length : 0);
+    console.log('Matches count:', data.matches ? data.matches.length : 0);
+    console.log('Participants count:', data.participants ? data.participants.length : 0);
+    
+    // Check if brackets-viewer library is loaded
+    if (typeof window.bracketsViewer === 'undefined') {
+        const errorMsg = 'brackets-viewer.js library failed to load. Please refresh the page.';
+        console.error(errorMsg);
+        showBracketError(errorMsg);
+        return;
+    }
+    
+    console.log('bracketsViewer is loaded:', typeof window.bracketsViewer);
+    console.log('bracketsViewer.render:', typeof window.bracketsViewer.render);
+    
+    // Check if container exists
+    const container = document.querySelector('#bracket-container');
+    console.log('Container found:', !!container);
+    console.log('Container classes:', container ? container.className : 'N/A');
+    console.log('Container display:', container ? container.style.display : 'N/A');
+    
     showBracket();
     
     // Render using brackets-viewer.js
-    window.bracketsViewer.render(data, {
-        selector: '#bracket-container',
-        clear: true,  // Always clear previous render
-    });
+    try {
+        const renderData = {
+            stages: data.stages,
+            matches: data.matches,
+            matchGames: data.matchGames || [],
+            participants: data.participants
+        };
+        
+        console.log('Calling bracketsViewer.render with:', JSON.stringify(renderData, null, 2));
+        
+        window.bracketsViewer.render(
+            renderData,
+            {
+                selector: '#bracket-container',
+                clear: true,  // Always clear previous render
+            }
+        );
+        
+        console.log('Bracket rendered successfully');
+        console.log('Container innerHTML length after render:', container ? container.innerHTML.length : 0);
+        console.log('Container children after render:', container ? container.children.length : 0);
+    } catch (error) {
+        console.error('Bracket rendering error:', error);
+        console.error('Error stack:', error.stack);
+        showBracketError('Bracket rendering failed: ' + error.message);
+    }
 }
 
 // Bracket UI state management functions

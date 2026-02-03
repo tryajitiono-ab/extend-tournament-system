@@ -47,26 +47,26 @@ function transformToBracketsModel(matches, participants, tournament) {
     // Create participant lookup map for efficient access
     const participantMap = new Map();
     participants.forEach(p => {
-        if (p.user_id) {
-            participantMap.set(p.user_id, p);
+        if (p.userId) {
+            participantMap.set(p.userId, p);
         }
     });
 
     // Transform matches to brackets-model format
-    const transformedMatches = matches.map(match => {
+    const transformedMatches = matches.map((match, index) => {
         // Convert opponent data with null handling for BYE matches and unknown participants
         const opponent1 = match.participant1 ? {
-            id: match.participant1.user_id || match.participant1,
+            id: match.participant1.userId || match.participant1,
             position: match.position * 2 - 1,
         } : null;
 
         const opponent2 = match.participant2 ? {
-            id: match.participant2.user_id || match.participant2,
+            id: match.participant2.userId || match.participant2,
             position: match.position * 2,
         } : null;
 
         return {
-            id: parseInt(match.match_id, 10),
+            id: index, // Use array index as numeric ID since match_id is a string
             stage_id: 0,
             group_id: 0,
             round_id: match.round - 1, // Convert 1-based API rounds to 0-based brackets-model rounds
@@ -79,18 +79,32 @@ function transformToBracketsModel(matches, participants, tournament) {
 
     // Transform participants to brackets-model format
     const transformedParticipants = participants.map(p => ({
-        id: p.user_id,
-        tournament_id: tournament.tournament_id,
-        name: p.username || p.user_id, // Fallback to user_id if username not available
+        id: p.userId,
+        tournament_id: tournament.tournamentId || tournament.tournament_id,
+        name: p.username || p.userId, // Fallback to userId if username not available
     }));
+    
+    // Add a special TBD participant for empty slots (instead of showing "BYE")
+    transformedParticipants.push({
+        id: null,
+        tournament_id: tournament.tournamentId || tournament.tournament_id,
+        name: 'TBD'
+    });
 
     // Create single stage for single-elimination tournament
     const stage = {
         id: 0,
-        tournament_id: tournament.tournament_id,
+        tournament_id: tournament.tournamentId || tournament.tournament_id,
         name: tournament.name || 'Tournament',
         type: 'single_elimination',
         number: 1,
+        settings: {
+            seedOrdering: ['natural'],
+            grandFinal: 'simple',
+            skipFirstRound: false,
+            consolationFinal: false,
+            matchesChildCount: 0,
+        }
     };
 
     return {

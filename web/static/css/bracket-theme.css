@@ -8,23 +8,54 @@
  * - Green: Completed matches
  */
 
+/* Override Pico CSS heading colors */
+/* Tournament name h1 uses default Pico color (works on light backgrounds) */
+#tournament-info h3 {
+  color: #212529 !important;
+}
+
+/* Bracket viewer headings should be dark (on light background) */
+.brackets-viewer h1,
+.brackets-viewer h2,
+.brackets-viewer h3 {
+  color: #212529 !important;
+}
+
+/* The bracket section h2 uses default Pico styling */
+#bracket-section h2 {
+  /* Default Pico color works fine */
+}
+
+/* Hide BYE text and show TBD instead */
+.brackets-viewer .name.bye {
+  font-size: 0;
+}
+
+.brackets-viewer .name.bye::after {
+  content: "TBD";
+  font-size: 13px;
+  color: #999;
+  font-style: italic;
+}
+
 .brackets-viewer {
   /* Base colors */
   --match-background: #fff;
   --font-color: #212529;
   
   /* Scheduled matches - Gray (default border) */
-  --border-color: #9e9e9e;
+  --border-color: #666;
   
   /* Completed matches - Green (winner indicator) */
   --win-color: #50b649;
   
-  /* Labels and hints */
-  --label-color: #757575;
-  --hint-color: #a7a7a7;
+  /* Labels and hints - darker for better visibility */
+  --label-color: #333;
+  --hint-color: #666;
   
-  /* Connector lines */
-  --connector-color: #9e9e9e;
+  /* Connector lines - darker for better visibility */
+  --connector-color: #666;
+  --connector-color-hover: #333;
   
   /* Spacing - balance readability with screen space */
   --round-margin: 40px;
@@ -83,6 +114,9 @@
 
 /* Horizontal scroll container styling */
 #bracket-container {
+  /* Light background for better contrast */
+  background-color: #f8f9fa;
+  
   /* Ensure horizontal scrollbar is visible and prominent */
   overflow-x: auto;
   overflow-y: hidden;
@@ -90,16 +124,15 @@
   /* Smooth scrolling on touch devices */
   -webkit-overflow-scrolling: touch;
   
-  /* Padding for scroll indication */
-  padding-bottom: 12px;
+  /* Padding for visual breathing room */
+  padding: 20px;
+  padding-bottom: 30px;
   
-  /* Subtle shadow to indicate scrollable content */
-  background: linear-gradient(90deg, #fff 0%, rgba(255,255,255,0) 10px),
-              linear-gradient(-90deg, #fff 0%, rgba(255,255,255,0) 10px);
-  background-attachment: local, local;
-  background-repeat: no-repeat;
-  background-size: 10px 100%, 10px 100%;
-  background-position: 0 0, 100% 0;
+  /* Rounded corners */
+  border-radius: 8px;
+  
+  /* Border for definition */
+  border: 1px solid #dee2e6;
 }
 
 /* Mobile warning styling */

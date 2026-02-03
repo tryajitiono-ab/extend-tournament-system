@@ -5,10 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tournament</title>
     <link rel="stylesheet" href="/static/css/pico.min.css">
-    <!-- Bracket visualization library -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/brackets-viewer@1.9.0/dist/brackets-viewer.min.css" />
+    <!-- Bracket visualization library (local copy) -->
+    <link rel="stylesheet" href="/static/lib/brackets-viewer.min.css" />
     <link rel="stylesheet" href="/static/css/bracket-theme.css">
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/brackets-viewer@1.9.0/dist/brackets-viewer.min.js"></script>
+    <script type="text/javascript" src="/static/lib/brackets-viewer.min.js"></script>
 </head>
 <body>
     <main class="container">
@@ -69,7 +69,7 @@
                 </div>
                 
                 <!-- Bracket container - brackets-viewer.js renders here -->
-                <div id="bracket-container" style="display: none; overflow-x: auto;">
+                <div id="bracket-container" class="brackets-viewer" style="display: none; overflow-x: auto;">
                     <!-- Bracket rendered by brackets-viewer.js -->
                 </div>
                 

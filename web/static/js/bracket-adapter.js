@@ -47,22 +47,31 @@ function transformToBracketsModel(matches, participants, tournament) {
     // Create participant lookup map for efficient access
     const participantMap = new Map();
     participants.forEach(p => {
-        if (p.userId) {
-            participantMap.set(p.userId, p);
+        const userId = p.userId || p.user_id || p.userid;
+        if (userId) {
+            participantMap.set(userId, p);
         }
     });
 
     // Transform matches to brackets-model format
     const transformedMatches = matches.map((match, index) => {
         // Convert opponent data with null handling for BYE matches and unknown participants
-        const opponent1 = match.participant1 ? {
-            id: match.participant1.userId || match.participant1,
-            position: match.position * 2 - 1,
+        // Handle both object format {userid: "player1"} and string format "player1"
+        const getParticipantId = (participant) => {
+            if (!participant) return null;
+            if (typeof participant === 'string') return participant;
+            return participant.userid || participant.userId || participant.user_id || null;
+        };
+        
+        const participant1Id = getParticipantId(match.participant1);
+        const participant2Id = getParticipantId(match.participant2);
+        
+        const opponent1 = participant1Id ? {
+            id: participant1Id,
         } : null;
 
-        const opponent2 = match.participant2 ? {
-            id: match.participant2.userId || match.participant2,
-            position: match.position * 2,
+        const opponent2 = participant2Id ? {
+            id: participant2Id,
         } : null;
 
         return {
@@ -70,7 +79,7 @@ function transformToBracketsModel(matches, participants, tournament) {
             stage_id: 0,
             group_id: 0,
             round_id: match.round - 1, // Convert 1-based API rounds to 0-based brackets-model rounds
-            number: match.position,
+            number: match.position + 1, // Convert 0-based position to 1-based match number
             opponent1: opponent1,
             opponent2: opponent2,
             status: mapMatchStatus(match.status),
@@ -78,11 +87,15 @@ function transformToBracketsModel(matches, participants, tournament) {
     });
 
     // Transform participants to brackets-model format
-    const transformedParticipants = participants.map(p => ({
-        id: p.userId,
-        tournament_id: tournament.tournamentId || tournament.tournament_id,
-        name: p.username || p.userId, // Fallback to userId if username not available
-    }));
+    const transformedParticipants = participants.map(p => {
+        const userId = p.userId || p.user_id || p.userid;
+        const userName = p.username || p.user_name || p.userName || userId;
+        return {
+            id: userId,
+            tournament_id: tournament.tournamentId || tournament.tournament_id,
+            name: userName
+        };
+    });
     
     // Add a special TBD participant for empty slots (instead of showing "BYE")
     transformedParticipants.push({

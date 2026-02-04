@@ -315,13 +315,13 @@ func TestSubmitMatchResult_Validation(t *testing.T) {
 				// Mock advancement calls for valid request
 				mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
 					Return([]*serviceextension.Match{}, nil)
-				mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
+				mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*pb.Match")).
 					Return(nil)
 				// Mock tournament completion check
 				mockStorage.On("GetTournamentMatches", mock.Anything, "ns1", "tournament1").
 					Return([]*serviceextension.Match{createTestMatch("match1", "tournament1", "user1", "user2", 1, 1)}, nil)
 				// Mock tournament completion
-				mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*serviceextension.Tournament")).
+				mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*pb.Tournament")).
 					Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
 			}
 
@@ -610,7 +610,7 @@ func TestAdvanceWinner_Position1Advancement(t *testing.T) {
 	// Mock storage calls
 	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
 		Return([]*serviceextension.Match{nextMatch}, nil)
-	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*pb.Match")).
 		Return(nil)
 
 	// Test advancement
@@ -642,7 +642,7 @@ func TestAdvanceWinner_Position2Advancement(t *testing.T) {
 	// Mock storage calls
 	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
 		Return([]*serviceextension.Match{nextMatch}, nil)
-	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*pb.Match")).
 		Return(nil)
 
 	// Test advancement
@@ -674,7 +674,7 @@ func TestAdvanceWinner_Position3Advancement(t *testing.T) {
 	// Mock storage calls
 	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
 		Return([]*serviceextension.Match{nextMatch}, nil)
-	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*pb.Match")).
 		Return(nil)
 
 	// Test advancement
@@ -706,7 +706,7 @@ func TestAdvanceWinner_Position4Advancement(t *testing.T) {
 	// Mock storage calls
 	mockStorage.On("GetMatchesByRound", mock.Anything, "ns1", "tournament1", int32(2)).
 		Return([]*serviceextension.Match{nextMatch}, nil)
-	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*serviceextension.Match")).
+	mockStorage.On("UpdateMatch", mock.Anything, "ns1", mock.AnythingOfType("*pb.Match")).
 		Return(nil)
 
 	// Test advancement
@@ -761,7 +761,7 @@ func TestAdvanceWinner_ByeHandling(t *testing.T) {
 		Return([]*serviceextension.Match{byeMatch}, nil) // Return just the bye match
 
 	// Mock tournament completion
-	mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*serviceextension.Tournament")).
+	mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*pb.Tournament")).
 		Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
 
 	resp, err := service.SubmitMatchResult(context.Background(), req)
@@ -888,7 +888,7 @@ func TestAdminSubmitMatchResult(t *testing.T) {
 		Return([]*serviceextension.Match{testMatch}, nil)
 
 	// Mock tournament completion
-	mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*serviceextension.Tournament")).
+	mockTournamentStorage.On("UpdateTournament", mock.Anything, "ns1", "tournament1", mock.AnythingOfType("*pb.Tournament")).
 		Return(&serviceextension.Tournament{TournamentId: "tournament1"}, nil)
 
 	req := &serviceextension.AdminSubmitMatchResultRequest{
@@ -1061,4 +1061,107 @@ func TestEdgeCases_CompleteWorkflows(t *testing.T) {
 		mockStorage.AssertExpectations(t)
 		mockTournamentStorage.AssertExpectations(t)
 	})
+}
+
+// --- Integration tests: GenerateBrackets → match count verification ---
+
+// TestFullTournament_4Players verifies bracket generation produces correct match structure for 4 players.
+func TestFullTournament_4Players(t *testing.T) {
+	server := &TournamentServiceServer{logger: slog.Default()}
+
+	participants := makeParticipants(4)
+	bracket, err := server.GenerateBrackets(participants)
+	assert.NoError(t, err)
+
+	// 4 players = 2 rounds, 3 total matches (2+1)
+	assert.Equal(t, int32(2), bracket.TotalRounds)
+	assert.Equal(t, 3, countAllMatches(bracket))
+
+	// Round 1: 2 matches with 2 participants each
+	assert.Len(t, bracket.Rounds[0], 2)
+	for _, m := range bracket.Rounds[0] {
+		assert.NotNil(t, m.Participant1)
+		assert.NotNil(t, m.Participant2)
+		assert.False(t, m.Bye)
+		assert.Equal(t, int32(1), m.Round)
+	}
+
+	// Round 2: 1 final match, empty (waiting for winners)
+	assert.Len(t, bracket.Rounds[1], 1)
+	assert.Equal(t, int32(2), bracket.Rounds[1][0].Round)
+}
+
+// TestFullTournament_8Players verifies bracket generation produces correct match structure for 8 players.
+func TestFullTournament_8Players(t *testing.T) {
+	server := &TournamentServiceServer{logger: slog.Default()}
+
+	participants := makeParticipants(8)
+	bracket, err := server.GenerateBrackets(participants)
+	assert.NoError(t, err)
+
+	// 8 players = 3 rounds, 7 total matches (4+2+1)
+	assert.Equal(t, int32(3), bracket.TotalRounds)
+	assert.Equal(t, 7, countAllMatches(bracket))
+
+	// Round 1: 4 matches
+	assert.Len(t, bracket.Rounds[0], 4)
+	for _, m := range bracket.Rounds[0] {
+		assert.NotNil(t, m.Participant1)
+		assert.NotNil(t, m.Participant2)
+		assert.False(t, m.Bye)
+	}
+
+	// Round 2: 2 semi-final matches
+	assert.Len(t, bracket.Rounds[1], 2)
+
+	// Round 3: 1 final match
+	assert.Len(t, bracket.Rounds[2], 1)
+
+	// Verify match IDs follow expected format
+	assert.Equal(t, "match-r1-m1", bracket.Rounds[0][0].MatchId)
+	assert.Equal(t, "match-r2-m1", bracket.Rounds[1][0].MatchId)
+	assert.Equal(t, "match-r3-m1", bracket.Rounds[2][0].MatchId)
+}
+
+// TestFullTournament_NonPowerOf2 verifies bracket generation with bye handling for 5 players.
+func TestFullTournament_NonPowerOf2(t *testing.T) {
+	server := &TournamentServiceServer{logger: slog.Default()}
+
+	participants := makeParticipants(5)
+	bracket, err := server.GenerateBrackets(participants)
+	assert.NoError(t, err)
+
+	// 5 players → bracket size 8 → 3 rounds, 7 total matches
+	assert.Equal(t, int32(3), bracket.TotalRounds)
+	assert.Equal(t, 7, countAllMatches(bracket))
+
+	// Round 1: 4 matches, some should have byes
+	assert.Len(t, bracket.Rounds[0], 4)
+
+	byeCount := 0
+	matchesWithBothParticipants := 0
+	for _, m := range bracket.Rounds[0] {
+		if m.Bye {
+			byeCount++
+		}
+		if m.Participant1 != nil && m.Participant2 != nil {
+			matchesWithBothParticipants++
+		}
+	}
+
+	// Bye matches are created when there aren't enough participants to fill both slots
+	assert.Greater(t, byeCount, 0, "5 players in 8-slot bracket should have bye matches")
+	assert.GreaterOrEqual(t, matchesWithBothParticipants, 1, "Should have at least one match with both participants")
+
+	// Verify all 5 participants appear across first round matches
+	participantSet := make(map[string]bool)
+	for _, m := range bracket.Rounds[0] {
+		if m.Participant1 != nil {
+			participantSet[m.Participant1.UserId] = true
+		}
+		if m.Participant2 != nil {
+			participantSet[m.Participant2.UserId] = true
+		}
+	}
+	assert.Equal(t, 5, len(participantSet), "All 5 participants should appear in first round")
 }

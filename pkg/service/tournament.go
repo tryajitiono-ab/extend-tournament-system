@@ -236,7 +236,7 @@ func (s *TournamentServiceServer) GenerateBrackets(participants []TournamentPart
 
 	// Generate subsequent rounds (empty slots to be filled as tournament progresses)
 	for round := 1; round < int(totalRounds); round++ {
-		matchesInRound := int(math.Pow(2, float64(totalRounds-int32(round))))
+		matchesInRound := int(math.Pow(2, float64(totalRounds-int32(round)-1)))
 		roundMatches := make([]Bracket, matchesInRound)
 
 		for i := 0; i < matchesInRound; i++ {

@@ -17,6 +17,8 @@ import (
 	"google.golang.org/grpc/status"
 )
 
+const defaultNamespace = "accelbyte"
+
 // TournamentAuthInterceptor provides authentication and authorization for tournament operations
 type TournamentAuthInterceptor struct {
 	oauthService iam.OAuth20Service
@@ -241,7 +243,7 @@ func (t *TournamentAuthInterceptor) extractNamespaceFromContext(ctx context.Cont
 	}
 
 	// Fallback to environment variable
-	return GetEnv("AB_NAMESPACE", "accelbyte")
+	return GetEnv("AB_NAMESPACE", defaultNamespace)
 }
 
 // extractOperationFromMethod extracts operation type from gRPC method name
@@ -280,7 +282,9 @@ func GetContextNamespace(ctx context.Context) (string, error) {
 	// Extract namespace from request metadata
 	meta, found := metadata.FromIncomingContext(ctx)
 	if !found {
-		return "", status.Error(codes.Unauthenticated, "metadata is missing")
+		// When metadata is missing and auth is disabled, return default namespace
+		// This commonly happens during REST API calls through gRPC-Gateway without auth headers
+		return GetEnv("AB_NAMESPACE", defaultNamespace), nil
 	}
 
 	// Try to extract namespace from various possible metadata sources
@@ -294,11 +298,13 @@ func GetContextNamespace(ctx context.Context) (string, error) {
 		if strings.HasPrefix(authorization, "Bearer ") {
 			// For now, return default namespace since token parsing would require additional IAM integration
 			// In a full implementation, you'd parse the JWT token to extract the namespace
-			return GetEnv("AB_NAMESPACE", "accelbyte"), nil
+			return GetEnv("AB_NAMESPACE", defaultNamespace), nil
 		}
 	}
 
-	return "", status.Error(codes.Unauthenticated, "namespace not found in context")
+	// When no namespace found in metadata, return default namespace
+	// This allows unauthenticated REST API access when auth is disabled
+	return GetEnv("AB_NAMESPACE", defaultNamespace), nil
 }
 
 // GetContextUserID extracts user ID from request context

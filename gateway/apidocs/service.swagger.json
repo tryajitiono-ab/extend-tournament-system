@@ -935,6 +935,15 @@
         "completedAt": {
           "type": "string",
           "format": "date-time"
+        },
+        "nextMatchId": {
+          "type": "string"
+        },
+        "sourceMatch1Id": {
+          "type": "string"
+        },
+        "sourceMatch2Id": {
+          "type": "string"
         }
       }
     },

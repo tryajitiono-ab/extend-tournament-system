@@ -4,7 +4,29 @@
       "Bash(go test:*)",
       "Bash(git status:*)",
       "Bash(go build:*)",
-      "Bash(go vet:*)"
+      "Bash(go vet:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker compose:*)",
+      "Bash(curl:*)",
+      "Bash(TOURNAMENT_ID=\"1c1fadfe-1617-46c1-b46d-a88363d56468\")",
+      "Bash(for:*)",
+      "Bash(do)",
+      "Bash(done)",
+      "Bash(URL=\"http://localhost:8000/tournament/v1/public/namespace/testns/tournaments/$TOURNAMENT_ID/register\")",
+      "Bash(TOURNAMENT_ID=\"a143ba05-54a0-4170-bcc0-e4faaf884f55\")",
+      "Bash(URL=\"http://localhost:8000/tournament/v1/public/namespace/test-ns/tournaments/$TOURNAMENT_ID/register\")",
+      "Bash(make:*)",
+      "Bash(TOURNAMENT_ID=\"a74d6c16-38f6-47f2-b64b-eb9a096127e4\":*)",
+      "Bash(__NEW_LINE_a1cf85d35147db37__ echo \"=== Step 2: Activate tournament \\(DRAFT -> ACTIVE\\) ===\")",
+      "Bash(__NEW_LINE_0ae1a773bcf6cbd4__ echo \"\")",
+      "Bash(URL=\"http://localhost:8000/tournament/v1/admin/namespace/test-ns/tournaments/a74d6c16-38f6-47f2-b64b-eb9a096127e4/activate\")",
+      "Bash(echo:*)",
+      "Bash(TOURNAMENT_ID=\"b3535bda-8a56-4bb1-86f9-f2e3c25b0031\" for i in {1..4})",
+      "Bash(do curl -s -X POST \"http://localhost:8000/tournament/v1/public/namespace/test-ns/tournaments/$TOURNAMENT_ID/register\"  -H \"Content-Type: application/json\"  -H \"x-user-id: fresh-player-$i\"  -H \"x-username: FreshPlayer$i\"  -d '{}' echo \"Registered FreshPlayer$i\" done echo \"Participant count:\" curl -s \"http://localhost:8000/tournament/v1/public/namespace/test-ns/tournaments/$TOURNAMENT_ID\")",
+      "Bash(TOURNAMENT_ID=\"b3535bda-8a56-4bb1-86f9-f2e3c25b0031\":*)",
+      "Bash(__NEW_LINE_13078660b2739a40__ echo \"\")",
+      "Bash(TOURNAMENT_ID=\"2f8d5852-835d-4c37-830b-36b0f7eb3db0\":*)",
+      "Bash(docker exec:*)"
     ]
   }
 }

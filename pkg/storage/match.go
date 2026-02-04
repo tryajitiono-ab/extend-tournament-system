@@ -60,13 +60,16 @@ type matchDocument struct {
 	Position     int32                                   `bson:"position"`
 	Participant1 *serviceextension.TournamentParticipant `bson:"participant1,omitempty"`
 	Participant2 *serviceextension.TournamentParticipant `bson:"participant2,omitempty"`
-	Winner       string                                  `bson:"winner,omitempty"`
-	Status       serviceextension.MatchStatus            `bson:"status"`
-	StartedAt    time.Time                               `bson:"started_at"`
-	CompletedAt  *time.Time                              `bson:"completed_at,omitempty"`
-	CreatedAt    time.Time                               `bson:"created_at"`
-	UpdatedAt    time.Time                               `bson:"updated_at"`
-	Namespace    string                                  `bson:"namespace"`
+	Winner         string                                  `bson:"winner,omitempty"`
+	Status         serviceextension.MatchStatus            `bson:"status"`
+	StartedAt      time.Time                               `bson:"started_at"`
+	CompletedAt    *time.Time                              `bson:"completed_at,omitempty"`
+	CreatedAt      time.Time                               `bson:"created_at"`
+	UpdatedAt      time.Time                               `bson:"updated_at"`
+	Namespace      string                                  `bson:"namespace"`
+	NextMatchId    string                                  `bson:"next_match_id,omitempty"`
+	SourceMatch1Id string                                  `bson:"source_match_1_id,omitempty"`
+	SourceMatch2Id string                                  `bson:"source_match_2_id,omitempty"`
 }
 
 // GetMatch retrieves a specific match by ID
@@ -145,18 +148,21 @@ func (m *MongoMatchStorage) CreateMatches(ctx context.Context, namespace, tourna
 		}
 
 		doc := &matchDocument{
-			MatchID:      match.MatchId,
-			TournamentID: tournamentID,
-			Round:        match.Round,
-			Position:     match.Position,
-			Participant1: match.Participant1,
-			Participant2: match.Participant2,
-			Winner:       match.Winner,
-			Status:       match.Status,
-			StartedAt:    match.StartedAt.AsTime(),
-			Namespace:    namespace,
-			CreatedAt:    now,
-			UpdatedAt:    now,
+			MatchID:        match.MatchId,
+			TournamentID:   tournamentID,
+			Round:          match.Round,
+			Position:       match.Position,
+			Participant1:   match.Participant1,
+			Participant2:   match.Participant2,
+			Winner:         match.Winner,
+			Status:         match.Status,
+			StartedAt:      match.StartedAt.AsTime(),
+			Namespace:      namespace,
+			CreatedAt:      now,
+			UpdatedAt:      now,
+			NextMatchId:    match.NextMatchId,
+			SourceMatch1Id: match.SourceMatch_1Id,
+			SourceMatch2Id: match.SourceMatch_2Id,
 		}
 
 		if !match.CompletedAt.AsTime().IsZero() {
@@ -185,14 +191,17 @@ func (m *MongoMatchStorage) UpdateMatch(ctx context.Context, namespace string, m
 	now := time.Now()
 	update := bson.M{
 		"$set": bson.M{
-			"round":        match.Round,
-			"position":     match.Position,
-			"participant1": match.Participant1,
-			"participant2": match.Participant2,
-			"winner":       match.Winner,
-			"status":       match.Status,
-			"started_at":   match.StartedAt.AsTime(),
-			"updated_at":   now,
+			"round":            match.Round,
+			"position":         match.Position,
+			"participant1":     match.Participant1,
+			"participant2":     match.Participant2,
+			"winner":           match.Winner,
+			"status":           match.Status,
+			"started_at":       match.StartedAt.AsTime(),
+			"updated_at":       now,
+			"next_match_id":    match.NextMatchId,
+			"source_match_1_id": match.SourceMatch_1Id,
+			"source_match_2_id": match.SourceMatch_2Id,
 		},
 	}
 
@@ -330,15 +339,18 @@ func (m *MongoMatchStorage) SubmitMatchResult(ctx context.Context, namespace, to
 // documentToProto converts MongoDB document to protobuf message
 func (m *MongoMatchStorage) documentToProto(doc *matchDocument) *serviceextension.Match {
 	match := &serviceextension.Match{
-		MatchId:      doc.MatchID,
-		TournamentId: doc.TournamentID,
-		Round:        doc.Round,
-		Position:     doc.Position,
-		Participant1: doc.Participant1,
-		Participant2: doc.Participant2,
-		Winner:       doc.Winner,
-		Status:       doc.Status,
-		StartedAt:    timestamppb.New(doc.StartedAt),
+		MatchId:         doc.MatchID,
+		TournamentId:    doc.TournamentID,
+		Round:           doc.Round,
+		Position:        doc.Position,
+		Participant1:    doc.Participant1,
+		Participant2:    doc.Participant2,
+		Winner:          doc.Winner,
+		Status:          doc.Status,
+		StartedAt:       timestamppb.New(doc.StartedAt),
+		NextMatchId:     doc.NextMatchId,
+		SourceMatch_1Id: doc.SourceMatch1Id,
+		SourceMatch_2Id: doc.SourceMatch2Id,
 	}
 
 	if doc.CompletedAt != nil {

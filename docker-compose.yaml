@@ -29,6 +29,7 @@ services:
     #     loki-retries: "3"
   mongodb:
     image: mongo:8.0
+    platform: linux/arm64/v8
     ports:
       - "27017:27017"
     command: ["--replSet", "rs0", "--bind_ip_all"]

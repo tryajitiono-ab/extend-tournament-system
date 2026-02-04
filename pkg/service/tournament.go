@@ -743,6 +743,20 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 				StartedAt: timestamppb.Now(),
 			}
 
+			// Set next_match_id (where the winner advances to)
+			if roundIdx < len(bracketData.Rounds)-1 {
+				nextMatchPos := matchIdx/2 + 1
+				match.NextMatchId = fmt.Sprintf("match-r%d-m%d", roundIdx+2, nextMatchPos)
+			}
+
+			// Set source match IDs (which matches feed into this one)
+			if roundIdx > 0 {
+				sourcePos1 := matchIdx*2 + 1
+				sourcePos2 := matchIdx*2 + 2
+				match.SourceMatch_1Id = fmt.Sprintf("match-r%d-m%d", roundIdx, sourcePos1)
+				match.SourceMatch_2Id = fmt.Sprintf("match-r%d-m%d", roundIdx, sourcePos2)
+			}
+
 			// Add participant 1 if exists
 			if bracket.Participant1 != nil {
 				match.Participant1 = &serviceextension.TournamentParticipant{

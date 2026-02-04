@@ -5,12 +5,14 @@
 package service
 
 import (
+	"context"
 	"log/slog"
 	"testing"
 
 	serviceextension "extend-tournament-service/pkg/pb"
 
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/mock"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -48,28 +50,25 @@ func createTestMatchForEdge(matchID, tournamentID, userID1, userID2 string, roun
 
 // Additional edge case tests for REFACTOR phase to improve coverage
 
-// TestCalculateNextPosition_EdgeCases tests edge cases for position calculation
-func TestCalculateNextPosition_EdgeCases(t *testing.T) {
-	tests := []struct {
-		name     string
-		input    int32
-		expected int32
-	}{
-		{"Position1", 1, 1},
-		{"Position2", 2, 1},
-		{"Position3", 3, 2},
-		{"Position4", 4, 2},
-		{"Position5", 5, 3},
-		{"Position8", 8, 4},
-		{"ZeroPosition", 0, 0}, // Invalid case
-	}
+// TestAdvanceWinner_NoNextMatchId tests that advancement is skipped when NextMatchId is empty
+func TestAdvanceWinner_NoNextMatchId(t *testing.T) {
+	mockStorage := &MockMatchStorage{}
+	mockTournamentStorage := &MockTournamentStorage{}
 
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			result := calculateNextPosition(tt.input)
-			assert.Equal(t, tt.expected, result, "Position calculation incorrect for input %d", tt.input)
-		})
-	}
+	logger := slog.Default()
+	service := NewMatchService(mockStorage, mockTournamentStorage, nil, logger)
+
+	// Match with no NextMatchId (final round)
+	match := createTestMatchForEdge("m1", "tournament1", "user1", "user2", 1, 0)
+	match.Winner = "user1"
+	match.Status = serviceextension.MatchStatus_MATCH_STATUS_COMPLETED
+
+	err := service.advanceWinner(context.Background(), "ns1", match)
+	assert.NoError(t, err, "Should succeed without error when no next match")
+
+	// No storage calls should be made
+	mockStorage.AssertNotCalled(t, "GetMatch", mock.Anything, mock.Anything, mock.Anything, mock.Anything)
+	mockStorage.AssertNotCalled(t, "UpdateMatch", mock.Anything, mock.Anything, mock.Anything)
 }
 
 // TestValidateMatchWinner_BoundaryConditions tests edge cases for validation

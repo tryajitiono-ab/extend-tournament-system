@@ -99,17 +99,6 @@ func (m *MatchService) validateMatchWinner(match *serviceextension.Match, winner
 	return grpcStatus.Errorf(codes.InvalidArgument, errNotParticipant, winnerUserID, match.MatchId)
 }
 
-// calculateNextPosition calculates next round position based on current position
-// Uses standard single-elimination bracket math:
-// Position 1 & 2 -> Position 1 (next round)
-// Calculate next round position for winner advancement (0-indexed positions)
-// Position 0 & 1 -> Position 0 (next round)
-// Position 2 & 3 -> Position 1 (next round)
-// Formula: nextPosition = currentPosition / 2 (integer division)
-func calculateNextPosition(currentPos int32) int32 {
-	return currentPos / 2
-}
-
 // calculateTournamentProgress calculates total rounds and current round based on matches
 func (m *MatchService) calculateTournamentProgress(matches []*serviceextension.Match) (int32, int32) {
 	if len(matches) == 0 {
@@ -151,19 +140,20 @@ func (m *MatchService) calculateTournamentProgress(matches []*serviceextension.M
 	return maxRound, currentRound
 }
 
-// advanceWinner advances winner to next round match
+// advanceWinner advances winner to next round match using explicit match relationships
 func (m *MatchService) advanceWinner(ctx context.Context, namespace string, match *serviceextension.Match) error {
-	// Calculate next round and position
-	nextRound := match.Round + 1
-	nextPosition := calculateNextPosition(match.Position)
+	// Use next_match_id for direct lookup instead of position math
+	if match.NextMatchId == "" {
+		m.logger.Info("no next match (final round), no advancement needed",
+			"match_id", match.MatchId,
+			"current_round", match.Round)
+		return nil
+	}
 
 	m.logger.Info("advancing winner to next round",
 		"match_id", match.MatchId,
 		"winner", match.Winner,
-		"from_round", match.Round,
-		"from_position", match.Position,
-		"to_round", nextRound,
-		"to_position", nextPosition)
+		"next_match_id", match.NextMatchId)
 
 	// Find the winner participant from the current match
 	var winnerParticipant *serviceextension.TournamentParticipant
@@ -177,44 +167,26 @@ func (m *MatchService) advanceWinner(ctx context.Context, namespace string, matc
 		return grpcStatus.Errorf(codes.Internal, "winner participant not found in match %s", match.MatchId)
 	}
 
-	// Get next round matches to find where to place the winner
-	nextRoundMatches, err := m.matchStorage.GetMatchesByRound(ctx, namespace, match.TournamentId, nextRound)
+	// Direct O(1) lookup of next match by ID
+	nextRoundMatch, err := m.matchStorage.GetMatch(ctx, namespace, match.TournamentId, match.NextMatchId)
 	if err != nil {
-		m.logger.Error("failed to get next round matches", "error", err, "next_round", nextRound)
-		return grpcStatus.Errorf(codes.Internal, "failed to get next round matches: %v", err)
+		m.logger.Error("failed to get next round match", "error", err, "next_match_id", match.NextMatchId)
+		return grpcStatus.Errorf(codes.Internal, "failed to get next round match: %v", err)
 	}
 
-	// Find the match at the calculated next position
-	var nextRoundMatch *serviceextension.Match
-	for _, nextMatch := range nextRoundMatches {
-		if nextMatch.Position == nextPosition {
-			nextRoundMatch = nextMatch
-			break
+	// Use source match IDs to determine which participant slot to fill
+	if match.MatchId == nextRoundMatch.SourceMatch_1Id {
+		if nextRoundMatch.Participant1 != nil {
+			return grpcStatus.Errorf(codes.Internal, "next round match %s participant1 slot already filled", nextRoundMatch.MatchId)
 		}
-	}
-
-	// If no match exists for the next position, this might be the final round
-	if nextRoundMatch == nil {
-		m.logger.Info("no next round match found, tournament might be in final round",
-			"match_id", match.MatchId,
-			"current_round", match.Round,
-			"next_round", nextRound,
-			"next_position", nextPosition)
-		return nil
-	}
-
-	// Update the next round match with the advancing participant
-	updated := false
-	if nextRoundMatch.Participant1 == nil {
 		nextRoundMatch.Participant1 = winnerParticipant
-		updated = true
-	} else if nextRoundMatch.Participant2 == nil {
+	} else if match.MatchId == nextRoundMatch.SourceMatch_2Id {
+		if nextRoundMatch.Participant2 != nil {
+			return grpcStatus.Errorf(codes.Internal, "next round match %s participant2 slot already filled", nextRoundMatch.MatchId)
+		}
 		nextRoundMatch.Participant2 = winnerParticipant
-		updated = true
-	}
-
-	if !updated {
-		return grpcStatus.Errorf(codes.Internal, "next round match %s already has both participants", nextRoundMatch.MatchId)
+	} else {
+		return grpcStatus.Errorf(codes.Internal, "match %s is not a source match for %s", match.MatchId, nextRoundMatch.MatchId)
 	}
 
 	// Save the updated next round match
@@ -229,9 +201,7 @@ func (m *MatchService) advanceWinner(ctx context.Context, namespace string, matc
 	m.logger.Info("winner advanced successfully",
 		"match_id", match.MatchId,
 		"winner", match.Winner,
-		"next_match_id", nextRoundMatch.MatchId,
-		"next_round", nextRound,
-		"next_position", nextPosition)
+		"next_match_id", nextRoundMatch.MatchId)
 
 	return nil
 }
@@ -333,6 +303,34 @@ func (m *MatchService) HandleByeAdvancement(ctx context.Context, namespace, tour
 			if soloParticipant == nil {
 				m.logger.Warn("match has no participants", "match_id", match.MatchId)
 				continue
+			}
+
+			// For rounds > 1, verify both source matches are completed before treating as bye
+			// This prevents premature bye advancement when only one feeder match has completed
+			if match.Round > 1 && (match.SourceMatch_1Id != "" || match.SourceMatch_2Id != "") {
+				// Check if both source matches are completed
+				bothSourcesComplete := true
+				if match.SourceMatch_1Id != "" {
+					source1, err := m.matchStorage.GetMatch(ctx, namespace, tournamentID, match.SourceMatch_1Id)
+					if err != nil || source1.Status != serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+						bothSourcesComplete = false
+					}
+				}
+				if match.SourceMatch_2Id != "" {
+					source2, err := m.matchStorage.GetMatch(ctx, namespace, tournamentID, match.SourceMatch_2Id)
+					if err != nil || source2.Status != serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+						bothSourcesComplete = false
+					}
+				}
+
+				if !bothSourcesComplete {
+					// One source match is still pending, so this isn't a true bye yet
+					m.logger.Info("skipping bye advancement, waiting for both source matches to complete",
+						"match_id", match.MatchId,
+						"source_match_1_id", match.SourceMatch_1Id,
+						"source_match_2_id", match.SourceMatch_2Id)
+					continue
+				}
 			}
 
 			m.logger.Info("advancing bye participant",

@@ -129,6 +129,20 @@ func (s *TournamentServer) StartTournament(ctx context.Context, req *serviceexte
 				Status:       serviceextension.MatchStatus_MATCH_STATUS_SCHEDULED,
 			}
 
+			// Set next_match_id (where the winner advances to)
+			if roundIdx < len(bracketData.Rounds)-1 {
+				nextMatchPos := matchIdx/2 + 1
+				match.NextMatchId = fmt.Sprintf("match-r%d-m%d", roundIdx+2, nextMatchPos)
+			}
+
+			// Set source match IDs (which matches feed into this one)
+			if roundIdx > 0 {
+				sourcePos1 := matchIdx*2 + 1
+				sourcePos2 := matchIdx*2 + 2
+				match.SourceMatch_1Id = fmt.Sprintf("match-r%d-m%d", roundIdx, sourcePos1)
+				match.SourceMatch_2Id = fmt.Sprintf("match-r%d-m%d", roundIdx, sourcePos2)
+			}
+
 			// Add participant 1 if exists
 			if bracket.Participant1 != nil {
 				match.Participant1 = &serviceextension.TournamentParticipant{
@@ -171,10 +185,11 @@ func (s *TournamentServer) StartTournament(ctx context.Context, req *serviceexte
 			"first_round_matches", len(bracketData.Rounds[0]),
 			"total_matches", len(allMatches))
 
-		// Handle bye advancement for rounds 2 and beyond
-		// Since round 1 bye participants are already marked as completed,
-		// we need to advance them to round 2
-		for round := int32(2); round <= bracketData.TotalRounds; round++ {
+		// Handle bye advancement for round 1 only
+		// Round 1 bye participants are marked as completed during match creation
+		// and need to be advanced to round 2. Higher rounds get bye handling
+		// automatically when match results are submitted.
+		for round := int32(1); round <= 1; round++ {
 			if err := s.MatchService.HandleByeAdvancement(ctx, req.Namespace, req.TournamentId, round); err != nil {
 				s.logger.Warn("failed to handle bye advancement for round", "error", err, "round", round)
 				// Don't fail tournament start, just log the warning

@@ -1426,19 +1426,22 @@ func (x *RemoveParticipantResponse) GetRemoved() bool {
 }
 
 type Match struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	MatchId       string                 `protobuf:"bytes,1,opt,name=match_id,json=matchId,proto3" json:"match_id,omitempty"`
-	TournamentId  string                 `protobuf:"bytes,2,opt,name=tournament_id,json=tournamentId,proto3" json:"tournament_id,omitempty"`
-	Round         int32                  `protobuf:"varint,3,opt,name=round,proto3" json:"round,omitempty"`
-	Position      int32                  `protobuf:"varint,4,opt,name=position,proto3" json:"position,omitempty"`
-	Participant1  *TournamentParticipant `protobuf:"bytes,5,opt,name=participant1,proto3" json:"participant1,omitempty"`
-	Participant2  *TournamentParticipant `protobuf:"bytes,6,opt,name=participant2,proto3" json:"participant2,omitempty"`
-	Winner        string                 `protobuf:"bytes,7,opt,name=winner,proto3" json:"winner,omitempty"`
-	Status        MatchStatus            `protobuf:"varint,8,opt,name=status,proto3,enum=tournament.MatchStatus" json:"status,omitempty"`
-	StartedAt     *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
-	CompletedAt   *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	MatchId         string                 `protobuf:"bytes,1,opt,name=match_id,json=matchId,proto3" json:"match_id,omitempty"`
+	TournamentId    string                 `protobuf:"bytes,2,opt,name=tournament_id,json=tournamentId,proto3" json:"tournament_id,omitempty"`
+	Round           int32                  `protobuf:"varint,3,opt,name=round,proto3" json:"round,omitempty"`
+	Position        int32                  `protobuf:"varint,4,opt,name=position,proto3" json:"position,omitempty"`
+	Participant1    *TournamentParticipant `protobuf:"bytes,5,opt,name=participant1,proto3" json:"participant1,omitempty"`
+	Participant2    *TournamentParticipant `protobuf:"bytes,6,opt,name=participant2,proto3" json:"participant2,omitempty"`
+	Winner          string                 `protobuf:"bytes,7,opt,name=winner,proto3" json:"winner,omitempty"`
+	Status          MatchStatus            `protobuf:"varint,8,opt,name=status,proto3,enum=tournament.MatchStatus" json:"status,omitempty"`
+	StartedAt       *timestamppb.Timestamp `protobuf:"bytes,9,opt,name=started_at,json=startedAt,proto3" json:"started_at,omitempty"`
+	CompletedAt     *timestamppb.Timestamp `protobuf:"bytes,10,opt,name=completed_at,json=completedAt,proto3" json:"completed_at,omitempty"`
+	NextMatchId     string                 `protobuf:"bytes,11,opt,name=next_match_id,json=nextMatchId,proto3" json:"next_match_id,omitempty"`
+	SourceMatch_1Id string                 `protobuf:"bytes,12,opt,name=source_match_1_id,json=sourceMatch1Id,proto3" json:"source_match_1_id,omitempty"`
+	SourceMatch_2Id string                 `protobuf:"bytes,13,opt,name=source_match_2_id,json=sourceMatch2Id,proto3" json:"source_match_2_id,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Match) Reset() {
@@ -1539,6 +1542,27 @@ func (x *Match) GetCompletedAt() *timestamppb.Timestamp {
 		return x.CompletedAt
 	}
 	return nil
+}
+
+func (x *Match) GetNextMatchId() string {
+	if x != nil {
+		return x.NextMatchId
+	}
+	return ""
+}
+
+func (x *Match) GetSourceMatch_1Id() string {
+	if x != nil {
+		return x.SourceMatch_1Id
+	}
+	return ""
+}
+
+func (x *Match) GetSourceMatch_2Id() string {
+	if x != nil {
+		return x.SourceMatch_2Id
+	}
+	return ""
 }
 
 type GetTournamentMatchesRequest struct {
@@ -2100,7 +2124,7 @@ const file_service_proto_rawDesc = "" +
 	"\x19RemoveParticipantResponse\x12#\n" +
 	"\rtournament_id\x18\x01 \x01(\tR\ftournamentId\x12\x17\n" +
 	"\auser_id\x18\x02 \x01(\tR\x06userId\x12\x18\n" +
-	"\aremoved\x18\x03 \x01(\bR\aremoved\"\xca\x03\n" +
+	"\aremoved\x18\x03 \x01(\bR\aremoved\"\xc4\x04\n" +
 	"\x05Match\x12\x19\n" +
 	"\bmatch_id\x18\x01 \x01(\tR\amatchId\x12#\n" +
 	"\rtournament_id\x18\x02 \x01(\tR\ftournamentId\x12\x14\n" +
@@ -2113,7 +2137,10 @@ const file_service_proto_rawDesc = "" +
 	"\n" +
 	"started_at\x18\t \x01(\v2\x1a.google.protobuf.TimestampR\tstartedAt\x12=\n" +
 	"\fcompleted_at\x18\n" +
-	" \x01(\v2\x1a.google.protobuf.TimestampR\vcompletedAt\"v\n" +
+	" \x01(\v2\x1a.google.protobuf.TimestampR\vcompletedAt\x12\"\n" +
+	"\rnext_match_id\x18\v \x01(\tR\vnextMatchId\x12)\n" +
+	"\x11source_match_1_id\x18\f \x01(\tR\x0esourceMatch1Id\x12)\n" +
+	"\x11source_match_2_id\x18\r \x01(\tR\x0esourceMatch2Id\"v\n" +
 	"\x1bGetTournamentMatchesRequest\x12\x1c\n" +
 	"\tnamespace\x18\x01 \x01(\tR\tnamespace\x12#\n" +
 	"\rtournament_id\x18\x02 \x01(\tR\ftournamentId\x12\x14\n" +

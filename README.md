@@ -1,4 +1,6 @@
-# extend-service-extension-go
+# Tournament Management Service
+
+> **Built with AI assistance** - This project was developed in collaboration with Claude AI, showcasing modern AI-assisted development practices.
 
 ```mermaid
 flowchart LR
@@ -11,46 +13,160 @@ flowchart LR
    GW --- SV
 ```
 
-`AccelByte Gaming Services` (AGS) capabilities can be enhanced using 
-`Extend Service Extension` apps. An `Extend Service Extension` app is a RESTful 
-web service created using a stack that includes a `gRPC Server` and the 
-[gRPC Gateway](https://github.com/grpc-ecosystem/grpc-gateway?tab=readme-ov-file#about).
+A production-ready tournament management system built as an `AccelByte Gaming Services` (AGS) Extend Service Extension. This service provides everything you need to run competitive tournaments in your game, from player registration to bracket generation and match result tracking.
 
 ## Overview
 
-This repository provides a project template for an `Extend Service Extension` 
-app written in `Go`. It includes an example of a tournament management service 
-with endpoints for creating tournaments, managing participants, and handling matches. 
-Additionally, it comes with built-in instrumentation for observability, ensuring 
-that metrics, traces, and logs are available upon deployment.
+This is a complete tournament management solution that handles single-elimination brackets with automatic bracket generation, winner advancement, and real-time status tracking. Built on a modern stack using `gRPC` and `REST`, it integrates seamlessly with AccelByte's platform while providing a clean web interface for tournament visualization.
 
-You can clone this repository to begin developing your own 
-`Extend Service Extension` app. Simply modify this project by defining your 
-endpoints in `service.proto` file and implementing the handlers for those 
-endpoints.
+**Perfect for:** Esports events, ranked seasons, special competitions, community tournaments, and any competitive gaming scenario requiring structured bracket management.
+
+## Features
+
+### Tournament Lifecycle Management
+- **Draft Mode** - Create and configure tournaments before opening registration
+- **Active Registration** - Control when players can sign up for tournaments
+- **Automatic Bracket Generation** - Single-elimination brackets with intelligent BYE handling
+- **Real-time Match Tracking** - Monitor match progress and automatically advance winners
+- **Tournament Completion** - Automatic status updates when finals conclude
+
+### Smart Bracket System
+- **Power-of-2 Optimization** - Efficient bracket structures for standard player counts (4, 8, 16, 32, etc.)
+- **Non-Power-of-2 Support** - Automatic BYE placement for odd participant counts (5, 7, 13 players, etc.)
+- **Explicit Match Relationships** - Clear winner advancement paths with O(1) lookup performance
+- **Round Integrity** - Sequential round completion ensures fair play
+
+### Admin & Player APIs
+- **RESTful API** - Simple HTTP endpoints for all operations
+- **gRPC Support** - High-performance gRPC for service-to-service communication
+- **Role-Based Access** - Admin-only endpoints for tournament control, public endpoints for registration
+- **OAuth2 Integration** - Secure authentication via AccelByte IAM
+
+### Visual Tournament Interface
+- **Live Bracket Visualization** - Beautiful bracket displays powered by [brackets-viewer.js](https://github.com/Drarig29/brackets-viewer.js)
+- **Status Badges** - Color-coded tournament states (Draft, Active, Started, Completed)
+- **Winner Highlighting** - Bold winners with green backgrounds, faded losers with strikethrough
+- **Tournament Winner Banner** - Celebratory gold banner when tournaments complete
+- **Responsive Design** - Clean, modern UI that works across devices
+
+### Production Ready
+- **MongoDB Persistence** - Reliable data storage with replica set support
+- **OpenTelemetry Observability** - Built-in metrics, traces, and logs
+- **Prometheus Metrics** - Monitor service health and performance (port 8080)
+- **Swagger Documentation** - Interactive API docs at `/tournament/apidocs/`
+- **Docker Deployment** - Containerized for easy deployment
+
+## Screenshots
+
+### Tournament List View
+Browse all tournaments with status indicators and player counts:
+
+![Tournament List](./docs/images/tournaments-view.png)
+
+### Tournament States
+
+**Draft** - Tournament being configured:
+
+![Draft Tournament](./docs/images/draft-tournament.png)
+
+**Active** - Players can register:
+
+![Active Tournament](./docs/images/active-tournament.png)
+
+**Started** - Bracket generated, matches in progress:
+
+![Started Tournament](./docs/images/started-tournament.png)
+
+**Ongoing** - Mid-tournament with some matches completed:
+
+![Ongoing Tournament](./docs/images/ongoing-tournament.png)
+
+**Completed** - Winner crowned with celebratory banner:
+
+![Completed Tournament](./docs/images/completed-tournament.png)
+
+## How It Works
+
+### Tournament Lifecycle
+
+```
+1. CREATE → Tournament starts in DRAFT status
+2. ACTIVATE → Opens for player registration (ACTIVE)
+3. REGISTER → Players sign up until max capacity reached
+4. START → Bracket generated, matches created (STARTED)
+5. PLAY → Submit match results, winners advance automatically
+6. COMPLETE → Final match determines champion (COMPLETED)
+```
+
+### Bracket Architecture
+
+The system uses **explicit match relationships** for clear, maintainable bracket progression:
+
+```go
+Match {
+  next_match_id       // Where does the winner go?
+  source_match_1_id   // First feeder match
+  source_match_2_id   // Second feeder match
+}
+```
+
+This design ensures:
+- **Fast lookups** - O(1) winner advancement instead of round iteration
+- **Clear relationships** - Self-documenting bracket structure
+- **Deterministic slots** - Winners always go to the correct participant slot
+- **Future extensibility** - Easy to add double-elimination or Swiss formats
+
+### Example: 4-Player Tournament
+
+```
+Round 1 (Semifinals):
+  Match 1: Player A vs Player B → next_match_id: "final"
+  Match 2: Player C vs Player D → next_match_id: "final"
+
+Round 2 (Final):
+  Match 3: TBD vs TBD
+           source_match_1_id: "Match 1"
+           source_match_2_id: "Match 2"
+```
+
+When Match 1 completes, the winner automatically advances to the Final's first slot. When Match 2 completes, the winner goes to the second slot. Simple and reliable.
 
 ## Project Structure
 
-Customizing your Extend Service Extension app involves modifying the `service.proto` and `myService.go` files. The app initializes key components, such as the gRPC server, in `main.go`. When a request is made to the RESTful endpoint, the gRPC gateway handles it and forwards it to the corresponding gRPC method. Before `myService.go` executes any custom logic based on the request, the `authServerInterceptor.go` first verifies that the request has the necessary access token and authorization. No other files need to be modified unless you require further customization.
+The codebase is organized for clarity and maintainability. Key components include the API definition layer (`proto`), business logic layer (`service`), persistence layer (`storage`), and web interface (`web`).
 
 ```shell
 .
-├── main.go   # App starts here
+├── main.go                         # Application entry point
 ├── pkg
-│   ├── common
-│   │   ├── authServerInterceptor.go    # gRPC server interceptor for access token authentication and authorization
-│   │   ├── ...
-│   ├── pb    # gRPC stubs generated from gRPC server protobuf
-│   │   └── ...
-│   ├── proto
-│   │   ├── service.proto     # gRPC server protobuf with additional options for exposing as RESTful web service
-│   │   └── ...
-│   ├── service
-│   │   ├── myService.go      # gRPC server implementation containing the custom logic
-│   │   └── ...
-│   └── ...
+│   ├── common
+│   │   ├── authServerInterceptor.go   # OAuth2 authentication
+│   │   └── gateway.go                 # REST gateway setup
+│   ├── pb                             # Generated gRPC code (auto-generated)
+│   ├── proto
+│   │   └── service.proto              # API definition (gRPC + REST)
+│   ├── server
+│   │   └── tournament.go              # gRPC handler delegation
+│   ├── service
+│   │   ├── tournament.go              # Tournament lifecycle logic
+│   │   ├── participant.go             # Registration management
+│   │   └── match.go                   # Bracket generation & results
+│   ├── storage
+│   │   ├── tournament.go              # Tournament persistence
+│   │   ├── participant.go             # Participant persistence
+│   │   └── match.go                   # Match persistence
+│   └── ...
+├── web
+│   ├── templates                      # HTML pages
+│   └── static                         # CSS, JS, assets
 └── ...
 ```
+
+**Key customization points:**
+- `pkg/proto/service.proto` - Define your API endpoints
+- `pkg/service/*.go` - Implement business logic
+- `pkg/storage/*.go` - Database operations
+- `web/` - Frontend interface
 
 ## Prerequisites
 
@@ -317,6 +433,17 @@ After completing testing, the next step is to deploy your app to `AccelByte Gami
    - Select the image you just pushed
    - Click **Deploy Image**
 
-## Next Step
+## What's Next?
 
-Proceed by modifying this `Extend Service Extension` app template to implement your own custom logic. For more details, see [here](https://docs.accelbyte.io/gaming-services/services/extend/service-extension/customize-service-extension-app/).
+This tournament system is ready to use as-is, or you can customize it for your specific needs:
+
+- **Use it directly** - Deploy and start running tournaments right away
+- **Customize the UI** - Modify `web/templates` and `web/static` to match your game's branding
+- **Add features** - Extend `pkg/proto/service.proto` to add new endpoints
+- **Different bracket types** - The explicit match relationship design makes it easy to implement double-elimination or Swiss formats
+
+For more information on customizing Extend Service Extension apps, see the [official documentation](https://docs.accelbyte.io/gaming-services/services/extend/service-extension/customize-service-extension-app/).
+
+---
+
+**Ready to go?** Follow the setup steps above and you'll have a full-featured tournament system running in minutes. Good luck with your tournaments!

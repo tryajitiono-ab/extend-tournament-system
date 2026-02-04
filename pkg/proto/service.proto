@@ -173,6 +173,9 @@ message Match {
   MatchStatus status = 8;
   google.protobuf.Timestamp started_at = 9;
   google.protobuf.Timestamp completed_at = 10;
+  string next_match_id = 11;
+  string source_match_1_id = 12;
+  string source_match_2_id = 13;
 }
 
 message GetTournamentMatchesRequest {

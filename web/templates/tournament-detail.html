@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tournament</title>
     <link rel="stylesheet" href="/static/css/pico.min.css">
+    <link rel="stylesheet" href="/static/css/custom.css">
     <!-- Bracket visualization library (local copy) -->
     <link rel="stylesheet" href="/static/lib/brackets-viewer.min.css" />
     <link rel="stylesheet" href="/static/css/bracket-theme.css">
@@ -28,31 +29,45 @@
 
         <!-- Tournament info container -->
         <div id="tournament-info" style="display: none;">
-            <hgroup>
+            <!-- Tournament Header -->
+            <div class="tournament-header">
                 <h1 id="tournament-name"></h1>
-                <p id="tournament-meta"></p>
-            </hgroup>
-            
-            <p id="tournament-description"></p>
+                <p id="tournament-description"></p>
+                <div class="info-grid">
+                    <div class="info-card">
+                        <label>Status</label>
+                        <span id="tournament-status"></span>
+                    </div>
+                    <div class="info-card">
+                        <label>Participants</label>
+                        <strong id="tournament-participants"></strong>
+                    </div>
+                    <div class="info-card">
+                        <label>Created</label>
+                        <strong id="tournament-created"></strong>
+                    </div>
+                </div>
+            </div>
 
-            <section>
+            <!-- Participants Section -->
+            <div class="section-header">
                 <h2>Participants</h2>
-                
-                <!-- Participant loading state -->
-                <div id="participant-loading" style="display: none;">
-                    <p aria-busy="true">Loading participants...</p>
-                </div>
+            </div>
 
-                <!-- Participant list -->
-                <ul id="participant-list">
-                    <!-- Participant items will be inserted here -->
-                </ul>
+            <!-- Participant loading state -->
+            <div id="participant-loading" style="display: none;">
+                <p aria-busy="true">Loading participants...</p>
+            </div>
 
-                <!-- Empty participants state -->
-                <div id="participant-empty" style="display: none;">
-                    <p>No participants</p>
-                </div>
-            </section>
+            <!-- Participant list -->
+            <div id="participant-list" class="participants-list">
+                <!-- Participant items will be inserted here -->
+            </div>
+
+            <!-- Empty participants state -->
+            <div id="participant-empty" style="display: none;">
+                <p>No participants registered yet.</p>
+            </div>
 
             <!-- Bracket Section -->
             <section id="bracket-section" style="display: none;">

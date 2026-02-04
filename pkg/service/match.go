@@ -102,13 +102,12 @@ func (m *MatchService) validateMatchWinner(match *serviceextension.Match, winner
 // calculateNextPosition calculates next round position based on current position
 // Uses standard single-elimination bracket math:
 // Position 1 & 2 -> Position 1 (next round)
-// Position 3 & 4 -> Position 2 (next round)
-// Formula: nextPosition = (currentPosition - 1) / 2 + 1
+// Calculate next round position for winner advancement (0-indexed positions)
+// Position 0 & 1 -> Position 0 (next round)
+// Position 2 & 3 -> Position 1 (next round)
+// Formula: nextPosition = currentPosition / 2 (integer division)
 func calculateNextPosition(currentPos int32) int32 {
-	if currentPos <= 0 {
-		return 0 // Invalid position
-	}
-	return (currentPos-1)/2 + 1
+	return currentPos / 2
 }
 
 // calculateTournamentProgress calculates total rounds and current round based on matches
@@ -522,6 +521,39 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 		}
 	}
 
+	// Get the target match to check its round
+	targetMatch, err := m.matchStorage.GetMatch(ctx, req.Namespace, req.TournamentId, req.MatchId)
+	if err != nil {
+		m.logger.Error("failed to get match for validation", "error", err, "match_id", req.MatchId)
+		return nil, grpcStatus.Errorf(codes.NotFound, "match not found: %s", req.MatchId)
+	}
+
+	// Safeguard: Prevent submitting results for future rounds if previous rounds are incomplete
+	if targetMatch.Round > 1 {
+		// Check if all matches in previous rounds are completed
+		for round := int32(1); round < targetMatch.Round; round++ {
+			previousRoundMatches, err := m.matchStorage.GetMatchesByRound(ctx, req.Namespace, req.TournamentId, round)
+			if err != nil {
+				m.logger.Error("failed to check previous round completion", "error", err, "round", round)
+				return nil, grpcStatus.Errorf(codes.Internal, "failed to validate round completion: %v", err)
+			}
+
+			// Check if all matches in this round are completed
+			for _, prevMatch := range previousRoundMatches {
+				if prevMatch.Status != serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+					m.logger.Warn("attempted to submit result for future round while previous round incomplete",
+						"match_id", req.MatchId,
+						"target_round", targetMatch.Round,
+						"incomplete_match_id", prevMatch.MatchId,
+						"incomplete_round", round)
+					return nil, grpcStatus.Errorf(codes.FailedPrecondition,
+						"cannot submit result for round %d: match %s in round %d is not completed",
+						targetMatch.Round, prevMatch.MatchId, round)
+				}
+			}
+		}
+	}
+
 	// Submit result with transaction safety
 	match, err := m.matchStorage.SubmitMatchResult(ctx, req.Namespace, req.TournamentId, req.MatchId, req.WinnerUserId)
 	if err != nil {
@@ -610,6 +642,39 @@ func (m *MatchService) AdminSubmitMatchResult(ctx context.Context, req *servicee
 		if err != nil {
 			m.logger.Error("failed to verify tournament exists for admin submission", "error", err, "tournament_id", req.TournamentId)
 			return nil, err
+		}
+	}
+
+	// Get the target match to check its round
+	targetMatch, err := m.matchStorage.GetMatch(ctx, req.Namespace, req.TournamentId, req.MatchId)
+	if err != nil {
+		m.logger.Error("failed to get match for admin validation", "error", err, "match_id", req.MatchId)
+		return nil, grpcStatus.Errorf(codes.NotFound, "match not found: %s", req.MatchId)
+	}
+
+	// Safeguard: Prevent submitting results for future rounds if previous rounds are incomplete
+	if targetMatch.Round > 1 {
+		// Check if all matches in previous rounds are completed
+		for round := int32(1); round < targetMatch.Round; round++ {
+			previousRoundMatches, err := m.matchStorage.GetMatchesByRound(ctx, req.Namespace, req.TournamentId, round)
+			if err != nil {
+				m.logger.Error("failed to check previous round completion for admin submission", "error", err, "round", round)
+				return nil, grpcStatus.Errorf(codes.Internal, "failed to validate round completion: %v", err)
+			}
+
+			// Check if all matches in this round are completed
+			for _, prevMatch := range previousRoundMatches {
+				if prevMatch.Status != serviceextension.MatchStatus_MATCH_STATUS_COMPLETED {
+					m.logger.Warn("admin attempted to submit result for future round while previous round incomplete",
+						"match_id", req.MatchId,
+						"target_round", targetMatch.Round,
+						"incomplete_match_id", prevMatch.MatchId,
+						"incomplete_round", round)
+					return nil, grpcStatus.Errorf(codes.FailedPrecondition,
+						"cannot submit result for round %d: match %s in round %d is not completed",
+						targetMatch.Round, prevMatch.MatchId, round)
+				}
+			}
 		}
 	}
 

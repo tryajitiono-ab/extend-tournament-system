@@ -80,6 +80,22 @@
   border-color: #50b649;
 }
 
+/* Winner highlighting within completed matches */
+.brackets-viewer .match[data-status="completed"] .opponent.win .name {
+  font-weight: 700;
+  color: #2e7d32;
+  background-color: #e8f5e9;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Loser styling in completed matches */
+.brackets-viewer .match[data-status="completed"] .opponent.loss .name {
+  opacity: 0.6;
+  text-decoration: line-through;
+  color: #757575;
+}
+
 /* 
  * Mobile Responsiveness Enhancements
  * Brackets are inherently wide - horizontal scroll is expected and acceptable

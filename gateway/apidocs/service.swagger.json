@@ -63,6 +63,58 @@
         ]
       }
     },
+    "/v1/admin/namespace/{namespace}/tournaments/{tournamentId}/activate": {
+      "post": {
+        "summary": "Activate Tournament",
+        "description": "Activate a tournament to open registration for participants",
+        "operationId": "TournamentService_ActivateTournament",
+        "responses": {
+          "200": {
+            "description": "A successful response.",
+            "schema": {
+              "$ref": "#/definitions/tournamentActivateTournamentResponse"
+            }
+          },
+          "default": {
+            "description": "An unexpected error response.",
+            "schema": {
+              "$ref": "#/definitions/rpcStatus"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "namespace",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "tournamentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/TournamentServiceActivateTournamentBody"
+            }
+          }
+        ],
+        "tags": [
+          "TournamentService"
+        ],
+        "security": [
+          {
+            "Bearer": [],
+            "ServiceToken": []
+          }
+        ]
+      }
+    },
     "/v1/admin/namespace/{namespace}/tournaments/{tournamentId}/cancel": {
       "post": {
         "summary": "Cancel Tournament",
@@ -665,6 +717,9 @@
     }
   },
   "definitions": {
+    "TournamentServiceActivateTournamentBody": {
+      "type": "object"
+    },
     "TournamentServiceAdminSubmitMatchResultBody": {
       "type": "object",
       "properties": {
@@ -738,6 +793,14 @@
             "type": "object",
             "$ref": "#/definitions/protobufAny"
           }
+        }
+      }
+    },
+    "tournamentActivateTournamentResponse": {
+      "type": "object",
+      "properties": {
+        "tournament": {
+          "$ref": "#/definitions/tournamentTournament"
         }
       }
     },

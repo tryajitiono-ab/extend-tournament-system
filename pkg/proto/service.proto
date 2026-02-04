@@ -90,6 +90,15 @@ message GetTournamentResponse {
   Tournament tournament = 1;
 }
 
+message ActivateTournamentRequest {
+  string namespace = 1;
+  string tournament_id = 2;
+}
+
+message ActivateTournamentResponse {
+  Tournament tournament = 1;
+}
+
 message StartTournamentRequest {
   string namespace = 1;
   string tournament_id = 2;
@@ -269,6 +278,30 @@ service TournamentService {
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get Tournament"
       description: "Get tournament details by tournament ID"
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+        security_requirement: {
+          key: "ServiceToken"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc ActivateTournament (ActivateTournamentRequest) returns (ActivateTournamentResponse) {
+    // Admin permission required: UPDATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
+    option (permission.action) = UPDATE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (google.api.http) = {
+      post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate"
+      body: "*"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Activate Tournament"
+      description: "Activate a tournament to open registration for participants"
       security: {
         security_requirement: {
           key: "Bearer"

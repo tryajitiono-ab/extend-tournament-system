@@ -105,13 +105,81 @@ function renderTournament(tournament) {
     hideLoading();
     tournamentInfoEl.style.display = 'block';
 
+    // Tournament header
     tournamentNameEl.textContent = tournament.name || 'Untitled Tournament';
-    
+    tournamentDescriptionEl.textContent = tournament.description || 'No description provided';
+
+    // Status badge
+    const statusEl = document.getElementById('tournament-status');
+    statusEl.innerHTML = formatStatusBadge(tournament.status);
+
+    // Participant count
     const participantCount = tournament.currentParticipants || 0;
     const maxParticipants = tournament.maxParticipants || 0;
-    tournamentMetaEl.textContent = `${tournament.status} · ${participantCount}/${maxParticipants} participants`;
-    
-    tournamentDescriptionEl.textContent = tournament.description || '';
+    const participantsEl = document.getElementById('tournament-participants');
+    participantsEl.textContent = `${participantCount} / ${maxParticipants}`;
+
+    // Created date
+    const createdEl = document.getElementById('tournament-created');
+    const createdDate = new Date(tournament.createdAt);
+    createdEl.textContent = createdDate.toLocaleDateString();
+
+    // Store tournament for later use
+    window.currentTournament = tournament;
+}
+
+/**
+ * Show tournament winner banner
+ * @param {string} winnerUserId - Winner user ID
+ * @param {Array} participants - Array of participant objects
+ */
+function showWinnerBanner(winnerUserId, participants) {
+    // Check if banner already exists
+    let banner = document.getElementById('tournament-winner-banner');
+    if (banner) {
+        banner.remove();
+    }
+
+    // Find winner's username from participants
+    let winnerName = winnerUserId;
+    if (participants && participants.length > 0) {
+        const winner = participants.find(p => p.userId === winnerUserId || p.user_id === winnerUserId);
+        if (winner) {
+            winnerName = winner.username || winner.userName || winner.userId || winner.user_id || winnerUserId;
+        }
+    }
+
+    // Create winner banner
+    banner = document.createElement('div');
+    banner.id = 'tournament-winner-banner';
+    banner.className = 'tournament-winner-banner';
+    banner.innerHTML = `
+        <span class="trophy">🏆</span>
+        <h2>Tournament Winner</h2>
+        <div class="winner-name">${escapeHtml(winnerName)}</div>
+    `;
+
+    // Insert after tournament header
+    const headerEl = document.querySelector('.tournament-header');
+    headerEl.insertAdjacentElement('afterend', banner);
+}
+
+/**
+ * Format status as colored badge
+ * @param {string} status - Tournament status enum
+ * @returns {string} HTML for status badge
+ */
+function formatStatusBadge(status) {
+    const statusMap = {
+        'TOURNAMENT_STATUS_DRAFT': { text: 'Draft', class: 'draft' },
+        'TOURNAMENT_STATUS_ACTIVE': { text: 'Active', class: 'active' },
+        'TOURNAMENT_STATUS_STARTED': { text: 'Started', class: 'started' },
+        'TOURNAMENT_STATUS_COMPLETED': { text: 'Completed', class: 'completed' },
+        'TOURNAMENT_STATUS_CANCELLED': { text: 'Cancelled', class: 'cancelled' }
+    };
+
+    const statusInfo = statusMap[status] || { text: 'Unknown', class: 'draft' };
+    return `<span class="status-badge ${statusInfo.class}">${statusInfo.text}</span>`;
 }
 
 /**
@@ -128,9 +196,20 @@ function renderParticipants(participants) {
 
     hideParticipantEmpty();
 
-    participantListEl.innerHTML = participants.map(participant => {
+    participantListEl.innerHTML = participants.map((participant, index) => {
         const username = participant.username || participant.userName || participant.userId || participant.user_id || 'Unknown';
-        return `<li>${escapeHtml(username)}</li>`;
+        const userId = participant.userId || participant.user_id || '';
+        const initial = username.charAt(0).toUpperCase();
+
+        return `
+            <div class="participant-card">
+                <div class="participant-avatar">${initial}</div>
+                <div class="participant-info">
+                    <strong>${escapeHtml(username)}</strong>
+                    <small>${escapeHtml(userId)}</small>
+                </div>
+            </div>
+        `;
     }).join('');
 }
 
@@ -224,12 +303,37 @@ async function loadBracket() {
         
         // Render bracket
         renderBracket(bracketData);
-        
+
+        // Show winner banner if tournament is completed
+        if (tournament.status === 'TOURNAMENT_STATUS_COMPLETED') {
+            const winner = findTournamentWinner(matchData.matches);
+            if (winner) {
+                showWinnerBanner(winner, participantData);
+            }
+        }
+
     } catch (error) {
         // Non-critical error - don't show error banner at top
         showBracketError('Failed to load bracket');
         console.error('Bracket loading error:', error);
     }
+}
+
+/**
+ * Find tournament winner from matches (highest round winner)
+ * @param {Array} matches - Array of match objects
+ * @returns {string|null} Winner user ID
+ */
+function findTournamentWinner(matches) {
+    if (!matches || matches.length === 0) return null;
+
+    // Find the highest round number
+    const maxRound = Math.max(...matches.map(m => m.round));
+
+    // Find the completed match in the highest round
+    const finalMatch = matches.find(m => m.round === maxRound && m.status === 'MATCH_STATUS_COMPLETED');
+
+    return finalMatch ? finalMatch.winner : null;
 }
 
 /**

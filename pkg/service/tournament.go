@@ -583,7 +583,7 @@ func (s *TournamentServiceServer) CancelTournament(ctx context.Context, req *ser
 }
 
 // ActivateTournament activates a tournament (changes from DRAFT to ACTIVE)
-func (s *TournamentServiceServer) ActivateTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+func (s *TournamentServiceServer) ActivateTournament(ctx context.Context, req *serviceextension.ActivateTournamentRequest) (*serviceextension.ActivateTournamentResponse, error) {
 	s.logger.Info("ActivateTournament called", "namespace", req.Namespace, "tournament_id", req.TournamentId)
 
 	// Validate required fields
@@ -642,7 +642,7 @@ func (s *TournamentServiceServer) ActivateTournament(ctx context.Context, req *s
 		"name", updatedTournament.Name,
 		"previous_status", s.GetStatusName(previousStatus))
 
-	return &serviceextension.StartTournamentResponse{
+	return &serviceextension.ActivateTournamentResponse{
 		Tournament: updatedTournament,
 	}, nil
 }

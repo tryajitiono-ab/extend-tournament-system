@@ -74,6 +74,26 @@ function transformToBracketsModel(matches, participants, tournament) {
             id: participant2Id,
         } : null;
 
+        // Determine winner result for completed matches
+        // The brackets-viewer library uses 'win' string on the winning opponent
+        let result = null;
+        if (match.status === 'MATCH_STATUS_COMPLETED' && match.winner) {
+            if (participant1Id === match.winner) {
+                result = 'win'; // opponent1 won
+            } else if (participant2Id === match.winner) {
+                result = 'win'; // opponent2 won, but we need to swap the result format
+            }
+        }
+
+        // Brackets-viewer expects result field with 'win' for opponent1 or 'loss' for opponent1 (opponent2 won)
+        // Simpler approach: set score/result per opponent
+        if (opponent1 && match.winner === participant1Id) {
+            opponent1.result = 'win';
+        }
+        if (opponent2 && match.winner === participant2Id) {
+            opponent2.result = 'win';
+        }
+
         return {
             id: index, // Use array index as numeric ID since match_id is a string
             stage_id: 0,

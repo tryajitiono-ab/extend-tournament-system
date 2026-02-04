@@ -1,16 +1,63 @@
 /* Custom styles for Tournament Management UI */
 
-/* Tournament grid layout - responsive columns */
+/* ========================================
+   Typography & Visual Hierarchy
+   ======================================== */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+h1 {
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   Tournament Grid Layout
+   ======================================== */
+
 #tournament-list {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 1rem;
-    margin-top: 1rem;
+    gap: 1.5rem;
+    margin-top: 2rem;
 }
 
-/* Ensure tournament cards don't overflow */
+/* Tournament cards with enhanced styling */
 #tournament-list article {
     margin: 0;
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: 8px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+#tournament-list article:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: var(--pico-primary);
+}
+
+/* Card headers with better spacing */
+#tournament-list article header {
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--pico-muted-border-color);
+    margin-bottom: 1rem;
+}
+
+#tournament-list article header h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--pico-contrast);
+}
+
+#tournament-list article p {
+    margin: 0.5rem 0;
+    color: var(--pico-muted-color);
+    line-height: 1.6;
 }
 
 /* Mobile: 1 column */
@@ -40,4 +87,282 @@
     #tournament-list {
         grid-template-columns: repeat(4, 1fr);
     }
+}
+
+/* ========================================
+   Status Badges
+   ======================================== */
+
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.draft {
+    background-color: #e3f2fd;
+    color: #1565c0;
+    border: 1px solid #90caf9;
+}
+
+.status-badge.active {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+    border: 1px solid #81c784;
+}
+
+.status-badge.started {
+    background-color: #fff3e0;
+    color: #e65100;
+    border: 1px solid #ffb74d;
+}
+
+.status-badge.completed {
+    background-color: #f3e5f5;
+    color: #6a1b9a;
+    border: 1px solid #ba68c8;
+}
+
+.status-badge.cancelled {
+    background-color: #fce4ec;
+    color: #c62828;
+    border: 1px solid #f48fb1;
+}
+
+/* ========================================
+   Participant Count Badge
+   ======================================== */
+
+.participant-count {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    background-color: var(--pico-card-background-color);
+    border-radius: 6px;
+    border: 1px solid var(--pico-muted-border-color);
+    font-size: 0.875rem;
+}
+
+.participant-count strong {
+    font-weight: 600;
+    color: var(--pico-contrast);
+}
+
+/* ========================================
+   Loading & Empty States
+   ======================================== */
+
+#loading-spinner {
+    text-align: center;
+    padding: 3rem 1rem;
+}
+
+#loading-spinner p {
+    color: var(--pico-muted-color);
+    font-size: 1.125rem;
+}
+
+#empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background-color: var(--pico-card-background-color);
+    border-radius: 8px;
+    border: 2px dashed var(--pico-muted-border-color);
+}
+
+#empty-state p {
+    color: var(--pico-muted-color);
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+/* ========================================
+   Error Banner
+   ======================================== */
+
+#error-banner {
+    background-color: #ffebee;
+    border: 1px solid #ef5350;
+    border-radius: 6px;
+    padding: 1rem 1.5rem;
+    margin-bottom: 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#error-banner p {
+    margin: 0;
+    color: #c62828;
+    font-weight: 500;
+}
+
+#error-banner button {
+    background-color: #ef5350;
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#error-banner button:hover {
+    background-color: #c62828;
+}
+
+/* ========================================
+   Tournament Detail Page
+   ======================================== */
+
+.tournament-header {
+    background: linear-gradient(135deg, var(--pico-primary) 0%, var(--pico-primary-focus) 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.tournament-header h1 {
+    margin: 0 0 0.5rem 0;
+    color: white;
+}
+
+.tournament-header p {
+    margin: 0.5rem 0;
+    opacity: 0.9;
+}
+
+.info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.info-card {
+    background-color: rgba(255, 255, 255, 0.1);
+    padding: 1rem;
+    border-radius: 6px;
+    backdrop-filter: blur(10px);
+}
+
+.info-card label {
+    display: block;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+    margin-bottom: 0.25rem;
+}
+
+.info-card strong {
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 2rem 0 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--pico-muted-border-color);
+}
+
+.section-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.participants-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.participant-card {
+    padding: 0.75rem 1rem;
+    background-color: var(--pico-card-background-color);
+    border: 1px solid var(--pico-muted-border-color);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.participant-card:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.participant-avatar {
+    width: 40px;
+    height: 40px;
+    background: linear-gradient(135deg, var(--pico-primary) 0%, var(--pico-primary-focus) 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-weight: 600;
+    font-size: 1.125rem;
+}
+
+.participant-info {
+    flex: 1;
+}
+
+.participant-info strong {
+    display: block;
+    font-size: 0.9375rem;
+    color: var(--pico-contrast);
+}
+
+.participant-info small {
+    color: var(--pico-muted-color);
+    font-size: 0.8125rem;
+}
+
+/* ========================================
+   Tournament Winner Banner
+   ======================================== */
+
+.tournament-winner-banner {
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+    border: 3px solid #f9a825;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 4px 12px rgba(249, 168, 37, 0.3);
+}
+
+.tournament-winner-banner h2 {
+    margin: 0 0 0.5rem 0;
+    color: #f57f17;
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.tournament-winner-banner .winner-name {
+    font-size: 2rem;
+    font-weight: 800;
+    color: #e65100;
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.tournament-winner-banner .trophy {
+    font-size: 3rem;
+    display: block;
+    margin-bottom: 0.5rem;
 }

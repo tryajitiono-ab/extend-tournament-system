@@ -9,14 +9,17 @@
 </head>
 <body>
     <main class="container">
-        <hgroup>
-            <h1>Tournaments</h1>
-            <p><button id="refresh-btn">Refresh</button></p>
-        </hgroup>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <div>
+                <h1>Tournaments</h1>
+                <p style="margin: 0; color: var(--pico-muted-color);">Browse and manage tournament competitions</p>
+            </div>
+            <button id="refresh-btn" style="margin: 0;">🔄 Refresh</button>
+        </div>
 
         <!-- Error banner (hidden by default) -->
         <div id="error-banner" style="display: none;" role="alert">
-            <strong>Failed to load.</strong>
+            <p>Failed to load tournaments.</p>
             <button id="retry-btn">Retry</button>
         </div>
 

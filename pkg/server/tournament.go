@@ -75,7 +75,7 @@ func (s *TournamentServer) CancelTournament(ctx context.Context, req *serviceext
 }
 
 // ActivateTournament activates a tournament
-func (s *TournamentServer) ActivateTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+func (s *TournamentServer) ActivateTournament(ctx context.Context, req *serviceextension.ActivateTournamentRequest) (*serviceextension.ActivateTournamentResponse, error) {
 	return s.TournamentServiceServer.ActivateTournament(ctx, req)
 }
 

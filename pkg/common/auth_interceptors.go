@@ -6,6 +6,8 @@ package common
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/json"
 	"log/slog"
 	"strings"
 
@@ -16,6 +18,24 @@ import (
 	"google.golang.org/grpc/metadata"
 	"google.golang.org/grpc/status"
 )
+
+// parseJWTClaims decodes a JWT token's payload without verifying the signature.
+// The token must already be validated before calling this function.
+func parseJWTClaims(token string) (map[string]interface{}, error) {
+	parts := strings.Split(token, ".")
+	if len(parts) != 3 {
+		return nil, status.Error(codes.Unauthenticated, "invalid JWT format")
+	}
+	payload, err := base64.RawURLEncoding.DecodeString(parts[1])
+	if err != nil {
+		return nil, status.Error(codes.Unauthenticated, "failed to decode JWT payload")
+	}
+	var claims map[string]interface{}
+	if err := json.Unmarshal(payload, &claims); err != nil {
+		return nil, status.Error(codes.Unauthenticated, "failed to parse JWT claims")
+	}
+	return claims, nil
+}
 
 const defaultNamespace = "accelbyte"
 
@@ -323,9 +343,15 @@ func GetContextUserID(ctx context.Context) (string, error) {
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
-			// For now, return a placeholder since token parsing would require additional IAM integration
-			// In a full implementation, you'd parse the JWT token to extract the user ID
-			return "placeholder-user-id", nil
+			token := strings.TrimPrefix(authorization, "Bearer ")
+			claims, err := parseJWTClaims(token)
+			if err != nil {
+				return "", err
+			}
+			if sub, ok := claims["sub"].(string); ok && sub != "" {
+				return sub, nil
+			}
+			return "", status.Error(codes.Unauthenticated, "user ID (sub) not found in JWT claims")
 		}
 	}
 
@@ -348,9 +374,16 @@ func GetContextUsername(ctx context.Context) (string, error) {
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
-			// For now, return a placeholder since token parsing would require additional IAM integration
-			// In a full implementation, you'd parse the JWT token to extract the username
-			return "placeholder-username", nil
+			token := strings.TrimPrefix(authorization, "Bearer ")
+			claims, err := parseJWTClaims(token)
+			if err != nil {
+				return "", err
+			}
+			// AccelByte JWTs use "user_name" for the username claim
+			if username, ok := claims["user_name"].(string); ok && username != "" {
+				return username, nil
+			}
+			return "", status.Error(codes.Unauthenticated, "username (user_name) not found in JWT claims")
 		}
 	}
 

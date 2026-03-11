@@ -106,25 +106,9 @@ func (t *TournamentAuthInterceptor) validateServiceToken(ctx context.Context, se
 
 // GetTournamentPermission returns the required permission for a tournament operation
 func (t *TournamentAuthInterceptor) GetTournamentPermission(operation string, namespace string) *iam.Permission {
-	switch operation {
-	case "CREATE", "UPDATE", "START", "CANCEL":
-		// Admin operations require admin permissions
-		return &iam.Permission{
-			Action:   t.getActionValue(operation),
-			Resource: "ADMIN:NAMESPACE:" + namespace + ":TOURNAMENT",
-		}
-	case "READ", "LIST":
-		// Read operations are public
-		return &iam.Permission{
-			Action:   t.getActionValue(operation),
-			Resource: "NAMESPACE:" + namespace + ":TOURNAMENT",
-		}
-	default:
-		// Default to admin permission for unknown operations
-		return &iam.Permission{
-			Action:   1, // READ
-			Resource: "ADMIN:NAMESPACE:" + namespace + ":TOURNAMENT",
-		}
+	return &iam.Permission{
+		Action:   t.getActionValue(operation),
+		Resource: "ADMIN:NAMESPACE:" + namespace + ":EXTEND:ADMINUI",
 	}
 }
 
@@ -132,15 +116,15 @@ func (t *TournamentAuthInterceptor) GetTournamentPermission(operation string, na
 func (t *TournamentAuthInterceptor) getActionValue(operation string) int {
 	switch strings.ToUpper(operation) {
 	case "CREATE":
-		return 2 // CREATE
-	case "READ", "LIST":
-		return 1 // READ
-	case "UPDATE", "START", "CANCEL":
-		return 3 // UPDATE
+		return 1
+	case "READ":
+		return 2
+	case "UPDATE":
+		return 4
 	case "DELETE":
-		return 4 // DELETE
+		return 8
 	default:
-		return 1 // READ
+		return 1
 	}
 }
 

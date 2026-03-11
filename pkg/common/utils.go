@@ -5,10 +5,13 @@
 package common
 
 import (
+	"log"
 	"log/slog"
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/joho/godotenv"
 )
 
 func GetEnv(key, fallback string) string {
@@ -30,6 +33,11 @@ func GetEnvInt(key string, fallback int) int {
 }
 
 func GetBasePath() string {
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
 	basePath := os.Getenv("BASE_PATH")
 	if basePath == "" {
 		slog.Error("BASE_PATH envar is not set or empty")
@@ -41,4 +49,8 @@ func GetBasePath() string {
 	}
 
 	return basePath
+}
+
+func GetAppNamespace() string {
+	return os.Getenv("AB_NAMESPACE")
 }

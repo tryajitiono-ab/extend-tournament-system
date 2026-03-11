@@ -272,7 +272,7 @@ func (s *TournamentServiceServer) CompleteTournament(ctx context.Context, namesp
 	}
 
 	// Check admin permissions for tournament completion
-	permission := s.authInterceptor.GetTournamentPermission("UPDATE", namespace)
+	permission := s.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
 	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, namespace); err != nil {
 		s.logger.Warn("complete tournament permission denied", "error", err, "namespace", namespace, "tournament_id", tournamentID)
 		return nil, err
@@ -411,7 +411,8 @@ func (s *TournamentServiceServer) CreateTournament(ctx context.Context, req *ser
 	}
 
 	// Check admin permissions for tournament creation
-	permission := s.authInterceptor.GetTournamentPermission("CREATE", req.Namespace)
+	permission := s.authInterceptor.GetTournamentPermission("CREATE", extendtournamentservice.GetAppNamespace())
+	fmt.Println("permission", permission, req.Namespace)
 	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 		s.logger.Warn("create tournament permission denied", "error", err, "namespace", req.Namespace)
 		return nil, err
@@ -530,7 +531,7 @@ func (s *TournamentServiceServer) CancelTournament(ctx context.Context, req *ser
 	}
 
 	// Check admin permissions for tournament cancellation
-	permission := s.authInterceptor.GetTournamentPermission("CANCEL", req.Namespace)
+	permission := s.authInterceptor.GetTournamentPermission("DELETE", extendtournamentservice.GetAppNamespace())
 	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 		s.logger.Warn("cancel tournament permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 		return nil, err
@@ -595,7 +596,7 @@ func (s *TournamentServiceServer) ActivateTournament(ctx context.Context, req *s
 	}
 
 	// Check admin permissions for tournament activation
-	permission := s.authInterceptor.GetTournamentPermission("UPDATE", req.Namespace)
+	permission := s.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
 	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 		s.logger.Warn("activate tournament permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 		return nil, err
@@ -660,7 +661,7 @@ func (s *TournamentServiceServer) StartTournament(ctx context.Context, req *serv
 	}
 
 	// Check admin permissions for tournament start
-	permission := s.authInterceptor.GetTournamentPermission("START", req.Namespace)
+	permission := s.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
 	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 		s.logger.Warn("start tournament permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 		return nil, err

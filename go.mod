@@ -2,6 +2,9 @@ module extend-tournament-service
 
 go 1.24.0
 
+// replace will be updated by go mod tidy
+replace github.com/AccelByte/accelbyte-go-sdk => github.com/tryajitiono-ab/accelbyte-go-sdk v0.85.0-patch.0.3
+
 require (
 	github.com/AccelByte/accelbyte-go-sdk v0.85.0
 	github.com/go-openapi/loads v0.22.0
@@ -9,6 +12,7 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
+	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/stretchr/testify v1.11.1

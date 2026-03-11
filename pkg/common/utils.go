@@ -5,7 +5,6 @@
 package common
 
 import (
-	"log"
 	"log/slog"
 	"os"
 	"strconv"
@@ -35,7 +34,7 @@ func GetEnvInt(key string, fallback int) int {
 func GetBasePath() string {
 	err := godotenv.Load()
 	if err != nil {
-		log.Println("Error loading .env file")
+		slog.Warn("Warning: no .env file detected")
 	}
 
 	basePath := os.Getenv("BASE_PATH")

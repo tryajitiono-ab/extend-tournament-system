@@ -8,6 +8,9 @@ let errorBannerEl;
 let refreshBtn;
 let retryBtn;
 
+// Namespace from URL query param, e.g. /tournaments?namespace=my-ns
+const currentNamespace = new URLSearchParams(window.location.search).get('namespace') || 'test-ns';
+
 // Initialize page
 document.addEventListener('DOMContentLoaded', () => {
     tournamentListEl = document.getElementById('tournament-list');
@@ -33,7 +36,7 @@ async function loadTournaments() {
     hideError();
 
     try {
-        const tournaments = await fetchTournaments();
+        const tournaments = await fetchTournaments(currentNamespace);
         renderTournaments(tournaments);
     } catch (error) {
         showError();
@@ -56,7 +59,7 @@ function renderTournaments(tournaments) {
     hideEmpty();
 
     tournamentListEl.innerHTML = tournaments.map(tournament => {
-        const detailUrl = `/tournament?namespace=test-ns&id=${encodeURIComponent(tournament.tournamentId)}`;
+        const detailUrl = `/tournament?namespace=${encodeURIComponent(currentNamespace)}&id=${encodeURIComponent(tournament.tournamentId)}`;
         const statusBadge = formatStatusBadge(tournament.status);
         const participantInfo = formatParticipantCount(tournament.currentParticipants || 0, tournament.maxParticipants);
 

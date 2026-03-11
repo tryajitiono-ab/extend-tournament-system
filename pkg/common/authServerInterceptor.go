@@ -158,7 +158,7 @@ func getNamespace() string {
 	return GetEnv("AB_NAMESPACE", "accelbyte")
 }
 
-func checkAuthorizationMetadata(ctx context.Context, permission *iam.Permission) error {
+func checkAuthorizationMetadata(ctx context.Context, permission *iam.Permission, namespace string) error {
 	if Validator == nil {
 		return status.Error(codes.Internal, "authorization token validator is not set")
 	}
@@ -179,7 +179,15 @@ func checkAuthorizationMetadata(ctx context.Context, permission *iam.Permission)
 
 	authorization := meta["authorization"][0]
 	token := strings.TrimPrefix(authorization, "Bearer ")
-	namespace := getNamespace()
+
+	// Resolve the {namespace} placeholder in the resource string with the actual namespace
+	if permission != nil {
+		resolvedPermission := &iam.Permission{
+			Action:   permission.Action,
+			Resource: strings.ReplaceAll(permission.Resource, "{namespace}", namespace),
+		}
+		permission = resolvedPermission
+	}
 
 	err := Validator.Validate(token, permission, &namespace, nil)
 
@@ -206,7 +214,14 @@ func NewUnaryAuthServerIntercept() func(ctx context.Context, req interface{}, in
 		// Enforce auth whenever the proto declares Bearer security or explicit permissions
 		// (treat permissions as authoritative even if the security block was omitted by mistake)
 		if requirement.RequireToken || requirement.Permission != nil {
-			err = checkAuthorizationMetadata(ctx, requirement.Permission)
+			// Extract namespace from request, fall back to env var
+			namespace := getNamespace()
+			if ns, ok := req.(interface{ GetNamespace() string }); ok {
+				if n := ns.GetNamespace(); n != "" {
+					namespace = n
+				}
+			}
+			err = checkAuthorizationMetadata(ctx, requirement.Permission, namespace)
 			if err != nil {
 				return nil, err
 			}
@@ -232,7 +247,14 @@ func NewStreamAuthServerIntercept() func(srv interface{}, ss grpc.ServerStream, 
 		// Enforce auth whenever the proto declares Bearer security or explicit permissions
 		// (treat permissions as authoritative even if the security block was omitted by mistake)
 		if requirement.RequireToken || requirement.Permission != nil {
-			err = checkAuthorizationMetadata(ss.Context(), requirement.Permission)
+			// Extract namespace from gRPC metadata, fall back to env var
+			namespace := getNamespace()
+			if meta, ok := metadata.FromIncomingContext(ss.Context()); ok {
+				if ns := meta.Get("namespace"); len(ns) > 0 && ns[0] != "" {
+					namespace = ns[0]
+				}
+			}
+			err = checkAuthorizationMetadata(ss.Context(), requirement.Permission, namespace)
 			if err != nil {
 				return err
 			}

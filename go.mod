@@ -3,12 +3,13 @@ module extend-tournament-service
 go 1.24.0
 
 require (
-	github.com/AccelByte/accelbyte-go-sdk v0.85.0
+	github.com/AccelByte/accelbyte-go-sdk v0.0.0-20260409014213-537d59c6cedf
 	github.com/go-openapi/loads v0.22.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1
 	github.com/grpc-ecosystem/go-grpc-prometheus v1.2.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.26.3
+	github.com/joho/godotenv v1.5.1
 	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.22.0
 	github.com/stretchr/testify v1.11.1

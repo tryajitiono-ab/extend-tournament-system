@@ -503,7 +503,7 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 
 	// Check game server permissions (service token authentication)
 	if m.authInterceptor != nil {
-		permission := m.authInterceptor.GetTournamentPermission("UPDATE", req.Namespace)
+		permission := m.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
 		if err := m.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 			m.logger.Warn("submit match result permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 			return nil, err
@@ -627,7 +627,7 @@ func (m *MatchService) AdminSubmitMatchResult(ctx context.Context, req *servicee
 
 	// Check admin permissions (bearer token authentication)
 	if m.authInterceptor != nil {
-		permission := m.authInterceptor.GetTournamentPermission("UPDATE", req.Namespace)
+		permission := m.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
 		if err := m.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 			m.logger.Warn("admin submit match result permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 			return nil, err

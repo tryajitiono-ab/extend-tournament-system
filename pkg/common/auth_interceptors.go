@@ -37,6 +37,18 @@ func parseJWTClaims(token string) (map[string]interface{}, error) {
 	return claims, nil
 }
 
+func getUserIdFromJWTClaims(token string) (string, error) {
+	claims, err := parseJWTClaims(token)
+	if err != nil {
+		return "", err
+	}
+	if sub, ok := claims["sub"].(string); ok && sub != "" {
+		return sub, nil
+	}
+
+	return "", status.Error(codes.Unauthenticated, "user ID (sub) not found in JWT claims")
+}
+
 const defaultNamespace = "accelbyte"
 
 // TournamentAuthInterceptor provides authentication and authorization for tournament operations
@@ -86,7 +98,12 @@ func (t *TournamentAuthInterceptor) CheckTournamentPermission(ctx context.Contex
 		return t.validateServiceToken(ctx, serviceToken, requiredPermission, namespace)
 	}
 
-	return status.Error(codes.Unauthenticated, "authorization header is missing")
+	// Check for token in cookies (browser-based authentication via gRPC-Gateway)
+	if token := extractTokenFromCookieMetadata(meta); token != "" {
+		return t.validateToken(ctx, token, requiredPermission, namespace)
+	}
+
+	return status.Error(codes.Unauthenticated, "authorization header or cookie is missing")
 }
 
 // validateToken validates user Bearer token and permissions
@@ -121,25 +138,9 @@ func (t *TournamentAuthInterceptor) validateServiceToken(ctx context.Context, se
 
 // GetTournamentPermission returns the required permission for a tournament operation
 func (t *TournamentAuthInterceptor) GetTournamentPermission(operation string, namespace string) *iam.Permission {
-	switch operation {
-	case "CREATE", "UPDATE", "START", "CANCEL":
-		// Admin operations require admin permissions
-		return &iam.Permission{
-			Action:   t.getActionValue(operation),
-			Resource: "ADMIN:NAMESPACE:" + namespace + ":TOURNAMENT",
-		}
-	case "READ", "LIST":
-		// Read operations are public
-		return &iam.Permission{
-			Action:   t.getActionValue(operation),
-			Resource: "NAMESPACE:" + namespace + ":TOURNAMENT",
-		}
-	default:
-		// Default to admin permission for unknown operations
-		return &iam.Permission{
-			Action:   1, // READ
-			Resource: "ADMIN:NAMESPACE:" + namespace + ":TOURNAMENT",
-		}
+	return &iam.Permission{
+		Action:   t.getActionValue(operation),
+		Resource: "ADMIN:NAMESPACE:" + namespace + ":EXTEND:APPUI",
 	}
 }
 
@@ -147,15 +148,15 @@ func (t *TournamentAuthInterceptor) GetTournamentPermission(operation string, na
 func (t *TournamentAuthInterceptor) getActionValue(operation string) int {
 	switch strings.ToUpper(operation) {
 	case "CREATE":
-		return 2 // CREATE
-	case "READ", "LIST":
-		return 1 // READ
-	case "UPDATE", "START", "CANCEL":
-		return 3 // UPDATE
+		return 1
+	case "READ":
+		return 2
+	case "UPDATE":
+		return 4
 	case "DELETE":
-		return 4 // DELETE
+		return 8
 	default:
-		return 1 // READ
+		return 1
 	}
 }
 
@@ -280,21 +281,29 @@ func (t *TournamentAuthInterceptor) extractOperationFromMethod(fullMethod string
 	switch methodName {
 	case "CreateTournament":
 		return "CREATE"
-	case "GetTournament":
+	case "GetTournament", "ListTournaments":
 		return "READ"
-	case "ListTournaments":
-		return "LIST"
-	case "UpdateTournament":
+	case "UpdateTournament", "StartTournament", "CancelTournament":
 		return "UPDATE"
-	case "StartTournament":
-		return "START"
-	case "CancelTournament":
-		return "CANCEL"
 	case "DeleteTournament":
 		return "DELETE"
 	default:
 		return ""
 	}
+}
+
+// extractTokenFromCookieMetadata parses the "cookie" metadata key and returns the access_token value if present.
+func extractTokenFromCookieMetadata(meta metadata.MD) string {
+	cookieHeaders := meta.Get("cookie")
+	for _, cookieHeader := range cookieHeaders {
+		for _, part := range strings.Split(cookieHeader, ";") {
+			part = strings.TrimSpace(part)
+			if strings.HasPrefix(part, "access_token=") {
+				return strings.TrimPrefix(part, "access_token=")
+			}
+		}
+	}
+	return ""
 }
 
 // GetContextNamespace extracts namespace from request context
@@ -312,14 +321,21 @@ func GetContextNamespace(ctx context.Context) (string, error) {
 		return nsHeaders[0], nil
 	}
 
-	// Try from authorization token if available
+	// Try from authorization token or cookie if available
+	token := ""
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
-			// For now, return default namespace since token parsing would require additional IAM integration
-			// In a full implementation, you'd parse the JWT token to extract the namespace
-			return GetEnv("AB_NAMESPACE", defaultNamespace), nil
+			token = strings.TrimPrefix(authorization, "Bearer ")
 		}
+	}
+	if token == "" {
+		token = extractTokenFromCookieMetadata(meta)
+	}
+	if token != "" {
+		// For now, return default namespace since token parsing would require additional IAM integration
+		// In a full implementation, you'd parse the JWT token to extract the namespace
+		return GetEnv("AB_NAMESPACE", defaultNamespace), nil
 	}
 
 	// When no namespace found in metadata, return default namespace
@@ -339,20 +355,20 @@ func GetContextUserID(ctx context.Context) (string, error) {
 		return userIDHeaders[0], nil
 	}
 
-	// Try from authorization token if available
+	// Try from authorization token or cookie if available
+	token := ""
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
 			token := strings.TrimPrefix(authorization, "Bearer ")
-			claims, err := parseJWTClaims(token)
-			if err != nil {
-				return "", err
-			}
-			if sub, ok := claims["sub"].(string); ok && sub != "" {
-				return sub, nil
-			}
-			return "", status.Error(codes.Unauthenticated, "user ID (sub) not found in JWT claims")
+			return getUserIdFromJWTClaims(token)
 		}
+	}
+	if token == "" {
+		token = extractTokenFromCookieMetadata(meta)
+	}
+	if token != "" {
+		return getUserIdFromJWTClaims(token)
 	}
 
 	return "", status.Error(codes.Unauthenticated, "user ID not found in context")
@@ -370,7 +386,8 @@ func GetContextUsername(ctx context.Context) (string, error) {
 		return usernameHeaders[0], nil
 	}
 
-	// Try from authorization token if available
+	// Try from authorization token or cookie if available
+	token := ""
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
@@ -379,12 +396,20 @@ func GetContextUsername(ctx context.Context) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			// AccelByte JWTs use "user_name" for the username claim
+			// TODO: shouldn't store username in database because username and display name is dynamic.
 			if username, ok := claims["user_name"].(string); ok && username != "" {
 				return username, nil
 			}
 			return "", status.Error(codes.Unauthenticated, "username (user_name) not found in JWT claims")
 		}
+	}
+	if token == "" {
+		token = extractTokenFromCookieMetadata(meta)
+	}
+	if token != "" {
+		// For now, return a placeholder since token parsing would require additional IAM integration
+		// In a full implementation, you'd parse the JWT token to extract the username
+		return "placeholder-username", nil
 	}
 
 	return "", status.Error(codes.Unauthenticated, "username not found in context")

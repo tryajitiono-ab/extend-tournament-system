@@ -18,8 +18,8 @@ import (
 // createTestContext creates a context with the required gRPC metadata for participant operations.
 func createTestContext(namespace, userID, username string, isAdmin bool) context.Context {
 	md := metadata.New(map[string]string{
-		"namespace": namespace,
-		"x-user-id": userID,
+		"namespace":  namespace,
+		"x-user-id":  userID,
 		"x-username": username,
 	})
 	if isAdmin {

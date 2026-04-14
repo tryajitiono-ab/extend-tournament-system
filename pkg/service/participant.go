@@ -55,7 +55,7 @@ func (p *ParticipantService) RegisterForTournament(ctx context.Context, req *ser
 		// Username is optional, continue without it
 	}
 
-	// Validate request namespace matches context namespace
+	// Validate request namespace matches app namespace
 	if req.GetNamespace() != namespace {
 		p.logger.Error("namespace mismatch",
 			"req_namespace", req.GetNamespace(),
@@ -98,7 +98,7 @@ func (p *ParticipantService) GetTournamentParticipants(ctx context.Context, req 
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	// Validate request namespace matches context namespace
+	// Validate request namespace matches app namespace
 	if req.GetNamespace() != namespace {
 		p.logger.Error("namespace mismatch",
 			"req_namespace", req.GetNamespace(),
@@ -153,7 +153,7 @@ func (p *ParticipantService) RemoveParticipant(ctx context.Context, req *service
 		return nil, fmt.Errorf("insufficient permissions: admin role required")
 	}
 
-	// Validate request namespace matches context namespace
+	// Validate request namespace matches app namespace
 	if req.GetNamespace() != namespace {
 		p.logger.Error("namespace mismatch",
 			"req_namespace", req.GetNamespace(),

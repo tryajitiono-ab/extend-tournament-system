@@ -314,6 +314,15 @@ To (build and) run this app in a container, use the following command.
 docker compose up --build
 ```
 
+Alternatively, you can also run the database and service separately:
+
+```shell
+# In terminal 1.
+docker compose -f docker-compose.local.linux.yaml up
+# In terminal 2.
+go run main.go
+```
+
 ## Testing
 
 ### Test in Local Development Environment

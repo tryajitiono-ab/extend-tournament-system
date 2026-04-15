@@ -3,7 +3,7 @@ module extend-tournament-service
 go 1.24.0
 
 require (
-	github.com/AccelByte/accelbyte-go-sdk v0.0.0-20260409014213-537d59c6cedf
+	github.com/AccelByte/accelbyte-go-sdk v0.87.1
 	github.com/go-openapi/loads v0.22.0
 	github.com/google/uuid v1.6.0
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.3.1

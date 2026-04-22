@@ -9,6 +9,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"log/slog"
+	"net/http"
 	"strings"
 
 	"github.com/AccelByte/accelbyte-go-sdk/services-api/pkg/service/iam"
@@ -294,13 +295,10 @@ func (t *TournamentAuthInterceptor) extractOperationFromMethod(fullMethod string
 
 // extractTokenFromCookieMetadata parses the "cookie" metadata key and returns the access_token value if present.
 func extractTokenFromCookieMetadata(meta metadata.MD) string {
-	cookieHeaders := meta.Get("cookie")
-	for _, cookieHeader := range cookieHeaders {
-		for _, part := range strings.Split(cookieHeader, ";") {
-			part = strings.TrimSpace(part)
-			if strings.HasPrefix(part, "access_token=") {
-				return strings.TrimPrefix(part, "access_token=")
-			}
+	for _, cookieHeader := range meta.Get("cookie") {
+		req := &http.Request{Header: http.Header{"Cookie": {cookieHeader}}}
+		if cookie, err := req.Cookie("access_token"); err == nil {
+			return cookie.Value
 		}
 	}
 	return ""

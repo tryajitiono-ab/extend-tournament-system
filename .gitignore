@@ -239,3 +239,4 @@ extend-tournament-service
 !.env.template
 main
 .claude/settings.local.json
+tmp

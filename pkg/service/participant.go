@@ -150,7 +150,7 @@ func (p *ParticipantService) RemoveParticipant(ctx context.Context, req *service
 
 	// Enforce admin permission via IAM validator instead of trusting client-supplied headers.
 	if p.authInterceptor != nil {
-		permission := p.authInterceptor.GetTournamentPermission("DELETE", extendtournamentservice.GetAppNamespace())
+		permission := p.authInterceptor.GetAdminPermission("DELETE")
 		if err := p.authInterceptor.CheckTournamentPermission(ctx, permission, req.GetNamespace()); err != nil {
 			p.logger.Warn("remove participant permission denied",
 				"target_user_id", req.GetUserId(),

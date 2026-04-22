@@ -494,7 +494,7 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
 	}
 	if m.authInterceptor != nil {
-		permission := m.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
+		permission := m.authInterceptor.GetAdminPermission("UPDATE")
 		if err := m.authInterceptor.CheckServiceTokenPermission(ctx, permission, req.Namespace); err != nil {
 			m.logger.Warn("submit match result service token check failed", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 			return nil, err
@@ -629,7 +629,7 @@ func (m *MatchService) AdminSubmitMatchResult(ctx context.Context, req *servicee
 
 	// Check admin permissions (bearer token authentication)
 	if m.authInterceptor != nil {
-		permission := m.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
+		permission := m.authInterceptor.GetAdminPermission("UPDATE")
 		if err := m.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 			m.logger.Warn("admin submit match result permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 			return nil, err

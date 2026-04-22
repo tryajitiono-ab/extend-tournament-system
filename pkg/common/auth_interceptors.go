@@ -68,43 +68,49 @@ func NewTournamentAuthInterceptor(oauthService iam.OAuth20Service, validator val
 	}
 }
 
-// CheckTournamentPermission validates if a user has the required tournament permission
+// CheckTournamentPermission validates if a user has the required tournament permission.
+// The {namespace} placeholder in requiredPermission.Resource is resolved to namespace before
+// the IAM validator is called, so callers should use GetAdminPermission/GetPlayerPermission
+// which embed the placeholder rather than a concrete namespace string.
 func (t *TournamentAuthInterceptor) CheckTournamentPermission(ctx context.Context, requiredPermission *iam.Permission, namespace string) error {
-	// If validator is nil, authentication is disabled (testing mode)
 	if t.validator == nil {
 		t.logger.Debug("authentication disabled, skipping permission check")
 		return nil
 	}
 
-	// Extract token from metadata
+	resolved := resolvePermission(requiredPermission, namespace)
+
 	meta, found := metadata.FromIncomingContext(ctx)
 	if !found {
 		return status.Error(codes.Unauthenticated, "metadata is missing")
 	}
 
-	// Check for Bearer token (user authentication)
 	if authHeaders, ok := meta["authorization"]; ok && len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if !strings.HasPrefix(authorization, "Bearer ") {
 			return status.Error(codes.Unauthenticated, "invalid authorization header format")
 		}
-
 		token := strings.TrimPrefix(authorization, "Bearer ")
-		return t.validateToken(ctx, token, requiredPermission, namespace)
+		return t.validateToken(ctx, token, resolved, namespace)
 	}
 
-	// Check for Service token (game server authentication)
 	if serviceHeaders, ok := meta["x-service-token"]; ok && len(serviceHeaders) > 0 {
-		serviceToken := serviceHeaders[0]
-		return t.validateServiceToken(ctx, serviceToken, requiredPermission, namespace)
+		return t.validateServiceToken(ctx, serviceHeaders[0], resolved, namespace)
 	}
 
-	// Check for token in cookies (browser-based authentication via gRPC-Gateway)
 	if token := extractTokenFromCookieMetadata(meta); token != "" {
-		return t.validateToken(ctx, token, requiredPermission, namespace)
+		return t.validateToken(ctx, token, resolved, namespace)
 	}
 
 	return status.Error(codes.Unauthenticated, "authorization header or cookie is missing")
+}
+
+// resolvePermission returns a copy of p with {namespace} replaced by the actual namespace.
+func resolvePermission(p *iam.Permission, namespace string) *iam.Permission {
+	return &iam.Permission{
+		Action:   p.Action,
+		Resource: strings.ReplaceAll(p.Resource, "{namespace}", namespace),
+	}
 }
 
 // validateToken validates user Bearer token, permissions, and namespace isolation.
@@ -153,6 +159,8 @@ func (t *TournamentAuthInterceptor) CheckServiceTokenPermission(ctx context.Cont
 		return nil
 	}
 
+	resolved := resolvePermission(requiredPermission, namespace)
+
 	meta, found := metadata.FromIncomingContext(ctx)
 	if !found {
 		return status.Error(codes.Unauthenticated, "metadata is missing")
@@ -160,7 +168,7 @@ func (t *TournamentAuthInterceptor) CheckServiceTokenPermission(ctx context.Cont
 
 	// Only x-service-token is accepted; Bearer JWT tokens are not valid for this endpoint.
 	if serviceHeaders, ok := meta["x-service-token"]; ok && len(serviceHeaders) > 0 {
-		return t.validateServiceToken(ctx, serviceHeaders[0], requiredPermission, namespace)
+		return t.validateServiceToken(ctx, serviceHeaders[0], resolved, namespace)
 	}
 
 	// Reject Bearer tokens explicitly to prevent player tokens from reaching this endpoint.
@@ -171,16 +179,28 @@ func (t *TournamentAuthInterceptor) CheckServiceTokenPermission(ctx context.Cont
 	return status.Error(codes.Unauthenticated, "service token is required")
 }
 
-// GetTournamentPermission returns the required permission for a tournament operation
-func (t *TournamentAuthInterceptor) GetTournamentPermission(operation string, namespace string) *iam.Permission {
+// GetAdminPermission returns a permission for admin-only tournament operations.
+// Resource: ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI
+// Actions (bitmask): CREATE=1, READ=2, UPDATE=4, DELETE=8
+func (t *TournamentAuthInterceptor) GetAdminPermission(operation string) *iam.Permission {
 	return &iam.Permission{
-		Action:   t.getActionValue(operation),
-		Resource: "ADMIN:NAMESPACE:" + namespace + ":EXTEND:APPUI",
+		Action:   actionBitmask(operation),
+		Resource: "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI",
 	}
 }
 
-// getActionValue converts operation string to permission action value
-func (t *TournamentAuthInterceptor) getActionValue(operation string) int {
+// GetPlayerPermission returns a permission for player (non-admin) tournament operations.
+// Resource: NAMESPACE:{namespace}:EXTEND:APPUI
+// Actions (bitmask): CREATE=1, READ=2, UPDATE=4, DELETE=8
+func (t *TournamentAuthInterceptor) GetPlayerPermission(operation string) *iam.Permission {
+	return &iam.Permission{
+		Action:   actionBitmask(operation),
+		Resource: "NAMESPACE:{namespace}:EXTEND:APPUI",
+	}
+}
+
+// actionBitmask converts an operation name to its IAM action bitmask value.
+func actionBitmask(operation string) int {
 	switch strings.ToUpper(operation) {
 	case "CREATE":
 		return 1
@@ -198,37 +218,26 @@ func (t *TournamentAuthInterceptor) getActionValue(operation string) int {
 // TournamentUnaryInterceptor returns a unary interceptor for tournament operations
 func (t *TournamentAuthInterceptor) TournamentUnaryInterceptor() grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-		// Skip auth for health check endpoints
 		if info.FullMethod == "/grpc.health.v1.Health/Check" {
 			return handler(ctx, req)
 		}
 
-		// Extract namespace from request if possible
 		namespace := t.extractNamespaceFromRequest(req)
 		if namespace == "" {
 			return nil, status.Error(codes.InvalidArgument, "namespace is required")
 		}
 
-		// Determine operation from method name
-		operation := t.extractOperationFromMethod(info.FullMethod)
-		if operation == "" {
-			t.logger.Warn("unknown operation, skipping auth", "method", info.FullMethod)
+		permission := t.permissionForMethod(info.FullMethod)
+		if permission == nil {
+			t.logger.Warn("unknown method, skipping auth", "method", info.FullMethod)
 			return handler(ctx, req)
 		}
 
-		// Get required permission
-		requiredPermission := t.GetTournamentPermission(operation, namespace)
-
-		// Check permission
-		if err := t.CheckTournamentPermission(ctx, requiredPermission, namespace); err != nil {
+		if err := t.CheckTournamentPermission(ctx, permission, namespace); err != nil {
 			return nil, err
 		}
 
-		t.logger.Debug("tournament operation authorized",
-			"operation", operation,
-			"namespace", namespace,
-			"method", info.FullMethod)
-
+		t.logger.Debug("tournament operation authorized", "method", info.FullMethod, "namespace", namespace)
 		return handler(ctx, req)
 	}
 }
@@ -236,38 +245,50 @@ func (t *TournamentAuthInterceptor) TournamentUnaryInterceptor() grpc.UnaryServe
 // TournamentStreamInterceptor returns a stream interceptor for tournament operations
 func (t *TournamentAuthInterceptor) TournamentStreamInterceptor() grpc.StreamServerInterceptor {
 	return func(srv interface{}, ss grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-		// Skip auth for health check endpoints
 		if info.FullMethod == "/grpc.health.v1.Health/Check" {
 			return handler(srv, ss)
 		}
 
-		// Extract namespace from context if possible
 		namespace := t.extractNamespaceFromContext(ss.Context())
 		if namespace == "" {
 			return status.Error(codes.InvalidArgument, "namespace is required")
 		}
 
-		// Determine operation from method name
-		operation := t.extractOperationFromMethod(info.FullMethod)
-		if operation == "" {
-			t.logger.Warn("unknown operation, skipping auth", "method", info.FullMethod)
+		permission := t.permissionForMethod(info.FullMethod)
+		if permission == nil {
+			t.logger.Warn("unknown method, skipping auth", "method", info.FullMethod)
 			return handler(srv, ss)
 		}
 
-		// Get required permission
-		requiredPermission := t.GetTournamentPermission(operation, namespace)
-
-		// Check permission
-		if err := t.CheckTournamentPermission(ss.Context(), requiredPermission, namespace); err != nil {
+		if err := t.CheckTournamentPermission(ss.Context(), permission, namespace); err != nil {
 			return err
 		}
 
-		t.logger.Debug("tournament stream operation authorized",
-			"operation", operation,
-			"namespace", namespace,
-			"method", info.FullMethod)
-
+		t.logger.Debug("tournament stream operation authorized", "method", info.FullMethod, "namespace", namespace)
 		return handler(srv, ss)
+	}
+}
+
+// permissionForMethod returns the correct admin or player permission for a gRPC method.
+// Returns nil for unknown methods (auth is skipped).
+func (t *TournamentAuthInterceptor) permissionForMethod(fullMethod string) *iam.Permission {
+	parts := strings.Split(fullMethod, "/")
+	methodName := parts[len(parts)-1]
+	switch methodName {
+	// Admin-only operations
+	case "CreateTournament":
+		return t.GetAdminPermission("CREATE")
+	case "UpdateTournament", "StartTournament", "CancelTournament", "ActivateTournament", "CompleteTournament", "AdminSubmitMatchResult":
+		return t.GetAdminPermission("UPDATE")
+	case "DeleteTournament", "RemoveParticipant":
+		return t.GetAdminPermission("DELETE")
+	// Player operations
+	case "GetTournament", "ListTournaments", "GetTournamentParticipants", "GetTournamentMatches", "GetMatch":
+		return t.GetPlayerPermission("READ")
+	case "RegisterForTournament":
+		return t.GetPlayerPermission("CREATE")
+	default:
+		return nil
 	}
 }
 
@@ -300,31 +321,6 @@ func (t *TournamentAuthInterceptor) extractNamespaceFromContext(ctx context.Cont
 
 	// Fallback to environment variable
 	return GetEnv("AB_NAMESPACE", defaultNamespace)
-}
-
-// extractOperationFromMethod extracts operation type from gRPC method name
-func (t *TournamentAuthInterceptor) extractOperationFromMethod(fullMethod string) string {
-	// Extract method name from full method path (e.g., "/tournament.TournamentService/CreateTournament")
-	parts := strings.Split(fullMethod, "/")
-	if len(parts) < 2 {
-		return ""
-	}
-
-	methodName := parts[len(parts)-1]
-
-	// Map method names to operations
-	switch methodName {
-	case "CreateTournament":
-		return "CREATE"
-	case "GetTournament", "ListTournaments":
-		return "READ"
-	case "UpdateTournament", "StartTournament", "CancelTournament":
-		return "UPDATE"
-	case "DeleteTournament":
-		return "DELETE"
-	default:
-		return ""
-	}
 }
 
 // extractTokenFromCookieMetadata parses the "cookie" metadata key and returns the access_token value if present.

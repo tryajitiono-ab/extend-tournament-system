@@ -107,13 +107,25 @@ func (t *TournamentAuthInterceptor) CheckTournamentPermission(ctx context.Contex
 	return status.Error(codes.Unauthenticated, "authorization header or cookie is missing")
 }
 
-// validateToken validates user Bearer token and permissions
+// validateToken validates user Bearer token, permissions, and namespace isolation.
 func (t *TournamentAuthInterceptor) validateToken(ctx context.Context, token string, requiredPermission *iam.Permission, namespace string) error {
-	// Validate token with AccelByte IAM
 	err := t.validator.Validate(token, requiredPermission, &namespace, nil)
 	if err != nil {
 		t.logger.Warn("token validation failed", "error", err, "namespace", namespace)
 		return status.Error(codes.PermissionDenied, err.Error())
+	}
+
+	// Enforce namespace isolation: the namespace claim in the JWT must match the
+	// namespace in the request URL. This prevents cross-namespace operations even
+	// when the IAM validator grants broad permissions.
+	claims, err := parseJWTClaims(token)
+	if err == nil {
+		if jwtNamespace, ok := claims["namespace"].(string); ok && jwtNamespace != "" {
+			if !strings.EqualFold(jwtNamespace, namespace) {
+				t.logger.Warn("namespace isolation violation", "jwt_namespace", jwtNamespace, "request_namespace", namespace)
+				return status.Error(codes.PermissionDenied, "namespace mismatch: token namespace does not match request namespace")
+			}
+		}
 	}
 
 	t.logger.Debug("user token validated successfully", "namespace", namespace)
@@ -122,11 +134,6 @@ func (t *TournamentAuthInterceptor) validateToken(ctx context.Context, token str
 
 // validateServiceToken validates service token for game server access
 func (t *TournamentAuthInterceptor) validateServiceToken(ctx context.Context, serviceToken string, requiredPermission *iam.Permission, namespace string) error {
-	// For service tokens, we typically validate against a different set of permissions
-	// Service tokens usually have broader access for system operations
-	// For now, we'll validate service tokens with the same permission structure
-	// but this could be extended to have service-specific permissions
-
 	err := t.validator.Validate(serviceToken, requiredPermission, &namespace, nil)
 	if err != nil {
 		t.logger.Warn("service token validation failed", "error", err, "namespace", namespace)
@@ -135,6 +142,33 @@ func (t *TournamentAuthInterceptor) validateServiceToken(ctx context.Context, se
 
 	t.logger.Debug("service token validated successfully", "namespace", namespace)
 	return nil
+}
+
+// CheckServiceTokenPermission validates that the request carries a ServiceToken (x-service-token header).
+// Bearer JWT tokens are explicitly rejected. Use this for game-server-only endpoints such as
+// match result submission.
+func (t *TournamentAuthInterceptor) CheckServiceTokenPermission(ctx context.Context, requiredPermission *iam.Permission, namespace string) error {
+	if t.validator == nil {
+		t.logger.Debug("authentication disabled, skipping service token check")
+		return nil
+	}
+
+	meta, found := metadata.FromIncomingContext(ctx)
+	if !found {
+		return status.Error(codes.Unauthenticated, "metadata is missing")
+	}
+
+	// Only x-service-token is accepted; Bearer JWT tokens are not valid for this endpoint.
+	if serviceHeaders, ok := meta["x-service-token"]; ok && len(serviceHeaders) > 0 {
+		return t.validateServiceToken(ctx, serviceHeaders[0], requiredPermission, namespace)
+	}
+
+	// Reject Bearer tokens explicitly to prevent player tokens from reaching this endpoint.
+	if _, ok := meta["authorization"]; ok {
+		return status.Error(codes.Unauthenticated, "this endpoint requires a ServiceToken; Bearer user JWTs are not accepted")
+	}
+
+	return status.Error(codes.Unauthenticated, "service token is required")
 }
 
 // GetTournamentPermission returns the required permission for a tournament operation
@@ -341,20 +375,15 @@ func GetContextNamespace(ctx context.Context) (string, error) {
 	return GetEnv("AB_NAMESPACE", defaultNamespace), nil
 }
 
-// GetContextUserID extracts user ID from request context
+// GetContextUserID extracts the user ID from the Bearer JWT sub claim or session cookie.
+// Client-supplied identity headers (x-user-id) are never trusted.
 func GetContextUserID(ctx context.Context) (string, error) {
 	meta, found := metadata.FromIncomingContext(ctx)
 	if !found {
 		return "", status.Error(codes.Unauthenticated, "metadata is missing")
 	}
 
-	// Extract user ID from various possible metadata sources
-	if userIDHeaders := meta["x-user-id"]; len(userIDHeaders) > 0 {
-		return userIDHeaders[0], nil
-	}
-
-	// Try from authorization token or cookie if available
-	token := ""
+	// Prefer the Bearer token's sub claim.
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
@@ -362,30 +391,24 @@ func GetContextUserID(ctx context.Context) (string, error) {
 			return getUserIdFromJWTClaims(token)
 		}
 	}
-	if token == "" {
-		token = extractTokenFromCookieMetadata(meta)
-	}
-	if token != "" {
+
+	// Fall back to the session cookie.
+	if token := extractTokenFromCookieMetadata(meta); token != "" {
 		return getUserIdFromJWTClaims(token)
 	}
 
 	return "", status.Error(codes.Unauthenticated, "user ID not found in context")
 }
 
-// GetContextUsername extracts username from request context
+// GetContextUsername extracts the username from the Bearer JWT user_name claim or session cookie.
+// Client-supplied identity headers (x-username) are never trusted.
 func GetContextUsername(ctx context.Context) (string, error) {
 	meta, found := metadata.FromIncomingContext(ctx)
 	if !found {
 		return "", status.Error(codes.Unauthenticated, "metadata is missing")
 	}
 
-	// Extract username from various possible metadata sources
-	if usernameHeaders := meta["x-username"]; len(usernameHeaders) > 0 {
-		return usernameHeaders[0], nil
-	}
-
-	// Try from authorization token or cookie if available
-	token := ""
+	// Prefer the Bearer token's user_name claim.
 	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
 		authorization := authHeaders[0]
 		if strings.HasPrefix(authorization, "Bearer ") {
@@ -394,38 +417,63 @@ func GetContextUsername(ctx context.Context) (string, error) {
 			if err != nil {
 				return "", err
 			}
-			// TODO: shouldn't store username in database because username and display name is dynamic.
 			if username, ok := claims["user_name"].(string); ok && username != "" {
 				return username, nil
 			}
 			return "", status.Error(codes.Unauthenticated, "username (user_name) not found in JWT claims")
 		}
 	}
-	if token == "" {
-		token = extractTokenFromCookieMetadata(meta)
-	}
-	if token != "" {
-		// For now, return a placeholder since token parsing would require additional IAM integration
-		// In a full implementation, you'd parse the JWT token to extract the username
-		return "placeholder-username", nil
+
+	// Fall back to the session cookie.
+	if token := extractTokenFromCookieMetadata(meta); token != "" {
+		claims, err := parseJWTClaims(token)
+		if err != nil {
+			return "", err
+		}
+		if username, ok := claims["user_name"].(string); ok && username != "" {
+			return username, nil
+		}
 	}
 
 	return "", status.Error(codes.Unauthenticated, "username not found in context")
 }
 
-// IsAdminUser checks if the current user has admin privileges
+// IsAdminUser checks if the caller holds an admin role by inspecting the JWT Bearer token
+// or session cookie claims. Client-supplied privilege headers (x-is-admin) are never trusted.
+// The token must have been validated by the IAM interceptor before this function is called.
 func IsAdminUser(ctx context.Context) (bool, error) {
 	meta, found := metadata.FromIncomingContext(ctx)
 	if !found {
 		return false, status.Error(codes.Unauthenticated, "metadata is missing")
 	}
 
-	// Check admin status from various possible metadata sources
-	if adminHeaders := meta["x-is-admin"]; len(adminHeaders) > 0 {
-		return adminHeaders[0] == "true", nil
+	token := ""
+	if authHeaders := meta["authorization"]; len(authHeaders) > 0 {
+		authorization := authHeaders[0]
+		if strings.HasPrefix(authorization, "Bearer ") {
+			token = strings.TrimPrefix(authorization, "Bearer ")
+		}
+	}
+	if token == "" {
+		token = extractTokenFromCookieMetadata(meta)
+	}
+	if token == "" {
+		return false, nil
 	}
 
-	// For now, return false since proper role checking would require additional IAM integration
-	// In a full implementation, you'd parse the JWT token to check user roles and permissions
+	claims, err := parseJWTClaims(token)
+	if err != nil {
+		return false, err
+	}
+
+	// Check the roles array for any entry that indicates admin.
+	if roles, ok := claims["roles"].([]interface{}); ok {
+		for _, r := range roles {
+			if role, ok := r.(string); ok && strings.EqualFold(role, "admin") {
+				return true, nil
+			}
+		}
+	}
+
 	return false, nil
 }

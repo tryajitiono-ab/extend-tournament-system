@@ -29,13 +29,6 @@ func ctxWithMeta(kv ...string) context.Context {
 
 // --- GetContextUserID ---
 
-func TestGetContextUserID_FromHeader(t *testing.T) {
-	ctx := ctxWithMeta("x-user-id", "header-user-123")
-	userID, err := GetContextUserID(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, "header-user-123", userID)
-}
-
 func TestGetContextUserID_FromBearerToken(t *testing.T) {
 	token := makeTestJWT(map[string]interface{}{
 		"sub":       "jwt-user-456",
@@ -47,12 +40,14 @@ func TestGetContextUserID_FromBearerToken(t *testing.T) {
 	assert.Equal(t, "jwt-user-456", userID)
 }
 
-func TestGetContextUserID_HeaderTakesPrecedenceOverBearer(t *testing.T) {
+// x-user-id header must not be trusted — the sub claim from the Bearer token is authoritative.
+func TestGetContextUserID_IgnoresTrustHeader(t *testing.T) {
 	token := makeTestJWT(map[string]interface{}{"sub": "jwt-user-456"})
-	ctx := ctxWithMeta("x-user-id", "header-user-123", "authorization", "Bearer "+token)
+	ctx := ctxWithMeta("x-user-id", "injected-user", "authorization", "Bearer "+token)
 	userID, err := GetContextUserID(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, "header-user-123", userID)
+	// Must return the JWT sub claim, not the injected header value.
+	assert.Equal(t, "jwt-user-456", userID)
 }
 
 func TestGetContextUserID_MissingMetadata(t *testing.T) {
@@ -81,13 +76,6 @@ func TestGetContextUserID_MalformedBearerToken(t *testing.T) {
 
 // --- GetContextUsername ---
 
-func TestGetContextUsername_FromHeader(t *testing.T) {
-	ctx := ctxWithMeta("x-username", "headeruser")
-	username, err := GetContextUsername(ctx)
-	require.NoError(t, err)
-	assert.Equal(t, "headeruser", username)
-}
-
 func TestGetContextUsername_FromBearerToken(t *testing.T) {
 	token := makeTestJWT(map[string]interface{}{
 		"sub":       "user-abc",
@@ -99,12 +87,13 @@ func TestGetContextUsername_FromBearerToken(t *testing.T) {
 	assert.Equal(t, "jwtuser", username)
 }
 
-func TestGetContextUsername_HeaderTakesPrecedenceOverBearer(t *testing.T) {
+// x-username header must not be trusted — the user_name claim from the Bearer token is authoritative.
+func TestGetContextUsername_IgnoresTrustHeader(t *testing.T) {
 	token := makeTestJWT(map[string]interface{}{"user_name": "jwtuser"})
-	ctx := ctxWithMeta("x-username", "headeruser", "authorization", "Bearer "+token)
+	ctx := ctxWithMeta("x-username", "injected-user", "authorization", "Bearer "+token)
 	username, err := GetContextUsername(ctx)
 	require.NoError(t, err)
-	assert.Equal(t, "headeruser", username)
+	assert.Equal(t, "jwtuser", username)
 }
 
 func TestGetContextUsername_MissingMetadata(t *testing.T) {

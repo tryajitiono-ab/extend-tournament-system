@@ -223,13 +223,6 @@ func main() {
 		// Continue execution but log the error
 	}
 
-	// Initialize Participant service
-	participantService := service.NewParticipantService(
-		participantStorage,
-		tournamentStorage,
-		logger,
-	)
-
 	// Initialize Tournament authentication interceptor (only if auth is enabled)
 	var tournamentAuthInterceptor *common.TournamentAuthInterceptor
 	if strings.ToLower(common.GetEnv("PLUGIN_GRPC_SERVER_AUTH_ENABLED", "true")) == "true" {
@@ -243,6 +236,14 @@ func main() {
 		tournamentAuthInterceptor = common.NewTournamentAuthInterceptor(oauthService, nil, logger)
 		logger.Info("tournament auth interceptors disabled")
 	}
+
+	// Initialize Participant service
+	participantService := service.NewParticipantService(
+		participantStorage,
+		tournamentStorage,
+		tournamentAuthInterceptor,
+		logger,
+	)
 
 	// Initialize Match service
 	matchService := service.NewMatchService(

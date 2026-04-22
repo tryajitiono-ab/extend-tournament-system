@@ -18,6 +18,7 @@ import (
 type ParticipantService struct {
 	participantStorage *storage.ParticipantStorage
 	tournamentStorage  storage.TournamentStorage
+	authInterceptor    *extendtournamentservice.TournamentAuthInterceptor
 	logger             *slog.Logger
 }
 
@@ -25,11 +26,13 @@ type ParticipantService struct {
 func NewParticipantService(
 	participantStorage *storage.ParticipantStorage,
 	tournamentStorage storage.TournamentStorage,
+	authInterceptor *extendtournamentservice.TournamentAuthInterceptor,
 	logger *slog.Logger,
 ) *ParticipantService {
 	return &ParticipantService{
 		participantStorage: participantStorage,
 		tournamentStorage:  tournamentStorage,
+		authInterceptor:    authInterceptor,
 		logger:             logger,
 	}
 }
@@ -131,34 +134,43 @@ func (p *ParticipantService) GetTournamentParticipants(ctx context.Context, req 
 
 // RemoveParticipant removes a participant from a tournament (admin only)
 func (p *ParticipantService) RemoveParticipant(ctx context.Context, req *serviceextension.RemoveParticipantRequest) (*serviceextension.RemoveParticipantResponse, error) {
-	// Extract user context and verify admin permissions
 	namespace, err := extendtournamentservice.GetContextNamespace(ctx)
 	if err != nil {
 		p.logger.Error("failed to get namespace from context", "error", err)
 		return nil, fmt.Errorf("unauthorized: %w", err)
 	}
 
-	// Check admin permissions
-	isAdmin, err := extendtournamentservice.IsAdminUser(ctx)
-	if err != nil {
-		p.logger.Error("failed to check admin permissions", "error", err)
-		return nil, fmt.Errorf("authorization failed: %w", err)
-	}
-
-	if !isAdmin {
-		p.logger.Warn("unauthorized attempt to remove participant",
-			"user_id", "<redacted>",
-			"target_user_id", req.GetUserId(),
-			"tournament_id", req.GetTournamentId())
-		return nil, fmt.Errorf("insufficient permissions: admin role required")
-	}
-
-	// Validate request namespace matches app namespace
+	// Validate request namespace matches context namespace before touching IAM.
 	if req.GetNamespace() != namespace {
 		p.logger.Error("namespace mismatch",
 			"req_namespace", req.GetNamespace(),
 			"ctx_namespace", namespace)
 		return nil, fmt.Errorf("namespace mismatch")
+	}
+
+	// Enforce admin permission via IAM validator instead of trusting client-supplied headers.
+	if p.authInterceptor != nil {
+		permission := p.authInterceptor.GetTournamentPermission("DELETE", extendtournamentservice.GetAppNamespace())
+		if err := p.authInterceptor.CheckTournamentPermission(ctx, permission, req.GetNamespace()); err != nil {
+			p.logger.Warn("remove participant permission denied",
+				"target_user_id", req.GetUserId(),
+				"tournament_id", req.GetTournamentId(),
+				"error", err)
+			return nil, fmt.Errorf("insufficient permissions: admin role required")
+		}
+	} else {
+		// When auth is disabled (testing), fall back to JWT claims check.
+		isAdmin, err := extendtournamentservice.IsAdminUser(ctx)
+		if err != nil {
+			p.logger.Error("failed to check admin permissions", "error", err)
+			return nil, fmt.Errorf("authorization failed: %w", err)
+		}
+		if !isAdmin {
+			p.logger.Warn("unauthorized attempt to remove participant",
+				"target_user_id", req.GetUserId(),
+				"tournament_id", req.GetTournamentId())
+			return nil, fmt.Errorf("insufficient permissions: admin role required")
+		}
 	}
 
 	adminUserID, _ := extendtournamentservice.GetContextUserID(ctx)

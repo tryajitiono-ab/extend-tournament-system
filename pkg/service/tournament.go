@@ -392,15 +392,23 @@ func NewTournamentServiceServer(
 func (s *TournamentServiceServer) CreateTournament(ctx context.Context, req *serviceextension.CreateTournamentRequest) (*serviceextension.CreateTournamentResponse, error) {
 	s.logger.Info("CreateTournament called", "namespace", req.Namespace, "name", req.Name)
 
-	// Validate required fields
+	// Auth check must run before any field validation so that invalid/missing tokens
+	// receive 401/403 rather than a 400 that leaks handler reachability (FIND-003).
+	if req.Namespace == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
+	}
+	permission := s.authInterceptor.GetTournamentPermission("CREATE", extendtournamentservice.GetAppNamespace())
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+		s.logger.Warn("create tournament permission denied", "error", err, "namespace", req.Namespace)
+		return nil, err
+	}
+
+	// Validate remaining required fields after auth succeeds.
 	if req.Name == "" {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament name is required")
 	}
 	if req.MaxParticipants <= 0 {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "max_participants must be greater than 0")
-	}
-	if req.Namespace == "" {
-		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
 	}
 
 	// Validate time range if both are provided
@@ -408,13 +416,6 @@ func (s *TournamentServiceServer) CreateTournament(ctx context.Context, req *ser
 		if req.StartTime.AsTime().After(req.EndTime.AsTime()) {
 			return nil, grpcStatus.Errorf(codes.InvalidArgument, "start_time cannot be after end_time")
 		}
-	}
-
-	// Check admin permissions for tournament creation
-	permission := s.authInterceptor.GetTournamentPermission("CREATE", extendtournamentservice.GetAppNamespace())
-	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
-		s.logger.Warn("create tournament permission denied", "error", err, "namespace", req.Namespace)
-		return nil, err
 	}
 
 	// Create tournament object
@@ -452,6 +453,13 @@ func (s *TournamentServiceServer) ListTournaments(ctx context.Context, req *serv
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
 	}
 
+	// Enforce authentication on the list endpoint (FIND-007/FIND-008).
+	permission := s.authInterceptor.GetTournamentPermission("READ", extendtournamentservice.GetAppNamespace())
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+		s.logger.Warn("list tournaments permission denied", "error", err, "namespace", req.Namespace)
+		return nil, err
+	}
+
 	// Set default pagination values
 	limit := req.Limit
 	if limit <= 0 {
@@ -465,8 +473,6 @@ func (s *TournamentServiceServer) ListTournaments(ctx context.Context, req *serv
 	if offset < 0 {
 		offset = 0
 	}
-
-	// No permission check for public read access
 
 	// Get tournaments from storage
 	tournaments, totalCount, err := s.tournamentStorage.ListTournaments(ctx, req.Namespace, limit, offset, req.Status)

@@ -30,15 +30,13 @@ func NewGateway(ctx context.Context, grpcServerEndpoint string, basePath string)
 		runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, r, err)
 	}
 
-	// Configure gateway to forward custom headers to gRPC metadata
+	// Configure gateway to forward all headers to gRPC metadata.
+	// Trust-header enforcement (x-is-admin, x-user-id, etc.) is done at the service layer —
+	// those headers are present in metadata but the auth code never reads them for decisions.
 	mux := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-			// Forward all headers to gRPC metadata by default
-			// This is important for testing mode where we use custom headers
-			// like x-user-id, x-username, namespace, etc.
 			return key, true
 		}),
-		// Enable error details in responses for debugging
 		runtime.WithErrorHandler(errorHandler),
 	)
 
@@ -62,15 +60,13 @@ func NewGatewayWithServer(ctx context.Context, server pb.TournamentServiceServer
 		runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, r, err)
 	}
 
-	// Configure gateway to forward custom headers to gRPC metadata
+	// Configure gateway to forward all headers to gRPC metadata.
+	// Trust-header enforcement (x-is-admin, x-user-id, etc.) is done at the service layer —
+	// those headers are present in metadata but the auth code never reads them for decisions.
 	mux := runtime.NewServeMux(
 		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-			// Forward all headers to gRPC metadata by default
-			// This is important for testing mode where we use custom headers
-			// like x-user-id, x-username, namespace, etc.
 			return key, true
 		}),
-		// Enable error details in responses for debugging
 		runtime.WithErrorHandler(errorHandler),
 	)
 

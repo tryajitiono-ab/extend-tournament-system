@@ -487,10 +487,21 @@ func (m *MatchService) GetMatch(ctx context.Context, req *serviceextension.GetMa
 func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextension.SubmitMatchResultRequest) (*serviceextension.SubmitMatchResultResponse, error) {
 	m.logger.Info("SubmitMatchResult called", "namespace", req.Namespace, "tournament_id", req.TournamentId, "match_id", req.MatchId, "winner_user_id", req.WinnerUserId)
 
-	// Validate required fields
+	// Auth check must run before field validation so that invalid/missing tokens receive
+	// 401/403 rather than 400 (FIND-005/FIND-006). Only ServiceTokens are accepted here;
+	// Bearer user JWTs are explicitly rejected.
 	if req.Namespace == "" {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
 	}
+	if m.authInterceptor != nil {
+		permission := m.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
+		if err := m.authInterceptor.CheckServiceTokenPermission(ctx, permission, req.Namespace); err != nil {
+			m.logger.Warn("submit match result service token check failed", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+			return nil, err
+		}
+	}
+
+	// Validate remaining fields after auth succeeds.
 	if req.TournamentId == "" {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament_id is required")
 	}
@@ -499,15 +510,6 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 	}
 	if req.WinnerUserId == "" {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "winner_user_id is required")
-	}
-
-	// Check game server permissions (service token authentication)
-	if m.authInterceptor != nil {
-		permission := m.authInterceptor.GetTournamentPermission("UPDATE", extendtournamentservice.GetAppNamespace())
-		if err := m.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
-			m.logger.Warn("submit match result permission denied", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
-			return nil, err
-		}
 	}
 
 	// Verify tournament exists

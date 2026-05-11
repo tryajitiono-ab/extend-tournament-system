@@ -275,6 +275,14 @@ The codebase is organized for clarity and maintainability. Key components includ
          - Basic -> Namespace (Read)
 
    > :exclamation: **Note**: This service uses MongoDB for data persistence. No CloudSave permissions are required.
+
+   d. **Override the default user role** in the AccelByte console to grant players access to tournament endpoints. The default user role does not include the `NAMESPACE:{namespace}:EXTEND:TOURNAMENT` permission, so it must be added manually.
+
+      - Go to **IAM** → **Roles** → select the role assigned to your players
+      - Add the following permission: `NAMESPACE:{namespace}:EXTEND:TOURNAMENT` with at least `READ` and `CREATE` actions
+
+   > :exclamation: **Note on admin permission resource**: Admin endpoints use `ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI` as the permission resource rather than a tournament-specific resource. This is intentional — AGS Shared Cloud does not support custom Admin role overrides, so admin access relies on the standard `APPUI` resource that is already granted to admin roles.
+
 ## Setup
 
 To be able to run this app, you will need to follow these setup steps.

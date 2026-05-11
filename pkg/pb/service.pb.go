@@ -2181,80 +2181,67 @@ const file_service_proto_rawDesc = "" +
 	"\x16MATCH_STATUS_SCHEDULED\x10\x01\x12\x1c\n" +
 	"\x18MATCH_STATUS_IN_PROGRESS\x10\x02\x12\x1a\n" +
 	"\x16MATCH_STATUS_COMPLETED\x10\x03\x12\x1a\n" +
-	"\x16MATCH_STATUS_CANCELLED\x10\x042\xdb\x1f\n" +
-	"\x11TournamentService\x12\xb0\x02\n" +
-	"\x10CreateTournament\x12#.tournament.CreateTournamentRequest\x1a$.tournament.CreateTournamentResponse\"\xd0\x01\x92Ai\x12\x11Create Tournament\x1a4Create a new tournament with specified configurationb\x1e\n" +
+	"\x16MATCH_STATUS_CANCELLED\x10\x042\xaf%\n" +
+	"\x11TournamentService\x12\xa4\x02\n" +
+	"\x15AdminCreateTournament\x12#.tournament.CreateTournamentRequest\x1a$.tournament.CreateTournamentResponse\"\xbf\x01\x92AV\x12\x11Create Tournament\x1a3Create a new tournament. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x01\x82\xd3\xe4\x93\x020:\x01*\"+/v1/admin/namespace/{namespace}/tournaments\x12\xb1\x02\n" +
-	"\x0fListTournaments\x12\".tournament.ListTournamentsRequest\x1a#.tournament.ListTournamentsResponse\"\xd4\x01\x92Au\x12\x10List Tournaments\x1aAList tournaments with optional filtering by status and date rangeb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x01\x82\xd3\xe4\x93\x020:\x01*\"+/v1/admin/namespace/{namespace}/tournaments\x12\xc3\x02\n" +
+	"\x0fListTournaments\x12\".tournament.ListTournamentsRequest\x1a#.tournament.ListTournamentsResponse\"\xe6\x01\x92A\x86\x01\x12\x19List Tournaments (Public)\x1a[List publicly visible tournaments (ACTIVE, STARTED, COMPLETED). Requires player permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02.\x12,/v1/public/namespace/{namespace}/tournaments\x12\x9f\x02\n" +
-	"\rGetTournament\x12 .tournament.GetTournamentRequest\x1a!.tournament.GetTournamentResponse\"\xc8\x01\x92AY\x12\x0eGet Tournament\x1a'Get tournament details by tournament IDb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02.\x12,/v1/public/namespace/{namespace}/tournaments\x12\xc0\x02\n" +
+	"\x14AdminListTournaments\x12\".tournament.ListTournamentsRequest\x1a#.tournament.ListTournamentsResponse\"\xde\x01\x92Ax\x12\x18List Tournaments (Admin)\x1aNList all tournaments including DRAFT and CANCELLED. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02>\x12</v1/public/namespace/{namespace}/tournaments/{tournament_id}\x12\xd8\x02\n" +
-	"\x12ActivateTournament\x12%.tournament.ActivateTournamentRequest\x1a&.tournament.ActivateTournamentResponse\"\xf2\x01\x92Ar\x12\x13Activate Tournament\x1a;Activate a tournament to open registration for participantsb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02-\x12+/v1/admin/namespace/{namespace}/tournaments\x12\xb3\x02\n" +
+	"\rGetTournament\x12 .tournament.GetTournamentRequest\x1a!.tournament.GetTournamentResponse\"\xdc\x01\x92Am\x12\x17Get Tournament (Public)\x1aDGet a publicly visible tournament by ID. Requires player permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate\x12\xcb\x02\n" +
-	"\x0fStartTournament\x12\".tournament.StartTournamentRequest\x1a#.tournament.StartTournamentResponse\"\xee\x01\x92Aq\x12\x10Start Tournament\x1a=Start a tournament to generate brackets and begin competitionb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18 NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02>\x12</v1/public/namespace/{namespace}/tournaments/{tournament_id}\x12\xcc\x02\n" +
+	"\x12AdminGetTournament\x12 .tournament.GetTournamentRequest\x1a!.tournament.GetTournamentResponse\"\xf0\x01\x92Az\x12\x16Get Tournament (Admin)\x1aRGet any tournament by ID including DRAFT and CANCELLED. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start\x12\xc8\x02\n" +
-	"\x10CancelTournament\x12#.tournament.CancelTournamentRequest\x1a$.tournament.CancelTournamentResponse\"\xe8\x01\x92Aj\x12\x11Cancel Tournament\x1a5Cancel a tournament and prevent further participationb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02=\x12;/v1/admin/namespace/{namespace}/tournaments/{tournament_id}\x12\xd7\x02\n" +
+	"\x17AdminActivateTournament\x12%.tournament.ActivateTournamentRequest\x1a&.tournament.ActivateTournamentResponse\"\xec\x01\x92Aj\x12\x13Activate Tournament\x1aEOpen a tournament for player registration. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02G:\x01*\"B/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel\x12\xa1\x02\n" +
-	"\x15RegisterForTournament\x12(.tournament.RegisterForTournamentRequest\x1a).tournament.RegisterForTournamentResponse\"\xb2\x01\x92A_\x12\x17Register for Tournament\x1a6Register user for tournament with capacity enforcementb\f\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02I:\x01*\"D/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate\x12\xc6\x02\n" +
+	"\x14AdminStartTournament\x12\".tournament.StartTournamentRequest\x1a#.tournament.StartTournamentResponse\"\xe4\x01\x92Ae\x12\x10Start Tournament\x1aCGenerate brackets and begin competition. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x82\xd3\xe4\x93\x02J:\x01*\"E/v1/public/namespace/{namespace}/tournaments/{tournament_id}/register\x12\xb2\x02\n" +
-	"\x19GetTournamentParticipants\x12,.tournament.GetTournamentParticipantsRequest\x1a-.tournament.GetTournamentParticipantsResponse\"\xb7\x01\x92Ac\x12\x1bGet Tournament Participants\x1a6List all participants for a tournament with paginationb\f\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02F:\x01*\"A/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start\x12\xd9\x02\n" +
+	"\x15AdminCancelTournament\x12#.tournament.CancelTournamentRequest\x1a$.tournament.CancelTournamentResponse\"\xf4\x01\x92At\x12\x11Cancel Tournament\x1aQCancel a tournament and prevent further participation. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x82\xd3\xe4\x93\x02K\x12I/v1/public/namespace/{namespace}/tournaments/{tournament_id}/participants\x12\x9d\x02\n" +
-	"\x11RemoveParticipant\x12$.tournament.RemoveParticipantRequest\x1a%.tournament.RemoveParticipantResponse\"\xba\x01\x92A]\x12\x1dRemove Tournament Participant\x1a.Admin-only: Remove participant from tournamentb\f\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02G:\x01*\"B/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel\x12\xe7\x02\n" +
+	"\x15RegisterForTournament\x12(.tournament.RegisterForTournamentRequest\x1a).tournament.RegisterForTournamentResponse\"\xf8\x01\x92Av\x12\x17Register for Tournament\x1aMRegister the authenticated user for a tournament. Requires player permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x82\xd3\xe4\x93\x02T*R/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}\x12\xa8\x02\n" +
-	"\x14GetTournamentMatches\x12'.tournament.GetTournamentMatchesRequest\x1a(.tournament.GetTournamentMatchesResponse\"\xbc\x01\x92Am\x12\x16Get Tournament Matches\x1a3Get all matches for a tournament organized by roundb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18'NAMESPACE:{namespace}:EXTEND:TOURNAMENT\x90\xb5\x18\x01\x82\xd3\xe4\x93\x02J:\x01*\"E/v1/public/namespace/{namespace}/tournaments/{tournament_id}/register\x12\xff\x02\n" +
+	"\x19GetTournamentParticipants\x12,.tournament.GetTournamentParticipantsRequest\x1a-.tournament.GetTournamentParticipantsResponse\"\x84\x02\x92A\x80\x01\x12\x1bGet Tournament Participants\x1aSList all participants for a tournament with pagination. Requires player permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x82\xd3\xe4\x93\x02F\x12D/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches\x12\x86\x02\n" +
-	"\bGetMatch\x12\x1b.tournament.GetMatchRequest\x1a\x1c.tournament.GetMatchResponse\"\xbe\x01\x92Ad\x12\x11Get Match Details\x1a/Get detailed information about a specific matchb\x1e\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18'NAMESPACE:{namespace}:EXTEND:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02K\x12I/v1/public/namespace/{namespace}/tournaments/{tournament_id}/participants\x12\xe6\x02\n" +
+	"\x16AdminRemoveParticipant\x12$.tournament.RemoveParticipantRequest\x1a%.tournament.RemoveParticipantResponse\"\xfe\x01\x92Aq\x12\x1dRemove Tournament Participant\x1aBRemove a participant from a tournament. Requires admin permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x82\xd3\xe4\x93\x02Q\x12O/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}\x12\xa9\x02\n" +
-	"\x11SubmitMatchResult\x12$.tournament.SubmitMatchResultRequest\x1a%.tournament.SubmitMatchResultResponse\"\xc6\x01\x92Ac\x12\x13Submit Match Result\x1a8Game server: Submit match result with winner informationb\x12\n" +
-	"\x10\n" +
-	"\fServiceToken\x12\x00\x82\xd3\xe4\x93\x02Z:\x01*\"U/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result\x12\xef\x02\n" +
-	"\x16AdminSubmitMatchResult\x12).tournament.AdminSubmitMatchResultRequest\x1a*.tournament.AdminSubmitMatchResultResponse\"\xfd\x01\x92Af\x12\x19Admin Submit Match Result\x1a;Admin override: Submit match result with winner informationb\f\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\b\x82\xd3\xe4\x93\x02T*R/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}\x12\xe2\x02\n" +
+	"\x14GetTournamentMatches\x12'.tournament.GetTournamentMatchesRequest\x1a(.tournament.GetTournamentMatchesResponse\"\xf6\x01\x92Ax\x12\x16Get Tournament Matches\x1aPGet all matches for a tournament organized by round. Requires player permission.b\f\n" +
 	"\n" +
 	"\n" +
-	"\x06Bearer\x12\x00\x8a\xb5\x18&ADMIN:NAMESPACE:{namespace}:TOURNAMENT\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02`:\x01*\"[/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result/adminB\xc9\x02\x92A\xd6\x01\x12\x15\n" +
-	"\x0eTournament API2\x031.0\"\v/tournamentZ\xaf\x01\n" +
-	"X\n" +
-	"\x06Bearer\x12N\b\x02\x129User Bearer token for authentication (from AccelByte IAM)\x1a\rAuthorization \x02\n" +
-	"S\n" +
-	"\fServiceToken\x12C\b\x02\x12,Service token for game server authentication\x1a\x0fX-Service-Token \x02\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18'NAMESPACE:{namespace}:EXTEND:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02F\x12D/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches\x12\xc0\x02\n" +
+	"\bGetMatch\x12\x1b.tournament.GetMatchRequest\x1a\x1c.tournament.GetMatchResponse\"\xf8\x01\x92Ao\x12\x11Get Match Details\x1aLGet detailed information about a specific match. Requires player permission.b\f\n" +
+	"\n" +
+	"\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18'NAMESPACE:{namespace}:EXTEND:TOURNAMENT\x90\xb5\x18\x02\x82\xd3\xe4\x93\x02Q\x12O/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}\x12\xe8\x02\n" +
+	"\x16AdminSubmitMatchResult\x12$.tournament.SubmitMatchResultRequest\x1a%.tournament.SubmitMatchResultResponse\"\x80\x02\x92Am\x12\x13Submit Match Result\x1aHSubmit a match result and advance the winner. Requires admin permission.b\f\n" +
+	"\n" +
+	"\n" +
+	"\x06Bearer\x12\x00\x8a\xb5\x18(ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI\x90\xb5\x18\x04\x82\xd3\xe4\x93\x02Z:\x01*\"U/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/resultB\xee\x01\x92A|\x12\x15\n" +
+	"\x0eTournament API2\x031.0\"\v/tournamentZV\n" +
+	"T\n" +
+	"\x06Bearer\x12J\b\x02\x125Bearer token from AccelByte IAM (player or admin JWT)\x1a\rAuthorization \x02\n" +
 	"%net.accelbyte.extend.serviceextensionP\x01Z extend-tournament-service/pkg/pb\xaa\x02!AccelByte.Extend.ServiceExtensionb\x06proto3"
 
 var (
@@ -2336,34 +2323,36 @@ var file_service_proto_depIdxs = []int32{
 	23, // 26: tournament.GetMatchResponse.match:type_name -> tournament.Match
 	23, // 27: tournament.SubmitMatchResultResponse.match:type_name -> tournament.Match
 	23, // 28: tournament.AdminSubmitMatchResultResponse.match:type_name -> tournament.Match
-	5,  // 29: tournament.TournamentService.CreateTournament:input_type -> tournament.CreateTournamentRequest
+	5,  // 29: tournament.TournamentService.AdminCreateTournament:input_type -> tournament.CreateTournamentRequest
 	7,  // 30: tournament.TournamentService.ListTournaments:input_type -> tournament.ListTournamentsRequest
-	9,  // 31: tournament.TournamentService.GetTournament:input_type -> tournament.GetTournamentRequest
-	11, // 32: tournament.TournamentService.ActivateTournament:input_type -> tournament.ActivateTournamentRequest
-	13, // 33: tournament.TournamentService.StartTournament:input_type -> tournament.StartTournamentRequest
-	15, // 34: tournament.TournamentService.CancelTournament:input_type -> tournament.CancelTournamentRequest
-	17, // 35: tournament.TournamentService.RegisterForTournament:input_type -> tournament.RegisterForTournamentRequest
-	19, // 36: tournament.TournamentService.GetTournamentParticipants:input_type -> tournament.GetTournamentParticipantsRequest
-	21, // 37: tournament.TournamentService.RemoveParticipant:input_type -> tournament.RemoveParticipantRequest
-	24, // 38: tournament.TournamentService.GetTournamentMatches:input_type -> tournament.GetTournamentMatchesRequest
-	26, // 39: tournament.TournamentService.GetMatch:input_type -> tournament.GetMatchRequest
-	28, // 40: tournament.TournamentService.SubmitMatchResult:input_type -> tournament.SubmitMatchResultRequest
-	30, // 41: tournament.TournamentService.AdminSubmitMatchResult:input_type -> tournament.AdminSubmitMatchResultRequest
-	6,  // 42: tournament.TournamentService.CreateTournament:output_type -> tournament.CreateTournamentResponse
-	8,  // 43: tournament.TournamentService.ListTournaments:output_type -> tournament.ListTournamentsResponse
-	10, // 44: tournament.TournamentService.GetTournament:output_type -> tournament.GetTournamentResponse
-	12, // 45: tournament.TournamentService.ActivateTournament:output_type -> tournament.ActivateTournamentResponse
-	14, // 46: tournament.TournamentService.StartTournament:output_type -> tournament.StartTournamentResponse
-	16, // 47: tournament.TournamentService.CancelTournament:output_type -> tournament.CancelTournamentResponse
-	18, // 48: tournament.TournamentService.RegisterForTournament:output_type -> tournament.RegisterForTournamentResponse
-	20, // 49: tournament.TournamentService.GetTournamentParticipants:output_type -> tournament.GetTournamentParticipantsResponse
-	22, // 50: tournament.TournamentService.RemoveParticipant:output_type -> tournament.RemoveParticipantResponse
-	25, // 51: tournament.TournamentService.GetTournamentMatches:output_type -> tournament.GetTournamentMatchesResponse
-	27, // 52: tournament.TournamentService.GetMatch:output_type -> tournament.GetMatchResponse
-	29, // 53: tournament.TournamentService.SubmitMatchResult:output_type -> tournament.SubmitMatchResultResponse
-	31, // 54: tournament.TournamentService.AdminSubmitMatchResult:output_type -> tournament.AdminSubmitMatchResultResponse
-	42, // [42:55] is the sub-list for method output_type
-	29, // [29:42] is the sub-list for method input_type
+	7,  // 31: tournament.TournamentService.AdminListTournaments:input_type -> tournament.ListTournamentsRequest
+	9,  // 32: tournament.TournamentService.GetTournament:input_type -> tournament.GetTournamentRequest
+	9,  // 33: tournament.TournamentService.AdminGetTournament:input_type -> tournament.GetTournamentRequest
+	11, // 34: tournament.TournamentService.AdminActivateTournament:input_type -> tournament.ActivateTournamentRequest
+	13, // 35: tournament.TournamentService.AdminStartTournament:input_type -> tournament.StartTournamentRequest
+	15, // 36: tournament.TournamentService.AdminCancelTournament:input_type -> tournament.CancelTournamentRequest
+	17, // 37: tournament.TournamentService.RegisterForTournament:input_type -> tournament.RegisterForTournamentRequest
+	19, // 38: tournament.TournamentService.GetTournamentParticipants:input_type -> tournament.GetTournamentParticipantsRequest
+	21, // 39: tournament.TournamentService.AdminRemoveParticipant:input_type -> tournament.RemoveParticipantRequest
+	24, // 40: tournament.TournamentService.GetTournamentMatches:input_type -> tournament.GetTournamentMatchesRequest
+	26, // 41: tournament.TournamentService.GetMatch:input_type -> tournament.GetMatchRequest
+	28, // 42: tournament.TournamentService.AdminSubmitMatchResult:input_type -> tournament.SubmitMatchResultRequest
+	6,  // 43: tournament.TournamentService.AdminCreateTournament:output_type -> tournament.CreateTournamentResponse
+	8,  // 44: tournament.TournamentService.ListTournaments:output_type -> tournament.ListTournamentsResponse
+	8,  // 45: tournament.TournamentService.AdminListTournaments:output_type -> tournament.ListTournamentsResponse
+	10, // 46: tournament.TournamentService.GetTournament:output_type -> tournament.GetTournamentResponse
+	10, // 47: tournament.TournamentService.AdminGetTournament:output_type -> tournament.GetTournamentResponse
+	12, // 48: tournament.TournamentService.AdminActivateTournament:output_type -> tournament.ActivateTournamentResponse
+	14, // 49: tournament.TournamentService.AdminStartTournament:output_type -> tournament.StartTournamentResponse
+	16, // 50: tournament.TournamentService.AdminCancelTournament:output_type -> tournament.CancelTournamentResponse
+	18, // 51: tournament.TournamentService.RegisterForTournament:output_type -> tournament.RegisterForTournamentResponse
+	20, // 52: tournament.TournamentService.GetTournamentParticipants:output_type -> tournament.GetTournamentParticipantsResponse
+	22, // 53: tournament.TournamentService.AdminRemoveParticipant:output_type -> tournament.RemoveParticipantResponse
+	25, // 54: tournament.TournamentService.GetTournamentMatches:output_type -> tournament.GetTournamentMatchesResponse
+	27, // 55: tournament.TournamentService.GetMatch:output_type -> tournament.GetMatchResponse
+	29, // 56: tournament.TournamentService.AdminSubmitMatchResult:output_type -> tournament.SubmitMatchResultResponse
+	43, // [43:57] is the sub-list for method output_type
+	29, // [29:43] is the sub-list for method input_type
 	29, // [29:29] is the sub-list for extension type_name
 	29, // [29:29] is the sub-list for extension extendee
 	0,  // [0:29] is the sub-list for field type_name

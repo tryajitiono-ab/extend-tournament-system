@@ -488,15 +488,14 @@ func (m *MatchService) SubmitMatchResult(ctx context.Context, req *serviceextens
 	m.logger.Info("SubmitMatchResult called", "namespace", req.Namespace, "tournament_id", req.TournamentId, "match_id", req.MatchId, "winner_user_id", req.WinnerUserId)
 
 	// Auth check must run before field validation so that invalid/missing tokens receive
-	// 401/403 rather than 400 (FIND-005/FIND-006). Only ServiceTokens are accepted here;
-	// Bearer user JWTs are explicitly rejected.
+	// 401/403 rather than 400.
 	if req.Namespace == "" {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
 	}
 	if m.authInterceptor != nil {
 		permission := m.authInterceptor.GetAdminPermission("UPDATE")
-		if err := m.authInterceptor.CheckServiceTokenPermission(ctx, permission, req.Namespace); err != nil {
-			m.logger.Warn("submit match result service token check failed", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		if err := m.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+			m.logger.Warn("submit match result permission check failed", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 			return nil, err
 		}
 	}

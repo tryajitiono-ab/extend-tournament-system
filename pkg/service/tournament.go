@@ -444,52 +444,100 @@ func (s *TournamentServiceServer) CreateTournament(ctx context.Context, req *ser
 	}, nil
 }
 
-// ListTournaments lists tournaments with filtering and pagination
+// publicStatuses are the tournament statuses visible to players.
+var publicStatuses = []serviceextension.TournamentStatus{
+	serviceextension.TournamentStatus_TOURNAMENT_STATUS_ACTIVE,
+	serviceextension.TournamentStatus_TOURNAMENT_STATUS_STARTED,
+	serviceextension.TournamentStatus_TOURNAMENT_STATUS_COMPLETED,
+}
+
+func isPublicStatus(s serviceextension.TournamentStatus) bool {
+	for _, ps := range publicStatuses {
+		if s == ps {
+			return true
+		}
+	}
+	return false
+}
+
+func paginationParams(req *serviceextension.ListTournamentsRequest) (limit, offset int32) {
+	limit = req.Limit
+	if limit <= 0 {
+		limit = 50
+	}
+	if limit > 100 {
+		limit = 100
+	}
+	offset = req.Offset
+	if offset < 0 {
+		offset = 0
+	}
+	return
+}
+
+// ListTournaments lists publicly visible tournaments (ACTIVE, STARTED, COMPLETED).
 func (s *TournamentServiceServer) ListTournaments(ctx context.Context, req *serviceextension.ListTournamentsRequest) (*serviceextension.ListTournamentsResponse, error) {
 	s.logger.Info("ListTournaments called", "namespace", req.Namespace, "limit", req.Limit, "offset", req.Offset)
 
-	// Validate required fields
 	if req.Namespace == "" {
 		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
 	}
 
-	// Enforce authentication on the list endpoint (FIND-007/FIND-008).
 	permission := s.authInterceptor.GetPlayerPermission("READ")
 	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
 		s.logger.Warn("list tournaments permission denied", "error", err, "namespace", req.Namespace)
 		return nil, err
 	}
 
-	// Set default pagination values
-	limit := req.Limit
-	if limit <= 0 {
-		limit = 50 // Default limit
-	}
-	if limit > 100 {
-		limit = 100 // Maximum limit
-	}
-
-	offset := req.Offset
-	if offset < 0 {
-		offset = 0
+	// Restrict to public-visible statuses; reject non-public status filters.
+	var statuses []serviceextension.TournamentStatus
+	if req.Status == serviceextension.TournamentStatus_TOURNAMENT_STATUS_UNSPECIFIED {
+		statuses = publicStatuses
+	} else if isPublicStatus(req.Status) {
+		statuses = []serviceextension.TournamentStatus{req.Status}
+	} else {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "status filter not available on public endpoint")
 	}
 
-	// Get tournaments from storage
-	tournaments, totalCount, err := s.tournamentStorage.ListTournaments(ctx, req.Namespace, limit, offset, req.Status)
+	limit, offset := paginationParams(req)
+	tournaments, totalCount, err := s.tournamentStorage.ListTournaments(ctx, req.Namespace, limit, offset, statuses)
 	if err != nil {
 		s.logger.Error("failed to list tournaments", "error", err, "namespace", req.Namespace)
 		return nil, err
 	}
 
-	s.logger.Info("tournaments listed successfully",
-		"namespace", req.Namespace,
-		"count", len(tournaments),
-		"total_count", totalCount)
+	s.logger.Info("tournaments listed successfully", "namespace", req.Namespace, "count", len(tournaments), "total_count", totalCount)
+	return &serviceextension.ListTournamentsResponse{Tournaments: tournaments, TotalCount: totalCount}, nil
+}
 
-	return &serviceextension.ListTournamentsResponse{
-		Tournaments: tournaments,
-		TotalCount:  totalCount,
-	}, nil
+// AdminListTournaments lists all tournaments regardless of status (admin only).
+func (s *TournamentServiceServer) AdminListTournaments(ctx context.Context, req *serviceextension.ListTournamentsRequest) (*serviceextension.ListTournamentsResponse, error) {
+	s.logger.Info("AdminListTournaments called", "namespace", req.Namespace, "limit", req.Limit, "offset", req.Offset)
+
+	if req.Namespace == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
+	}
+
+	permission := s.authInterceptor.GetAdminPermission("READ")
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+		s.logger.Warn("admin list tournaments permission denied", "error", err, "namespace", req.Namespace)
+		return nil, err
+	}
+
+	var statuses []serviceextension.TournamentStatus
+	if req.Status != serviceextension.TournamentStatus_TOURNAMENT_STATUS_UNSPECIFIED {
+		statuses = []serviceextension.TournamentStatus{req.Status}
+	}
+
+	limit, offset := paginationParams(req)
+	tournaments, totalCount, err := s.tournamentStorage.ListTournaments(ctx, req.Namespace, limit, offset, statuses)
+	if err != nil {
+		s.logger.Error("failed to admin list tournaments", "error", err, "namespace", req.Namespace)
+		return nil, err
+	}
+
+	s.logger.Info("admin tournaments listed successfully", "namespace", req.Namespace, "count", len(tournaments), "total_count", totalCount)
+	return &serviceextension.ListTournamentsResponse{Tournaments: tournaments, TotalCount: totalCount}, nil
 }
 
 // GetTournament retrieves a specific tournament by ID
@@ -511,21 +559,46 @@ func (s *TournamentServiceServer) GetTournament(ctx context.Context, req *servic
 		return nil, err
 	}
 
-	// Get tournament from storage
 	tournament, err := s.tournamentStorage.GetTournament(ctx, req.Namespace, req.TournamentId)
 	if err != nil {
 		s.logger.Error("failed to get tournament", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
 		return nil, err
 	}
 
-	s.logger.Info("tournament retrieved successfully",
-		"tournament_id", tournament.TournamentId,
-		"namespace", req.Namespace,
-		"name", tournament.Name)
+	// Hide non-public tournaments from players.
+	if !isPublicStatus(tournament.Status) {
+		return nil, grpcStatus.Errorf(codes.NotFound, "tournament not found")
+	}
 
-	return &serviceextension.GetTournamentResponse{
-		Tournament: tournament,
-	}, nil
+	s.logger.Info("tournament retrieved successfully", "tournament_id", tournament.TournamentId, "namespace", req.Namespace)
+	return &serviceextension.GetTournamentResponse{Tournament: tournament}, nil
+}
+
+// AdminGetTournament retrieves any tournament by ID regardless of status (admin only).
+func (s *TournamentServiceServer) AdminGetTournament(ctx context.Context, req *serviceextension.GetTournamentRequest) (*serviceextension.GetTournamentResponse, error) {
+	s.logger.Info("AdminGetTournament called", "namespace", req.Namespace, "tournament_id", req.TournamentId)
+
+	if req.Namespace == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "namespace is required")
+	}
+	if req.TournamentId == "" {
+		return nil, grpcStatus.Errorf(codes.InvalidArgument, "tournament_id is required")
+	}
+
+	permission := s.authInterceptor.GetAdminPermission("READ")
+	if err := s.authInterceptor.CheckTournamentPermission(ctx, permission, req.Namespace); err != nil {
+		s.logger.Warn("admin get tournament permission denied", "error", err, "namespace", req.Namespace)
+		return nil, err
+	}
+
+	tournament, err := s.tournamentStorage.GetTournament(ctx, req.Namespace, req.TournamentId)
+	if err != nil {
+		s.logger.Error("failed to get tournament", "error", err, "namespace", req.Namespace, "tournament_id", req.TournamentId)
+		return nil, err
+	}
+
+	s.logger.Info("admin tournament retrieved successfully", "tournament_id", tournament.TournamentId, "namespace", req.Namespace)
+	return &serviceextension.GetTournamentResponse{Tournament: tournament}, nil
 }
 
 // CancelTournament cancels a tournament

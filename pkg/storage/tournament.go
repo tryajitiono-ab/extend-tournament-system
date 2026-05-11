@@ -25,7 +25,7 @@ import (
 type TournamentStorage interface {
 	CreateTournament(ctx context.Context, namespace string, tournament *serviceextension.Tournament) (*serviceextension.Tournament, error)
 	GetTournament(ctx context.Context, namespace string, tournamentID string) (*serviceextension.Tournament, error)
-	ListTournaments(ctx context.Context, namespace string, limit, offset int32, status serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error)
+	ListTournaments(ctx context.Context, namespace string, limit, offset int32, statuses []serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error)
 	UpdateTournament(ctx context.Context, namespace string, tournamentID string, tournament *serviceextension.Tournament) (*serviceextension.Tournament, error)
 	GetTournamentForRegistration(ctx context.Context, namespace string, tournamentID string) (*serviceextension.Tournament, error)
 	UpdateParticipantCount(ctx context.Context, namespace string, tournamentID string, increment int32) error
@@ -131,14 +131,17 @@ func (m *MongoTournamentStorage) GetTournament(ctx context.Context, namespace st
 	return m.documentToProto(&doc), nil
 }
 
-// ListTournaments retrieves tournaments with pagination and optional status filter
-func (m *MongoTournamentStorage) ListTournaments(ctx context.Context, namespace string, limit, offset int32, status serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error) {
+// ListTournaments retrieves tournaments with pagination and optional status filter.
+// Pass nil or empty slice to return all statuses; pass multiple statuses to filter with $in.
+func (m *MongoTournamentStorage) ListTournaments(ctx context.Context, namespace string, limit, offset int32, statuses []serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error) {
 	collection := m.client.Database(m.database).Collection(m.collection)
 
 	// Build filter
 	filter := bson.M{"namespace": namespace}
-	if status != serviceextension.TournamentStatus_TOURNAMENT_STATUS_UNSPECIFIED {
-		filter["status"] = status
+	if len(statuses) == 1 {
+		filter["status"] = statuses[0]
+	} else if len(statuses) > 1 {
+		filter["status"] = bson.M{"$in": statuses}
 	}
 
 	// Count total documents

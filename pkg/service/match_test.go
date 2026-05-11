@@ -74,8 +74,8 @@ func (m *MockTournamentStorage) GetTournament(ctx context.Context, namespace str
 	return args.Get(0).(*serviceextension.Tournament), args.Error(1)
 }
 
-func (m *MockTournamentStorage) ListTournaments(ctx context.Context, namespace string, limit, offset int32, status serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error) {
-	args := m.Called(ctx, namespace, limit, offset, status)
+func (m *MockTournamentStorage) ListTournaments(ctx context.Context, namespace string, limit, offset int32, statuses []serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error) {
+	args := m.Called(ctx, namespace, limit, offset, statuses)
 	return args.Get(0).([]*serviceextension.Tournament), args.Get(1).(int32), args.Error(2)
 }
 

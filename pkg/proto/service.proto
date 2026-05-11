@@ -224,24 +224,19 @@ message AdminSubmitMatchResultResponse {
 
 service TournamentService {
 
-  rpc CreateTournament (CreateTournamentRequest) returns (CreateTournamentResponse) {
-    // Admin permission required: CREATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
+  rpc AdminCreateTournament (CreateTournamentRequest) returns (CreateTournamentResponse) {
     option (permission.action) = CREATE;
-    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
     option (google.api.http) = {
       post: "/v1/admin/namespace/{namespace}/tournaments"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Create Tournament"
-      description: "Create a new tournament with specified configuration"
+      description: "Create a new tournament. Requires admin permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
@@ -250,21 +245,38 @@ service TournamentService {
 
   rpc ListTournaments (ListTournamentsRequest) returns (ListTournamentsResponse) {
     // Public read permission: READ on NAMESPACE:{namespace}:TOURNAMENT
+    // Only returns ACTIVE, STARTED, and COMPLETED tournaments.
     option (permission.action) = READ;
     option (permission.resource) = "NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {
       get: "/v1/public/namespace/{namespace}/tournaments"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "List Tournaments"
-      description: "List tournaments with optional filtering by status and date range"
+      summary: "List Tournaments (Public)"
+      description: "List publicly visible tournaments (ACTIVE, STARTED, COMPLETED). Requires player permission."
       security: {
         security_requirement: {
           key: "Bearer"
           value: {}
         }
+      }
+    };
+  }
+
+  rpc AdminListTournaments (ListTournamentsRequest) returns (ListTournamentsResponse) {
+    // Admin read permission: READ on ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI
+    // Returns all tournaments regardless of status.
+    option (permission.action) = READ;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
+    option (google.api.http) = {
+      get: "/v1/admin/namespace/{namespace}/tournaments"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "List Tournaments (Admin)"
+      description: "List all tournaments including DRAFT and CANCELLED. Requires admin permission."
+      security: {
         security_requirement: {
-          key: "ServiceToken"
+          key: "Bearer"
           value: {}
         }
       }
@@ -273,93 +285,95 @@ service TournamentService {
 
   rpc GetTournament (GetTournamentRequest) returns (GetTournamentResponse) {
     // Public read permission: READ on NAMESPACE:{namespace}:TOURNAMENT
+    // Only returns publicly visible tournaments (ACTIVE, STARTED, COMPLETED).
     option (permission.action) = READ;
     option (permission.resource) = "NAMESPACE:{namespace}:TOURNAMENT";
     option (google.api.http) = {
       get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Get Tournament"
-      description: "Get tournament details by tournament ID"
+      summary: "Get Tournament (Public)"
+      description: "Get a publicly visible tournament by ID. Requires player permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
     };
   }
 
-  rpc ActivateTournament (ActivateTournamentRequest) returns (ActivateTournamentResponse) {
-    // Admin permission required: UPDATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
+  rpc AdminGetTournament (GetTournamentRequest) returns (GetTournamentResponse) {
+    // Admin read permission: READ on ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI
+    // Returns any tournament regardless of status.
+    option (permission.action) = READ;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
+    option (google.api.http) = {
+      get: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}"
+    };
+    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
+      summary: "Get Tournament (Admin)"
+      description: "Get any tournament by ID including DRAFT and CANCELLED. Requires admin permission."
+      security: {
+        security_requirement: {
+          key: "Bearer"
+          value: {}
+        }
+      }
+    };
+  }
+
+  rpc AdminActivateTournament (ActivateTournamentRequest) returns (ActivateTournamentResponse) {
     option (permission.action) = UPDATE;
-    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
     option (google.api.http) = {
       post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Activate Tournament"
-      description: "Activate a tournament to open registration for participants"
+      description: "Open a tournament for player registration. Requires admin permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
     };
   }
 
-  rpc StartTournament (StartTournamentRequest) returns (StartTournamentResponse) {
-    // Admin permission required: UPDATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
+  rpc AdminStartTournament (StartTournamentRequest) returns (StartTournamentResponse) {
     option (permission.action) = UPDATE;
-    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
     option (google.api.http) = {
       post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Start Tournament"
-      description: "Start a tournament to generate brackets and begin competition"
+      description: "Generate brackets and begin competition. Requires admin permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
     };
   }
 
-  rpc CancelTournament (CancelTournamentRequest) returns (CancelTournamentResponse) {
-    // Admin permission required: UPDATE on ADMIN:NAMESPACE:{namespace}:TOURNAMENT
+  rpc AdminCancelTournament (CancelTournamentRequest) returns (CancelTournamentResponse) {
     option (permission.action) = UPDATE;
-    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
     option (google.api.http) = {
       post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Cancel Tournament"
-      description: "Cancel a tournament and prevent further participation"
+      description: "Cancel a tournament and prevent further participation. Requires admin permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
@@ -367,13 +381,15 @@ service TournamentService {
   }
 
   rpc RegisterForTournament (RegisterForTournamentRequest) returns (RegisterForTournamentResponse) {
+    option (permission.action) = CREATE;
+    option (permission.resource) = "NAMESPACE:{namespace}:EXTEND:TOURNAMENT";
     option (google.api.http) = {
       post: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/register"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Register for Tournament"
-      description: "Register user for tournament with capacity enforcement"
+      description: "Register the authenticated user for a tournament. Requires player permission."
       security: {
         security_requirement: {
           key: "Bearer"
@@ -384,12 +400,14 @@ service TournamentService {
   }
 
   rpc GetTournamentParticipants (GetTournamentParticipantsRequest) returns (GetTournamentParticipantsResponse) {
+    option (permission.action) = READ;
+    option (permission.resource) = "NAMESPACE:{namespace}:EXTEND:TOURNAMENT";
     option (google.api.http) = {
       get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/participants"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get Tournament Participants"
-      description: "List all participants for a tournament with pagination"
+      description: "List all participants for a tournament with pagination. Requires player permission."
       security: {
         security_requirement: {
           key: "Bearer"
@@ -399,13 +417,15 @@ service TournamentService {
     };
   }
 
-  rpc RemoveParticipant (RemoveParticipantRequest) returns (RemoveParticipantResponse) {
+  rpc AdminRemoveParticipant (RemoveParticipantRequest) returns (RemoveParticipantResponse) {
+    option (permission.action) = DELETE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
     option (google.api.http) = {
       delete: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Remove Tournament Participant"
-      description: "Admin-only: Remove participant from tournament"
+      description: "Remove a participant from a tournament. Requires admin permission."
       security: {
         security_requirement: {
           key: "Bearer"
@@ -416,19 +436,17 @@ service TournamentService {
   }
 
   rpc GetTournamentMatches (GetTournamentMatchesRequest) returns (GetTournamentMatchesResponse) {
+    option (permission.action) = READ;
+    option (permission.resource) = "NAMESPACE:{namespace}:EXTEND:TOURNAMENT";
     option (google.api.http) = {
       get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get Tournament Matches"
-      description: "Get all matches for a tournament organized by round"
+      description: "Get all matches for a tournament organized by round. Requires player permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
@@ -436,52 +454,33 @@ service TournamentService {
   }
 
   rpc GetMatch (GetMatchRequest) returns (GetMatchResponse) {
+    option (permission.action) = READ;
+    option (permission.resource) = "NAMESPACE:{namespace}:EXTEND:TOURNAMENT";
     option (google.api.http) = {
       get: "/v1/public/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Get Match Details"
-      description: "Get detailed information about a specific match"
+      description: "Get detailed information about a specific match. Requires player permission."
       security: {
         security_requirement: {
           key: "Bearer"
-          value: {}
-        }
-        security_requirement: {
-          key: "ServiceToken"
           value: {}
         }
       }
     };
   }
 
-  rpc SubmitMatchResult (SubmitMatchResultRequest) returns (SubmitMatchResultResponse) {
+  rpc AdminSubmitMatchResult (SubmitMatchResultRequest) returns (SubmitMatchResultResponse) {
+    option (permission.action) = UPDATE;
+    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:EXTEND:APPUI";
     option (google.api.http) = {
       post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result"
       body: "*"
     };
     option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
       summary: "Submit Match Result"
-      description: "Game server: Submit match result with winner information"
-      security: {
-        security_requirement: {
-          key: "ServiceToken"
-          value: {}
-        }
-      }
-    };
-  }
-
-  rpc AdminSubmitMatchResult (AdminSubmitMatchResultRequest) returns (AdminSubmitMatchResultResponse) {
-    option (permission.action) = UPDATE;
-    option (permission.resource) = "ADMIN:NAMESPACE:{namespace}:TOURNAMENT";
-    option (google.api.http) = {
-      post: "/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result/admin"
-      body: "*"
-    };
-    option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_operation) = {
-      summary: "Admin Submit Match Result"
-      description: "Admin override: Submit match result with winner information"
+      description: "Submit a match result and advance the winner. Requires admin permission."
       security: {
         security_requirement: {
           key: "Bearer"
@@ -507,16 +506,7 @@ option (grpc.gateway.protoc_gen_openapiv2.options.openapiv2_swagger) = {
         type: TYPE_API_KEY;
         in: IN_HEADER;
         name: "Authorization";
-        description: "User Bearer token for authentication (from AccelByte IAM)";
-      }
-    }
-    security: {
-      key: "ServiceToken";
-      value: {
-        type: TYPE_API_KEY;
-        in: IN_HEADER;
-        name: "X-Service-Token";
-        description: "Service token for game server authentication";
+        description: "Bearer token from AccelByte IAM (player or admin JWT)";
       }
     }
   };

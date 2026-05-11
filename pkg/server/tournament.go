@@ -47,40 +47,50 @@ func (s *TournamentServer) GetTournamentParticipants(ctx context.Context, req *s
 	return s.ParticipantService.GetTournamentParticipants(ctx, req)
 }
 
-// RemoveParticipant removes a participant from a tournament (admin only)
-func (s *TournamentServer) RemoveParticipant(ctx context.Context, req *serviceextension.RemoveParticipantRequest) (*serviceextension.RemoveParticipantResponse, error) {
+// AdminRemoveParticipant removes a participant from a tournament (admin only)
+func (s *TournamentServer) AdminRemoveParticipant(ctx context.Context, req *serviceextension.RemoveParticipantRequest) (*serviceextension.RemoveParticipantResponse, error) {
 	return s.ParticipantService.RemoveParticipant(ctx, req)
 }
 
 // Tournament CRUD operations delegated to TournamentServiceServer
 
-// CreateTournament creates a new tournament
-func (s *TournamentServer) CreateTournament(ctx context.Context, req *serviceextension.CreateTournamentRequest) (*serviceextension.CreateTournamentResponse, error) {
+// AdminCreateTournament creates a new tournament (admin only)
+func (s *TournamentServer) AdminCreateTournament(ctx context.Context, req *serviceextension.CreateTournamentRequest) (*serviceextension.CreateTournamentResponse, error) {
 	return s.TournamentServiceServer.CreateTournament(ctx, req)
 }
 
-// ListTournaments lists tournaments
+// ListTournaments lists publicly visible tournaments (ACTIVE, STARTED, COMPLETED)
 func (s *TournamentServer) ListTournaments(ctx context.Context, req *serviceextension.ListTournamentsRequest) (*serviceextension.ListTournamentsResponse, error) {
 	return s.TournamentServiceServer.ListTournaments(ctx, req)
 }
 
-// GetTournament gets a tournament
+// AdminListTournaments lists all tournaments regardless of status (admin only)
+func (s *TournamentServer) AdminListTournaments(ctx context.Context, req *serviceextension.ListTournamentsRequest) (*serviceextension.ListTournamentsResponse, error) {
+	return s.TournamentServiceServer.AdminListTournaments(ctx, req)
+}
+
+// GetTournament gets a publicly visible tournament (ACTIVE, STARTED, COMPLETED)
 func (s *TournamentServer) GetTournament(ctx context.Context, req *serviceextension.GetTournamentRequest) (*serviceextension.GetTournamentResponse, error) {
 	return s.TournamentServiceServer.GetTournament(ctx, req)
 }
 
-// CancelTournament cancels a tournament
-func (s *TournamentServer) CancelTournament(ctx context.Context, req *serviceextension.CancelTournamentRequest) (*serviceextension.CancelTournamentResponse, error) {
+// AdminGetTournament gets any tournament regardless of status (admin only)
+func (s *TournamentServer) AdminGetTournament(ctx context.Context, req *serviceextension.GetTournamentRequest) (*serviceextension.GetTournamentResponse, error) {
+	return s.TournamentServiceServer.AdminGetTournament(ctx, req)
+}
+
+// AdminCancelTournament cancels a tournament (admin only)
+func (s *TournamentServer) AdminCancelTournament(ctx context.Context, req *serviceextension.CancelTournamentRequest) (*serviceextension.CancelTournamentResponse, error) {
 	return s.TournamentServiceServer.CancelTournament(ctx, req)
 }
 
-// ActivateTournament activates a tournament
-func (s *TournamentServer) ActivateTournament(ctx context.Context, req *serviceextension.ActivateTournamentRequest) (*serviceextension.ActivateTournamentResponse, error) {
+// AdminActivateTournament activates a tournament (admin only)
+func (s *TournamentServer) AdminActivateTournament(ctx context.Context, req *serviceextension.ActivateTournamentRequest) (*serviceextension.ActivateTournamentResponse, error) {
 	return s.TournamentServiceServer.ActivateTournament(ctx, req)
 }
 
-// StartTournament starts a tournament with bracket generation
-func (s *TournamentServer) StartTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
+// AdminStartTournament starts a tournament with bracket generation (admin only)
+func (s *TournamentServer) AdminStartTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
 	// First, handle bracket generation using MatchService
 	// Get participants to generate bracket
 	participantsReq := &serviceextension.GetTournamentParticipantsRequest{
@@ -201,11 +211,6 @@ func (s *TournamentServer) StartTournament(ctx context.Context, req *serviceexte
 	return s.TournamentServiceServer.StartTournament(ctx, req)
 }
 
-// CompleteTournament completes a tournament
-func (s *TournamentServer) CompleteTournament(ctx context.Context, req *serviceextension.StartTournamentRequest) (*serviceextension.StartTournamentResponse, error) {
-	return s.TournamentServiceServer.CompleteTournamentByAdmin(ctx, req)
-}
-
 // Match operations delegated to MatchService
 
 // GetTournamentMatches retrieves all matches for a tournament
@@ -218,12 +223,7 @@ func (s *TournamentServer) GetMatch(ctx context.Context, req *serviceextension.G
 	return s.MatchService.GetMatch(ctx, req)
 }
 
-// SubmitMatchResult submits a match result (game server)
-func (s *TournamentServer) SubmitMatchResult(ctx context.Context, req *serviceextension.SubmitMatchResultRequest) (*serviceextension.SubmitMatchResultResponse, error) {
+// AdminSubmitMatchResult submits a match result (admin only)
+func (s *TournamentServer) AdminSubmitMatchResult(ctx context.Context, req *serviceextension.SubmitMatchResultRequest) (*serviceextension.SubmitMatchResultResponse, error) {
 	return s.MatchService.SubmitMatchResult(ctx, req)
-}
-
-// AdminSubmitMatchResult submits a match result (admin override)
-func (s *TournamentServer) AdminSubmitMatchResult(ctx context.Context, req *serviceextension.AdminSubmitMatchResultRequest) (*serviceextension.AdminSubmitMatchResultResponse, error) {
-	return s.MatchService.AdminSubmitMatchResult(ctx, req)
 }

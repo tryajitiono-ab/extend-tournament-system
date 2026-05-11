@@ -94,10 +94,6 @@ func (t *TournamentAuthInterceptor) CheckTournamentPermission(ctx context.Contex
 		return t.validateToken(ctx, token, resolved, namespace)
 	}
 
-	if serviceHeaders, ok := meta["x-service-token"]; ok && len(serviceHeaders) > 0 {
-		return t.validateServiceToken(ctx, serviceHeaders[0], resolved, namespace)
-	}
-
 	if token := extractTokenFromCookieMetadata(meta); token != "" {
 		return t.validateToken(ctx, token, resolved, namespace)
 	}
@@ -113,70 +109,22 @@ func resolvePermission(p *iam.Permission, namespace string) *iam.Permission {
 	}
 }
 
-// validateToken validates user Bearer token, permissions, and namespace isolation.
+// validateToken validates a user Bearer token against the required permission and namespace.
 func (t *TournamentAuthInterceptor) validateToken(ctx context.Context, token string, requiredPermission *iam.Permission, namespace string) error {
-	err := t.validator.Validate(token, requiredPermission, &namespace, nil)
-	if err != nil {
+	var userID *string
+	if claims, err := parseJWTClaims(token); err == nil {
+		if sub, ok := claims["sub"].(string); ok && sub != "" {
+			userID = &sub
+		}
+	}
+
+	if err := t.validator.Validate(token, requiredPermission, &namespace, userID); err != nil {
 		t.logger.Warn("token validation failed", "error", err, "namespace", namespace)
 		return status.Error(codes.PermissionDenied, err.Error())
 	}
 
-	// Enforce namespace isolation: the namespace claim in the JWT must match the
-	// namespace in the request URL. This prevents cross-namespace operations even
-	// when the IAM validator grants broad permissions.
-	claims, err := parseJWTClaims(token)
-	if err == nil {
-		if jwtNamespace, ok := claims["namespace"].(string); ok && jwtNamespace != "" {
-			if !strings.EqualFold(jwtNamespace, namespace) {
-				t.logger.Warn("namespace isolation violation", "jwt_namespace", jwtNamespace, "request_namespace", namespace)
-				return status.Error(codes.PermissionDenied, "namespace mismatch: token namespace does not match request namespace")
-			}
-		}
-	}
-
 	t.logger.Debug("user token validated successfully", "namespace", namespace)
 	return nil
-}
-
-// validateServiceToken validates service token for game server access
-func (t *TournamentAuthInterceptor) validateServiceToken(ctx context.Context, serviceToken string, requiredPermission *iam.Permission, namespace string) error {
-	err := t.validator.Validate(serviceToken, requiredPermission, &namespace, nil)
-	if err != nil {
-		t.logger.Warn("service token validation failed", "error", err, "namespace", namespace)
-		return status.Error(codes.PermissionDenied, err.Error())
-	}
-
-	t.logger.Debug("service token validated successfully", "namespace", namespace)
-	return nil
-}
-
-// CheckServiceTokenPermission validates that the request carries a ServiceToken (x-service-token header).
-// Bearer JWT tokens are explicitly rejected. Use this for game-server-only endpoints such as
-// match result submission.
-func (t *TournamentAuthInterceptor) CheckServiceTokenPermission(ctx context.Context, requiredPermission *iam.Permission, namespace string) error {
-	if t.validator == nil {
-		t.logger.Debug("authentication disabled, skipping service token check")
-		return nil
-	}
-
-	resolved := resolvePermission(requiredPermission, namespace)
-
-	meta, found := metadata.FromIncomingContext(ctx)
-	if !found {
-		return status.Error(codes.Unauthenticated, "metadata is missing")
-	}
-
-	// Only x-service-token is accepted; Bearer JWT tokens are not valid for this endpoint.
-	if serviceHeaders, ok := meta["x-service-token"]; ok && len(serviceHeaders) > 0 {
-		return t.validateServiceToken(ctx, serviceHeaders[0], resolved, namespace)
-	}
-
-	// Reject Bearer tokens explicitly to prevent player tokens from reaching this endpoint.
-	if _, ok := meta["authorization"]; ok {
-		return status.Error(codes.Unauthenticated, "this endpoint requires a ServiceToken; Bearer user JWTs are not accepted")
-	}
-
-	return status.Error(codes.Unauthenticated, "service token is required")
 }
 
 // GetAdminPermission returns a permission for admin-only tournament operations.
@@ -190,12 +138,12 @@ func (t *TournamentAuthInterceptor) GetAdminPermission(operation string) *iam.Pe
 }
 
 // GetPlayerPermission returns a permission for player (non-admin) tournament operations.
-// Resource: NAMESPACE:{namespace}:EXTEND:APPUI
+// Resource: NAMESPACE:{namespace}:EXTEND:TOURNAMENT — requires user role override in the AccelByte console.
 // Actions (bitmask): CREATE=1, READ=2, UPDATE=4, DELETE=8
 func (t *TournamentAuthInterceptor) GetPlayerPermission(operation string) *iam.Permission {
 	return &iam.Permission{
 		Action:   actionBitmask(operation),
-		Resource: "NAMESPACE:{namespace}:EXTEND:APPUI",
+		Resource: "NAMESPACE:{namespace}:EXTEND:TOURNAMENT",
 	}
 }
 
@@ -211,7 +159,7 @@ func actionBitmask(operation string) int {
 	case "DELETE":
 		return 8
 	default:
-		return 1
+		panic("invalid operation")
 	}
 }
 
@@ -276,12 +224,14 @@ func (t *TournamentAuthInterceptor) permissionForMethod(fullMethod string) *iam.
 	methodName := parts[len(parts)-1]
 	switch methodName {
 	// Admin-only operations
-	case "CreateTournament":
+	case "AdminCreateTournament":
 		return t.GetAdminPermission("CREATE")
-	case "UpdateTournament", "StartTournament", "CancelTournament", "ActivateTournament", "CompleteTournament", "AdminSubmitMatchResult":
+	case "AdminStartTournament", "AdminCancelTournament", "AdminActivateTournament", "AdminSubmitMatchResult":
 		return t.GetAdminPermission("UPDATE")
-	case "DeleteTournament", "RemoveParticipant":
+	case "AdminRemoveParticipant":
 		return t.GetAdminPermission("DELETE")
+	case "AdminListTournaments", "AdminGetTournament":
+		return t.GetAdminPermission("READ")
 	// Player operations
 	case "GetTournament", "ListTournaments", "GetTournamentParticipants", "GetTournamentMatches", "GetMatch":
 		return t.GetPlayerPermission("READ")

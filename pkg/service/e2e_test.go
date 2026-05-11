@@ -143,7 +143,7 @@ func (s *inMemTournamentStorage) CreateTournament(_ context.Context, _ string, t
 	return t, nil
 }
 
-func (s *inMemTournamentStorage) ListTournaments(context.Context, string, int32, int32, serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error) {
+func (s *inMemTournamentStorage) ListTournaments(context.Context, string, int32, int32, []serviceextension.TournamentStatus) ([]*serviceextension.Tournament, int32, error) {
 	return nil, 0, nil
 }
 

@@ -35,7 +35,7 @@ var (
 	_ = metadata.Join
 )
 
-func request_TournamentService_CreateTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_TournamentService_AdminCreateTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq CreateTournamentRequest
 		metadata runtime.ServerMetadata
@@ -55,11 +55,11 @@ func request_TournamentService_CreateTournament_0(ctx context.Context, marshaler
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
-	msg, err := client.CreateTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AdminCreateTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_TournamentService_CreateTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_TournamentService_AdminCreateTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq CreateTournamentRequest
 		metadata runtime.ServerMetadata
@@ -76,7 +76,7 @@ func local_request_TournamentService_CreateTournament_0(ctx context.Context, mar
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
 	}
-	msg, err := server.CreateTournament(ctx, &protoReq)
+	msg, err := server.AdminCreateTournament(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -130,6 +130,59 @@ func local_request_TournamentService_ListTournaments_0(ctx context.Context, mars
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
 	}
 	msg, err := server.ListTournaments(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+var filter_TournamentService_AdminListTournaments_0 = &utilities.DoubleArray{Encoding: map[string]int{"namespace": 0}, Base: []int{1, 1, 0}, Check: []int{0, 1, 2}}
+
+func request_TournamentService_AdminListTournaments_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListTournamentsRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_TournamentService_AdminListTournaments_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := client.AdminListTournaments(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_TournamentService_AdminListTournaments_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq ListTournamentsRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_TournamentService_AdminListTournaments_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	msg, err := server.AdminListTournaments(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -188,7 +241,62 @@ func local_request_TournamentService_GetTournament_0(ctx context.Context, marsha
 	return msg, metadata, err
 }
 
-func request_TournamentService_ActivateTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_TournamentService_AdminGetTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetTournamentRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	if req.Body != nil {
+		_, _ = io.Copy(io.Discard, req.Body)
+	}
+	val, ok := pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+	val, ok = pathParams["tournament_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tournament_id")
+	}
+	protoReq.TournamentId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
+	}
+	msg, err := client.AdminGetTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+}
+
+func local_request_TournamentService_AdminGetTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var (
+		protoReq GetTournamentRequest
+		metadata runtime.ServerMetadata
+		err      error
+	)
+	val, ok := pathParams["namespace"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
+	}
+	protoReq.Namespace, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
+	}
+	val, ok = pathParams["tournament_id"]
+	if !ok {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tournament_id")
+	}
+	protoReq.TournamentId, err = runtime.String(val)
+	if err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
+	}
+	msg, err := server.AdminGetTournament(ctx, &protoReq)
+	return msg, metadata, err
+}
+
+func request_TournamentService_AdminActivateTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ActivateTournamentRequest
 		metadata runtime.ServerMetadata
@@ -216,11 +324,11 @@ func request_TournamentService_ActivateTournament_0(ctx context.Context, marshal
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
 	}
-	msg, err := client.ActivateTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AdminActivateTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_TournamentService_ActivateTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_TournamentService_AdminActivateTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq ActivateTournamentRequest
 		metadata runtime.ServerMetadata
@@ -245,11 +353,11 @@ func local_request_TournamentService_ActivateTournament_0(ctx context.Context, m
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
 	}
-	msg, err := server.ActivateTournament(ctx, &protoReq)
+	msg, err := server.AdminActivateTournament(ctx, &protoReq)
 	return msg, metadata, err
 }
 
-func request_TournamentService_StartTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_TournamentService_AdminStartTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq StartTournamentRequest
 		metadata runtime.ServerMetadata
@@ -277,11 +385,11 @@ func request_TournamentService_StartTournament_0(ctx context.Context, marshaler 
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
 	}
-	msg, err := client.StartTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AdminStartTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_TournamentService_StartTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_TournamentService_AdminStartTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq StartTournamentRequest
 		metadata runtime.ServerMetadata
@@ -306,11 +414,11 @@ func local_request_TournamentService_StartTournament_0(ctx context.Context, mars
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
 	}
-	msg, err := server.StartTournament(ctx, &protoReq)
+	msg, err := server.AdminStartTournament(ctx, &protoReq)
 	return msg, metadata, err
 }
 
-func request_TournamentService_CancelTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_TournamentService_AdminCancelTournament_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq CancelTournamentRequest
 		metadata runtime.ServerMetadata
@@ -338,11 +446,11 @@ func request_TournamentService_CancelTournament_0(ctx context.Context, marshaler
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
 	}
-	msg, err := client.CancelTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AdminCancelTournament(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_TournamentService_CancelTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_TournamentService_AdminCancelTournament_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq CancelTournamentRequest
 		metadata runtime.ServerMetadata
@@ -367,7 +475,7 @@ func local_request_TournamentService_CancelTournament_0(ctx context.Context, mar
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
 	}
-	msg, err := server.CancelTournament(ctx, &protoReq)
+	msg, err := server.AdminCancelTournament(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -501,7 +609,7 @@ func local_request_TournamentService_GetTournamentParticipants_0(ctx context.Con
 	return msg, metadata, err
 }
 
-func request_TournamentService_RemoveParticipant_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func request_TournamentService_AdminRemoveParticipant_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq RemoveParticipantRequest
 		metadata runtime.ServerMetadata
@@ -534,11 +642,11 @@ func request_TournamentService_RemoveParticipant_0(ctx context.Context, marshale
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
 	}
-	msg, err := client.RemoveParticipant(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	msg, err := client.AdminRemoveParticipant(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
 	return msg, metadata, err
 }
 
-func local_request_TournamentService_RemoveParticipant_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+func local_request_TournamentService_AdminRemoveParticipant_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
 		protoReq RemoveParticipantRequest
 		metadata runtime.ServerMetadata
@@ -568,7 +676,7 @@ func local_request_TournamentService_RemoveParticipant_0(ctx context.Context, ma
 	if err != nil {
 		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
 	}
-	msg, err := server.RemoveParticipant(ctx, &protoReq)
+	msg, err := server.AdminRemoveParticipant(ctx, &protoReq)
 	return msg, metadata, err
 }
 
@@ -712,86 +820,9 @@ func local_request_TournamentService_GetMatch_0(ctx context.Context, marshaler r
 	return msg, metadata, err
 }
 
-func request_TournamentService_SubmitMatchResult_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq SubmitMatchResultRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	if req.Body != nil {
-		_, _ = io.Copy(io.Discard, req.Body)
-	}
-	val, ok := pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
-	}
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-	val, ok = pathParams["tournament_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tournament_id")
-	}
-	protoReq.TournamentId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
-	}
-	val, ok = pathParams["match_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "match_id")
-	}
-	protoReq.MatchId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "match_id", err)
-	}
-	msg, err := client.SubmitMatchResult(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
-	return msg, metadata, err
-}
-
-func local_request_TournamentService_SubmitMatchResult_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
-	var (
-		protoReq SubmitMatchResultRequest
-		metadata runtime.ServerMetadata
-		err      error
-	)
-	if err := marshaler.NewDecoder(req.Body).Decode(&protoReq); err != nil && !errors.Is(err, io.EOF) {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
-	}
-	val, ok := pathParams["namespace"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "namespace")
-	}
-	protoReq.Namespace, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "namespace", err)
-	}
-	val, ok = pathParams["tournament_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "tournament_id")
-	}
-	protoReq.TournamentId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "tournament_id", err)
-	}
-	val, ok = pathParams["match_id"]
-	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "match_id")
-	}
-	protoReq.MatchId, err = runtime.String(val)
-	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "match_id", err)
-	}
-	msg, err := server.SubmitMatchResult(ctx, &protoReq)
-	return msg, metadata, err
-}
-
 func request_TournamentService_AdminSubmitMatchResult_0(ctx context.Context, marshaler runtime.Marshaler, client TournamentServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq AdminSubmitMatchResultRequest
+		protoReq SubmitMatchResultRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -831,7 +862,7 @@ func request_TournamentService_AdminSubmitMatchResult_0(ctx context.Context, mar
 
 func local_request_TournamentService_AdminSubmitMatchResult_0(ctx context.Context, marshaler runtime.Marshaler, server TournamentServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
 	var (
-		protoReq AdminSubmitMatchResultRequest
+		protoReq SubmitMatchResultRequest
 		metadata runtime.ServerMetadata
 		err      error
 	)
@@ -872,25 +903,25 @@ func local_request_TournamentService_AdminSubmitMatchResult_0(ctx context.Contex
 // Note that using this registration option will cause many gRPC library features to stop working. Consider using RegisterTournamentServiceHandlerFromEndpoint instead.
 // GRPC interceptors will not work for this type of registration. To use interceptors, you must use the "runtime.WithMiddlewares" option in the "runtime.NewServeMux" call.
 func RegisterTournamentServiceHandlerServer(ctx context.Context, mux *runtime.ServeMux, server TournamentServiceServer) error {
-	mux.Handle(http.MethodPost, pattern_TournamentService_CreateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminCreateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/CreateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminCreateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TournamentService_CreateTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TournamentService_AdminCreateTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_CreateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminCreateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodGet, pattern_TournamentService_ListTournaments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -912,6 +943,26 @@ func RegisterTournamentServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_ListTournaments_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_TournamentService_AdminListTournaments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminListTournaments", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_TournamentService_AdminListTournaments_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TournamentService_AdminListTournaments_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_TournamentService_GetTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -932,65 +983,85 @@ func RegisterTournamentServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_GetTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_ActivateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_TournamentService_AdminGetTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/ActivateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminGetTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TournamentService_ActivateTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TournamentService_AdminGetTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_ActivateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminGetTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_StartTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminActivateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/StartTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminActivateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TournamentService_StartTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TournamentService_AdminActivateTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_StartTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminActivateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_CancelTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminStartTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/CancelTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminStartTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TournamentService_CancelTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TournamentService_AdminStartTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_CancelTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminStartTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminCancelTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminCancelTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_TournamentService_AdminCancelTournament_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TournamentService_AdminCancelTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_TournamentService_RegisterForTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1032,25 +1103,25 @@ func RegisterTournamentServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_GetTournamentParticipants_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodDelete, pattern_TournamentService_RemoveParticipant_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodDelete, pattern_TournamentService_AdminRemoveParticipant_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/RemoveParticipant", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminRemoveParticipant", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := local_request_TournamentService_RemoveParticipant_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		resp, md, err := local_request_TournamentService_AdminRemoveParticipant_0(annotatedContext, inboundMarshaler, server, req, pathParams)
 		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_RemoveParticipant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminRemoveParticipant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodGet, pattern_TournamentService_GetTournamentMatches_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1092,33 +1163,13 @@ func RegisterTournamentServiceHandlerServer(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_GetMatch_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_SubmitMatchResult_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		var stream runtime.ServerTransportStream
-		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/SubmitMatchResult", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := local_request_TournamentService_SubmitMatchResult_0(annotatedContext, inboundMarshaler, server, req, pathParams)
-		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_TournamentService_SubmitMatchResult_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	mux.Handle(http.MethodPost, pattern_TournamentService_AdminSubmitMatchResult_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		var stream runtime.ServerTransportStream
 		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminSubmitMatchResult", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result/admin"))
+		annotatedContext, err := runtime.AnnotateIncomingContext(ctx, mux, req, "/tournament.TournamentService/AdminSubmitMatchResult", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1172,22 +1223,22 @@ func RegisterTournamentServiceHandler(ctx context.Context, mux *runtime.ServeMux
 // doesn't go through the normal gRPC flow (creating a gRPC client etc.) then it will be up to the passed in
 // "TournamentServiceClient" to call the correct interceptors. This client ignores the HTTP middlewares.
 func RegisterTournamentServiceHandlerClient(ctx context.Context, mux *runtime.ServeMux, client TournamentServiceClient) error {
-	mux.Handle(http.MethodPost, pattern_TournamentService_CreateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminCreateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/CreateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminCreateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TournamentService_CreateTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_TournamentService_AdminCreateTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_CreateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminCreateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodGet, pattern_TournamentService_ListTournaments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1206,6 +1257,23 @@ func RegisterTournamentServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_ListTournaments_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
+	mux.Handle(http.MethodGet, pattern_TournamentService_AdminListTournaments_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminListTournaments", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_TournamentService_AdminListTournaments_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TournamentService_AdminListTournaments_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
 	mux.Handle(http.MethodGet, pattern_TournamentService_GetTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
@@ -1223,56 +1291,73 @@ func RegisterTournamentServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_GetTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_ActivateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodGet, pattern_TournamentService_AdminGetTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/ActivateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminGetTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TournamentService_ActivateTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_TournamentService_AdminGetTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_ActivateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminGetTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_StartTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminActivateTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/StartTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminActivateTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/activate"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TournamentService_StartTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_TournamentService_AdminActivateTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_StartTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminActivateTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_CancelTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminStartTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/CancelTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminStartTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/start"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TournamentService_CancelTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_TournamentService_AdminStartTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_CancelTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminStartTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+	})
+	mux.Handle(http.MethodPost, pattern_TournamentService_AdminCancelTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminCancelTournament", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/cancel"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_TournamentService_AdminCancelTournament_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		forward_TournamentService_AdminCancelTournament_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodPost, pattern_TournamentService_RegisterForTournament_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1308,22 +1393,22 @@ func RegisterTournamentServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_GetTournamentParticipants_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodDelete, pattern_TournamentService_RemoveParticipant_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+	mux.Handle(http.MethodDelete, pattern_TournamentService_AdminRemoveParticipant_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/RemoveParticipant", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminRemoveParticipant", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/participants/{user_id}"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		resp, md, err := request_TournamentService_RemoveParticipant_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		resp, md, err := request_TournamentService_AdminRemoveParticipant_0(annotatedContext, inboundMarshaler, client, req, pathParams)
 		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
 		if err != nil {
 			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
 			return
 		}
-		forward_TournamentService_RemoveParticipant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+		forward_TournamentService_AdminRemoveParticipant_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
 	mux.Handle(http.MethodGet, pattern_TournamentService_GetTournamentMatches_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
@@ -1359,28 +1444,11 @@ func RegisterTournamentServiceHandlerClient(ctx context.Context, mux *runtime.Se
 		}
 		forward_TournamentService_GetMatch_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 	})
-	mux.Handle(http.MethodPost, pattern_TournamentService_SubmitMatchResult_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
-		ctx, cancel := context.WithCancel(req.Context())
-		defer cancel()
-		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/SubmitMatchResult", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result"))
-		if err != nil {
-			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		resp, md, err := request_TournamentService_SubmitMatchResult_0(annotatedContext, inboundMarshaler, client, req, pathParams)
-		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
-		if err != nil {
-			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
-			return
-		}
-		forward_TournamentService_SubmitMatchResult_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
-	})
 	mux.Handle(http.MethodPost, pattern_TournamentService_AdminSubmitMatchResult_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
 		ctx, cancel := context.WithCancel(req.Context())
 		defer cancel()
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
-		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminSubmitMatchResult", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result/admin"))
+		annotatedContext, err := runtime.AnnotateContext(ctx, mux, req, "/tournament.TournamentService/AdminSubmitMatchResult", runtime.WithHTTPPathPattern("/v1/admin/namespace/{namespace}/tournaments/{tournament_id}/matches/{match_id}/result"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -1397,33 +1465,35 @@ func RegisterTournamentServiceHandlerClient(ctx context.Context, mux *runtime.Se
 }
 
 var (
-	pattern_TournamentService_CreateTournament_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "admin", "namespace", "tournaments"}, ""))
+	pattern_TournamentService_AdminCreateTournament_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "admin", "namespace", "tournaments"}, ""))
 	pattern_TournamentService_ListTournaments_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "public", "namespace", "tournaments"}, ""))
+	pattern_TournamentService_AdminListTournaments_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1", "admin", "namespace", "tournaments"}, ""))
 	pattern_TournamentService_GetTournament_0             = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "public", "namespace", "tournaments", "tournament_id"}, ""))
-	pattern_TournamentService_ActivateTournament_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "activate"}, ""))
-	pattern_TournamentService_StartTournament_0           = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "start"}, ""))
-	pattern_TournamentService_CancelTournament_0          = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "cancel"}, ""))
+	pattern_TournamentService_AdminGetTournament_0        = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id"}, ""))
+	pattern_TournamentService_AdminActivateTournament_0   = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "activate"}, ""))
+	pattern_TournamentService_AdminStartTournament_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "start"}, ""))
+	pattern_TournamentService_AdminCancelTournament_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "cancel"}, ""))
 	pattern_TournamentService_RegisterForTournament_0     = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "public", "namespace", "tournaments", "tournament_id", "register"}, ""))
 	pattern_TournamentService_GetTournamentParticipants_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "public", "namespace", "tournaments", "tournament_id", "participants"}, ""))
-	pattern_TournamentService_RemoveParticipant_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "participants", "user_id"}, ""))
+	pattern_TournamentService_AdminRemoveParticipant_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "participants", "user_id"}, ""))
 	pattern_TournamentService_GetTournamentMatches_0      = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5}, []string{"v1", "public", "namespace", "tournaments", "tournament_id", "matches"}, ""))
 	pattern_TournamentService_GetMatch_0                  = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6}, []string{"v1", "public", "namespace", "tournaments", "tournament_id", "matches", "match_id"}, ""))
-	pattern_TournamentService_SubmitMatchResult_0         = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "matches", "match_id", "result"}, ""))
-	pattern_TournamentService_AdminSubmitMatchResult_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7, 2, 1}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "matches", "match_id", "result"}, ""))
+	pattern_TournamentService_AdminSubmitMatchResult_0    = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2, 1, 0, 4, 1, 5, 2, 2, 3, 1, 0, 4, 1, 5, 4, 2, 5, 1, 0, 4, 1, 5, 6, 2, 7}, []string{"v1", "admin", "namespace", "tournaments", "tournament_id", "matches", "match_id", "result"}, ""))
 )
 
 var (
-	forward_TournamentService_CreateTournament_0          = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminCreateTournament_0     = runtime.ForwardResponseMessage
 	forward_TournamentService_ListTournaments_0           = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminListTournaments_0      = runtime.ForwardResponseMessage
 	forward_TournamentService_GetTournament_0             = runtime.ForwardResponseMessage
-	forward_TournamentService_ActivateTournament_0        = runtime.ForwardResponseMessage
-	forward_TournamentService_StartTournament_0           = runtime.ForwardResponseMessage
-	forward_TournamentService_CancelTournament_0          = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminGetTournament_0        = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminActivateTournament_0   = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminStartTournament_0      = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminCancelTournament_0     = runtime.ForwardResponseMessage
 	forward_TournamentService_RegisterForTournament_0     = runtime.ForwardResponseMessage
 	forward_TournamentService_GetTournamentParticipants_0 = runtime.ForwardResponseMessage
-	forward_TournamentService_RemoveParticipant_0         = runtime.ForwardResponseMessage
+	forward_TournamentService_AdminRemoveParticipant_0    = runtime.ForwardResponseMessage
 	forward_TournamentService_GetTournamentMatches_0      = runtime.ForwardResponseMessage
 	forward_TournamentService_GetMatch_0                  = runtime.ForwardResponseMessage
-	forward_TournamentService_SubmitMatchResult_0         = runtime.ForwardResponseMessage
 	forward_TournamentService_AdminSubmitMatchResult_0    = runtime.ForwardResponseMessage
 )

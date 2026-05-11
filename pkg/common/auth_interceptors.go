@@ -110,6 +110,13 @@ func resolvePermission(p *iam.Permission, namespace string) *iam.Permission {
 }
 
 // validateToken validates a user Bearer token against the required permission and namespace.
+//
+// Namespace authorisation is delegated to IAM: the `{namespace}` placeholder in the permission
+// resource is resolved (see resolvePermission) and IAM checks whether the token's permission
+// grants cover that resolved resource. This is what lets a publisher-namespace token act on a
+// child game namespace — IAM walks the namespace hierarchy when evaluating permissions, so a
+// strict JWT-namespace-claim == path-namespace comparison would over-block legitimate flows in
+// Private and Shared Cloud and is intentionally NOT performed here.
 func (t *TournamentAuthInterceptor) validateToken(ctx context.Context, token string, requiredPermission *iam.Permission, namespace string) error {
 	var userID *string
 	if claims, err := parseJWTClaims(token); err == nil {

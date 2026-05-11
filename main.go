@@ -359,14 +359,11 @@ func main() {
 func newGRPCGatewayHTTPServer(
 	addr string, handler http.Handler, logger *slog.Logger, swaggerDir string,
 ) *http.Server {
-	// Create a new ServeMux
 	mux := http.NewServeMux()
 
-	// Serve static files
 	staticFiles, _ := fs.Sub(staticFS, "web/static")
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
 
-	// Serve tournaments page
 	mux.HandleFunc("/tournaments", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		tmplContent, err := templatesFS.ReadFile("web/templates/tournaments.html")
@@ -374,10 +371,9 @@ func newGRPCGatewayHTTPServer(
 			http.Error(w, "Template not found", http.StatusInternalServerError)
 			return
 		}
-		w.Write(tmplContent)
+		_, _ = w.Write(tmplContent)
 	})
 
-	// Serve tournament detail page
 	mux.HandleFunc("/tournament", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		tmplContent, err := templatesFS.ReadFile("web/templates/tournament-detail.html")
@@ -385,23 +381,37 @@ func newGRPCGatewayHTTPServer(
 			http.Error(w, "Template not found", http.StatusInternalServerError)
 			return
 		}
-		w.Write(tmplContent)
+		_, _ = w.Write(tmplContent)
 	})
 
-	// Add the gRPC-Gateway handler
-	mux.Handle("/", handler)
+	// Wrap the gRPC-Gateway handler with the HTTP-layer auth gate.
+	// `RegisterTournamentServiceHandlerServer` bypasses gRPC interceptors, so
+	// this middleware is the only thing that runs before service handlers when
+	// requests come in via REST. It rejects missing/malformed/invalid Bearer
+	// tokens, enforces JWT namespace == path namespace, and locks the match-result
+	// endpoint to ServiceTokens.
+	//
+	// Trust-header stripping is always on (defence in depth, no UX cost). Bearer
+	// enforcement follows PLUGIN_GRPC_SERVER_AUTH_ENABLED so the local dev /
+	// integration-test flow without IAM still works.
+	gatewayHandler := http.Handler(handler)
+	if strings.ToLower(common.GetEnv("PLUGIN_GRPC_SERVER_AUTH_ENABLED", "true")) == "true" {
+		gatewayHandler = common.RequireBearerAuth(basePath, logger, common.Validator)(gatewayHandler)
+	} else {
+		logger.Warn("HTTP auth gate disabled (PLUGIN_GRPC_SERVER_AUTH_ENABLED=false) — DO NOT use this configuration in production")
+	}
+	authedGateway := common.StripTrustHeaders(gatewayHandler)
+	mux.Handle("/", authedGateway)
 
-	// Serve Swagger UI and JSON
 	serveSwaggerUI(mux)
 	serveSwaggerJSON(mux, swaggerDir)
 
-	// Add logging middleware
 	loggedMux := loggingMiddleware(logger, mux)
 
 	return &http.Server{
 		Addr:     addr,
 		Handler:  loggedMux,
-		ErrorLog: log.New(os.Stderr, "httpSrv: ", log.LstdFlags), // Configure the logger for the HTTP server
+		ErrorLog: log.New(os.Stderr, "httpSrv: ", log.LstdFlags),
 	}
 }
 

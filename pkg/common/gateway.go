@@ -8,6 +8,7 @@ import (
 	"context"
 	"log/slog"
 	"net/http"
+	"strings"
 
 	"google.golang.org/grpc/credentials/insecure"
 
@@ -22,21 +23,40 @@ type Gateway struct {
 	basePath string
 }
 
+// blockedMetadataHeaders are HTTP headers that must NEVER be forwarded to the
+// gRPC handler as metadata, because their presence could be misinterpreted as
+// an authentication or authorisation signal. Defence in depth on top of
+// StripTrustHeaders in the HTTP layer.
+var blockedMetadataHeaders = map[string]struct{}{
+	"x-is-admin":       {},
+	"x-user-id":        {},
+	"x-user-role":      {},
+	"x-admin":          {},
+	"x-auth-user":      {},
+	"x-forwarded-user": {},
+	"x-remote-user":    {},
+	"x-username":       {},
+}
+
+// incomingHeaderMatcher is the IncomingHeaderMatcher for grpc-gateway. It drops
+// trust headers entirely and otherwise behaves like the previous wildcard
+// matcher so all benign headers continue to reach the gRPC handler as metadata.
+func incomingHeaderMatcher(key string) (string, bool) {
+	if _, blocked := blockedMetadataHeaders[strings.ToLower(key)]; blocked {
+		return "", false
+	}
+	return key, true
+}
+
 // NewGateway creates a new gateway with client-based registration (connects to gRPC server via network)
 func NewGateway(ctx context.Context, grpcServerEndpoint string, basePath string) (*Gateway, error) {
-	// Custom error handler to log gRPC errors
 	errorHandler := func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
 		slog.Error("gRPC-Gateway error", "error", err, "path", r.URL.Path, "method", r.Method)
 		runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, r, err)
 	}
 
-	// Configure gateway to forward all headers to gRPC metadata.
-	// Trust-header enforcement (x-is-admin, x-user-id, etc.) is done at the service layer —
-	// those headers are present in metadata but the auth code never reads them for decisions.
 	mux := runtime.NewServeMux(
-		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-			return key, true
-		}),
+		runtime.WithIncomingHeaderMatcher(incomingHeaderMatcher),
 		runtime.WithErrorHandler(errorHandler),
 	)
 
@@ -54,23 +74,16 @@ func NewGateway(ctx context.Context, grpcServerEndpoint string, basePath string)
 
 // NewGatewayWithServer creates a new gateway with direct server registration (no network connection needed)
 func NewGatewayWithServer(ctx context.Context, server pb.TournamentServiceServer, basePath string) (*Gateway, error) {
-	// Custom error handler to log gRPC errors
 	errorHandler := func(ctx context.Context, mux *runtime.ServeMux, marshaler runtime.Marshaler, w http.ResponseWriter, r *http.Request, err error) {
 		slog.Error("gRPC-Gateway error", "error", err, "path", r.URL.Path, "method", r.Method)
 		runtime.DefaultHTTPErrorHandler(ctx, mux, marshaler, w, r, err)
 	}
 
-	// Configure gateway to forward all headers to gRPC metadata.
-	// Trust-header enforcement (x-is-admin, x-user-id, etc.) is done at the service layer —
-	// those headers are present in metadata but the auth code never reads them for decisions.
 	mux := runtime.NewServeMux(
-		runtime.WithIncomingHeaderMatcher(func(key string) (string, bool) {
-			return key, true
-		}),
+		runtime.WithIncomingHeaderMatcher(incomingHeaderMatcher),
 		runtime.WithErrorHandler(errorHandler),
 	)
 
-	// Register the server directly (no network connection needed)
 	err := pb.RegisterTournamentServiceHandlerServer(ctx, mux, server)
 	if err != nil {
 		return nil, err
